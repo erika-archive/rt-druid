@@ -26,7 +26,7 @@ public class CortexConstants {
 	 * CORTEX M0 preferences
 	 *  
 	 **************************************************************************/
-	public final static String PREF_CORTEXM0_CC_PATH = "preference_cortex_m0__path_for_gcc_compiler";
+	public final static String PREF_CORTEXM0_CC_PATH = "preference_cortex_m0__path_for_cc_compiler";
 
 
 	/***************************************************************************

@@ -42,7 +42,7 @@ public class CortexConfigurator extends AbstractPage {
 		Composite composite_tab = createComposite(parent, 3);
 		composite_tab.setLayoutData(new GridData(GridData.FILL_BOTH | GridData.GRAB_HORIZONTAL));
 
-		createLabel(composite_tab, "Gcc path", 1); //$NON-NLS-1$
+		createLabel(composite_tab, "Compiler path", 1); //$NON-NLS-1$
 		paramGcc = createTextField(composite_tab); //$NON-NLS-1$
 		Button gccButton = createPushButton(composite_tab, "Browse"); //$NON-NLS-1$
 		gccButton.addSelectionListener(new SelectionListener() {
