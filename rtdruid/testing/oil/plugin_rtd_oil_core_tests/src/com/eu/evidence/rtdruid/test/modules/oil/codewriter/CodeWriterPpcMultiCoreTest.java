@@ -204,4 +204,97 @@ public class CodeWriterPpcMultiCoreTest extends AbstractCodeWriterTest {
 	   DefaultTestResult res = commonWriterTest(text, 2);
 	    System.out.println(Vt2StringUtilities.explodeOilVar(Vt2StringUtilities.varTreeToStringErtd(res.vt)));
 	}
+	
+	public void testIrqNested() {
+	    final String text = 	
+	    		"CPU test_application {\n"+
+	    				"\n"+
+	    				"	OS EE {\n"+
+	    				"\n"+
+	    				"		EE_OPT = \"DEBUG\";\n"+
+	    				"		EE_OPT = \"DEBUG_STACK\";\n"+
+	    				"		EE_OPT = \"__ASSERT__\";\n"+
+	    				"		EE_OPT = \"__E200ZX_EXECUTE_FROM_RAM__\";\n"+
+	    				"		//EE_OPT = \"__CODEWARRIOR__\";\n"+
+	    				"\n"+
+	    				"		CFLAGS = \"\";\n"+
+	    				"		ASFLAGS = \"\";\n"+
+	    				"		LDFLAGS = \"\"; \n"+
+	    				"\n"+
+	    				"		MASTER_CPU = \"master\";\n"+
+	    				"\n"+
+	    				"		CPU_DATA = PPCE200ZX {\n"+
+	    				"			MODEL = E200Z6;\n"+
+	    				"			ID = \"master\";\n"+
+	    				"			APP_SRC = \"master.c\";\n"+
+	    				"			MULTI_STACK = TRUE {\n"+
+	    				"				IRQ_STACK = TRUE {\n"+
+	    				"					SYS_SIZE=512;\n"+
+	    				"				};\n"+
+	    				"			};\n"+
+	    				"			VLE = TRUE;\n"+
+	    				"			SYS_STACK_SIZE = 4096;\n"+
+	    				"		};\n"+
+	    				"\n"+
+	    				"		CPU_DATA = PPCE200ZX {\n"+
+	    				"			MODEL = E200Z0;\n"+
+	    				"			ID = \"slave\";\n"+
+	    				"			APP_SRC = \"slave.c\";\n"+
+	    				"			MULTI_STACK = TRUE {\n"+
+	    				"				IRQ_STACK = TRUE {\n"+
+	    				"					SYS_SIZE=512;\n"+
+	    				"				};\n"+
+	    				"			};\n"+
+	    				"			VLE = TRUE;\n"+
+	    				"			SYS_STACK_SIZE = 4096;\n"+
+	    				"		};\n"+
+	    				"\n"+
+	    				"		MCU_DATA = PPCE200ZX {\n"+
+	    				"			MODEL = MPC5668G;\n"+
+	    				"		};\n"+
+	    				"\n"+
+	    				"		STATUS = EXTENDED;\n"+
+	    				"		STARTUPHOOK = FALSE;\n"+
+	    				"		ERRORHOOK = FALSE;\n"+
+	    				"		SHUTDOWNHOOK = FALSE;\n"+
+	    				"		PRETASKHOOK = FALSE;\n"+
+	    				"		POSTTASKHOOK = FALSE;\n"+
+	    				"		USEGETSERVICEID = FALSE;\n"+
+	    				"		USEPARAMETERACCESS = FALSE;\n"+
+	    				"		USERESSCHEDULER = FALSE;\n"+
+	    				"\n"+
+	    				"		USEREMOTETASK = ALWAYS;\n"+
+	    				"\n"+
+	    				"		KERNEL_TYPE = FP {\n"+
+	    				"			NESTED_IRQ = TRUE;\n"+
+	    				"		};\n"+
+	    				"\n"+
+	    				"	};\n"+
+	    				"\n"+
+	    				"	/* this is the OIL part for the first task */\n"+
+	    				"	TASK TaskMaster {\n"+
+	    				"		CPU_ID = \"master\";\n"+
+	    				"		PRIORITY = 0x01;\n"+
+	    				"		AUTOSTART = FALSE;\n"+
+	    				"		STACK = PRIVATE {\n"+
+	    				"			SYS_SIZE = 512;\n"+
+	    				"		};\n"+
+	    				"		ACTIVATION = 1;\n"+
+	    				"	};\n"+
+	    				"\n"+
+	    				"	/* this is the OIL part for the first task */\n"+
+	    				"	TASK Task1 {\n"+
+	    				"		CPU_ID = \"slave\";\n"+
+	    				"		PRIORITY = 0x01;\n"+
+	    				"		AUTOSTART = FALSE;\n"+
+	    				"		STACK = PRIVATE {\n"+
+	    				"			SYS_SIZE = 512;\n"+
+	    				"		};\n"+
+	    				"		ACTIVATION = 1;\n"+
+	    				"	};\n"+
+	    				"\n"+
+	    				"};\n";
+	   DefaultTestResult res = commonWriterTest(text, 2);
+	    System.out.println(Vt2StringUtilities.explodeOilVar(Vt2StringUtilities.varTreeToStringErtd(res.vt)));
+	}
 }
