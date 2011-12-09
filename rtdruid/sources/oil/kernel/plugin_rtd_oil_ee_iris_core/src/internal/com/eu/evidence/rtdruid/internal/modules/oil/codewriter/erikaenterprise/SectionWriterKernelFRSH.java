@@ -537,7 +537,7 @@ public class SectionWriterKernelFRSH extends SectionWriter implements
 				+ indent1 + "};\n\n");
 //				+ indent1 + "EE_UINT32 EE_terminate_data["+MAX_TASK+"];\n\n"
 //				+ indent1 + commentWriterC.writerSingleLineComment("ip of each thread body (ROM)) // */\n"
-//				+ indent1 + "const EE_ADDR EE_terminate_real_th_body["+MAX_TASK+"] = {\n"
+//				+ indent1 + "const EE_FADDR EE_terminate_real_th_body["+MAX_TASK+"] = {\n"
 //				+ sbThread.toString() + "\n"
 //				+ indent1 + "};\n");
 		

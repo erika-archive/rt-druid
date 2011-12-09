@@ -74,7 +74,9 @@ public interface IWritersKeywords {
 	public final static String CPU_MICO_32 = "LM32";
 
 	/** Identifies a S12 architecture (one or more cpu?) */
-	public final static String CPU_S12 = "MC9S12XS";
+	public final static String CPU_S12 = "MC9S12";
+	/** Identifies a S12 architecture (one or more cpu?) */
+	public final static String CPU_S12_OLD_NAME = "MC9S12XS";
 
 	/** Identifies an AVR 5 architecture (one cpu?) */
 	public final static String CPU_AVR5 = "AVR_5";
