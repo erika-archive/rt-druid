@@ -898,7 +898,7 @@ public class SectionWriterHalS12 extends SectionWriter
 	/*
 	 * Parse and write the MCU Section
 	 */
-	private void checkMcu(ArrayList<String> ee_opts) {
+	private void checkMcu(ArrayList<String> ee_opts) throws OilCodeWriterException {
 
 		final IOilObjectList[] oilObjects = parent.getOilObjects();
 		final int currentRtosId = 0;
@@ -926,20 +926,71 @@ public class SectionWriterHalS12 extends SectionWriter
 			String mcu_type = CommonUtils.getFirstChildEnumType(vt, currentMcuPrefix, child);
 			
 			if (child.length >0 && (S12_MCU.equals(mcu_type) || S12_MCU_OLD_NAME.equals(mcu_type))) {
+				String mcu_model = null;
+				// .. get Model
+				{
+					// ... and compete it 
+					String modelPath = currentMcuPrefix + VARIANT_ELIST + child[0] + PARAMETER_LIST + "MODEL";
+
+					String model_type = CommonUtils.getFirstChildEnumType(vt, modelPath, child);
+					
+					/* CUSTOM */
+					if (CUSTOM_MCU.equals(model_type)) {
+						// read also LINKERSCRIPT, DEV_LIB, INCLUDE_C, INCLUDE_S
+						modelPath += VARIANT_ELIST + child[0] + PARAMETER_LIST;
+						String[] model = CommonUtils.getValue(vt, modelPath+"MODEL");
+						String[] linker = CommonUtils.getValue(vt, modelPath+"LINKERSCRIPT");
+						String[] inc_h  = CommonUtils.getValue(vt, modelPath+"INCLUDE_H");
+						String[] inc_c  = CommonUtils.getValue(vt, modelPath+"INCLUDE_C");
+						String[] inc_s  = CommonUtils.getValue(vt, modelPath+"INCLUDE_S");
+						
+						mcu_properties = new MCU_MODEL(
+								CUSTOM_MCU,
+								clean(model),
+								"__"+clean(model)+"__",
+								clean(linker),
+								clean(inc_h),
+								clean(inc_c),
+								clean(inc_s)
+						);
+						mcu_model = CUSTOM_MCU;
+					} else {
+							/* STANDARD MCU */
+						mcu_properties = STANDARD_MCU_PROPERTIES.get(model_type);
+						if (mcu_properties != null) {
+							mcu_model = model_type;
+						} else {
+							throw new OilCodeWriterException("Unsupported mcu (" + model_type+")");
+						}
+					}
+				}
+				
+				
 				
 				// .. get options
 				{
 					String optPath = currentMcuPrefix + VARIANT_ELIST + child[0] + PARAMETER_LIST;
 					String[] names = new String[] {"SERIAL", "TIMER"};
-					String[] eeopt = new String[] {"__USE_SCI__", "__USE_PIT__"};
+					String[] eeopt;
+					if ("MC9S12G128".equals(mcu_model)) {
+						eeopt = new String[] {"__USE_SCI__", "__USE_TIMER__"};
+					} else if ("MC9S12XS128".equals(mcu_model)) {
+						eeopt = new String[] {"__USE_SCI__", "__USE_TIMER__ __USE_PIT__"};
+					} else {
+						eeopt = new String[] {"__USE_SCI__", "__USE_TIMER__ __USE_PIT__"};
+					}
 					
 					for (int i=0; i<names.length; i++) {
 						String tmp = names[i];
 						
 						String value_type = CommonUtils.getFirstChildEnumType(vt, optPath+tmp, null);
 						
-						if ("TRUE".equals(value_type) && !ee_opts.contains(eeopt[i])) {
-							ee_opts.add(eeopt[i]);
+						if ("TRUE".equals(value_type)) {
+							for (String s: eeopt[i].split(" ")) {
+								if (!ee_opts.contains(s)) {
+									ee_opts.add(s);
+								}
+							}
 						}
 					}
 
