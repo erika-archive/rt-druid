@@ -60,6 +60,7 @@ public interface ISimpleGenResKeywords {
 	 * Isr
 	 **************************************************************************/
 	public final static String ISR_CATEGORY = "category";
+	public final static String ISR_ENTRY = "entry";
 	public final static String ISR_ID = "isr_index";
 	public final static String ISR_OS_APPLICATION_NAME = "isr_mapped_to_an_os_application";
 	

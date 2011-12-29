@@ -10,17 +10,17 @@ import com.eu.evidence.rtdruid.internal.modules.oil.keywords.IWritersKeywords;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.hw.CpuHwDescription;
 
 /**
- * The description of a Cortex M0
+ * The description of a generic Cortex Mx
  * 
  * @author Nicola Serreli
  */
-public class CpuDescrCortexM0 extends CpuHwDescription {
+public class CpuDescrCortexMx extends CpuHwDescription {
 
 	/**
 	 * 
 	 */
-	public CpuDescrCortexM0() {
-		super(IWritersKeywords.CPU_CORTEX_M0, "PRIVATE",
+	public CpuDescrCortexMx() {
+		super(IWritersKeywords.CPU_CORTEX_MX, "PRIVATE",
 				new String[] { "SYS_SIZE" }, new String[] {}, 32, 4, 4, 32);
 	}
 }

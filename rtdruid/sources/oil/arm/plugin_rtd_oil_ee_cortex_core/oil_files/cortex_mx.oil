@@ -3,7 +3,7 @@ OIL_VERSION = "2.4";
 IMPLEMENTATION ee {
     OS {
         ENUM [
-            CORTEX_M0 {
+            CORTEX_MX {
                 STRING ID = "default_cpu";
                 STRING APP_SRC[];
                 BOOLEAN [
@@ -20,22 +20,48 @@ IMPLEMENTATION ee {
                 
                 BOOLEAN JLINK = FALSE;
                 ENUM [
-                	IAR
+                	IAR,
+                	CCS,
+                	KEIL
                 ] COMPILER_TYPE;
                 
+                ENUM [
+                	M0,
+                	// M1,
+                	// M2,
+                	M4
+                ] MODEL; 
+                
             }
+            
         ] CPU_DATA[];
 
         ENUM [
-        	CORTEX_M0 {
+        	LPCXPRESSO {
                 ENUM [
                     CUSTOM {
                         STRING MODEL;
 						STRING LINKERSCRIPT;
-						STRING INCLUDE_H;
-                    }
+						STRING INCLUDE_C;
+						STRING INCLUDE_S;
+						STRING STARTUP;
+                    },
+                    LPC12xx
+             	] MODEL;
+       		},
+       		STELLARIS {
+                ENUM [
+                    CUSTOM {
+                        STRING MODEL;
+						STRING LINKERSCRIPT;
+						STRING INCLUDE_C;
+						STRING INCLUDE_S;
+						STRING STARTUP;
+                    },
+                    LM4F232xxxx
              	] MODEL;
        		}
+       		
      	] MCU_DATA[];
    };
 };

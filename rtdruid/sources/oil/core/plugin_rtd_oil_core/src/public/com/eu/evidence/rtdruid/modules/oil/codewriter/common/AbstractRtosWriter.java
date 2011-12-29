@@ -494,6 +494,14 @@ public abstract class AbstractRtosWriter implements IRtosWriter {
 						answer[i].setProperty(ISimpleGenResKeywords.ISR_CATEGORY, "");
 					}
 				}
+				{	// ----------- ENTRY ------------
+					values = CommonUtils.getValue(vt, path+"ENTRY");
+					if (values!= null && values.length >0) {
+						answer[i].setProperty(ISimpleGenResKeywords.ISR_ENTRY, values[0]);
+					} else {
+						answer[i].setProperty(ISimpleGenResKeywords.ISR_ENTRY, "");
+					}
+				}
 			}
 		}
 			break;

@@ -1886,7 +1886,7 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 						String def_id = getIncludeDefine(id);
 						sb.insert(0,"#ifndef " +def_id +"\n" +
 								"#define " +def_id +"\n\n");
-						sb.append("#endif\n\n");
+						sb.append("\n\n#endif\n\n");
 					}
 				}
 			}

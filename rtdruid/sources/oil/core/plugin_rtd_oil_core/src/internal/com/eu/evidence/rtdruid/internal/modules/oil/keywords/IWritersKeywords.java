@@ -15,10 +15,6 @@ import com.eu.evidence.rtdruid.modules.oil.codewriter.common.SWCategoryManager;
  */
 public interface IWritersKeywords {
 	
-	
-	// UPDRTD rimuovere tutte le cose non generali
-	
-	final static String TXT = "abcdefgh12345678!@#$%^&*qwertyui";
 	/** Identifies Erika Enterprise */
 	public final static String RTOS_EE = "EE";
 
@@ -61,8 +57,8 @@ public interface IWritersKeywords {
 	/** Identifies a TriCore architecture (one or more cpu?) */
 	public final static String CPU_TRICORE1 = "TRICORE1";
 
-	/** Identifies a Cortex M0 architecture (one or more cpu?) */
-	public final static String CPU_CORTEX_M0 = "CORTEX_M0";
+	/** Identifies a generic Cortex Mx architecture (one or more cpu?) */
+	public final static String CPU_CORTEX_MX = "CORTEX_MX";
 	
 	/** Identifies a PIC 30 architecture (one or more cpu?) */
 	public final static String CPU_PIC_30 = "PIC30";
