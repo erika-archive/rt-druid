@@ -36,7 +36,7 @@ public class CortexConstants {
 	public final static String PREF_CORTEXM0_CC_PATH = "preference_cortex_m0__path_for_cc_compiler";
 	public final static String PREF_CORTEXMx_IAR_CC_PATH = "preference_cortex_mx__path_for_iar_compiler";
 	public final static String PREF_CORTEXMx_CCS_CC_PATH = "preference_cortex_mx__path_for_ccs_compiler";
-	public final static String PREF_CORTEXMx_KEIL_CC_PATH = "preference_cortex_mx__path_for_ccs_compiler";
+	public final static String PREF_CORTEXMx_KEIL_CC_PATH = "preference_cortex_mx__path_for_keil_compiler";
 
 
 	/***************************************************************************
