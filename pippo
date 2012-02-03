@@ -1,0 +1,177 @@
+e:/patches/0014-RT-Druid-moving-to-dynamic-handling-of-RT-Druid-meta.patch:44: trailing whitespace.
+		EObject rootObject = VarTreeUtil.newVarTreeRoot(VarTreeUtil.newVarTree());
+e:/patches/0014-RT-Druid-moving-to-dynamic-handling-of-RT-Druid-meta.patch:57: trailing whitespace.
+					final EObject root;
+e:/patches/0014-RT-Druid-moving-to-dynamic-handling-of-RT-Druid-meta.patch:58: trailing whitespace.
+					if (resourceSet == null) {
+e:/patches/0014-RT-Druid-moving-to-dynamic-handling-of-RT-Druid-meta.patch:59: trailing whitespace.
+						root = VarTreeUtil.newVarTreeRoot(VarTreeUtil.newVarTree());
+e:/patches/0014-RT-Druid-moving-to-dynamic-handling-of-RT-Druid-meta.patch:60: trailing whitespace.
+					} else {
+Checking patch rtdruid/sources/analysis/plugin_rtd_sched_analysis_ui/src/public/com/eu/evidence/rtdruid/vartree/data/presentation/DataModelWizard.java...
+Checking patch rtdruid/sources/core/plugin_rtd_core/src/internal/com/eu/evidence/rtdruid/internal/io/RTDResourceManager.java...
+Checking patch rtdruid/sources/core/plugin_rtd_core/src/internal/com/eu/evidence/rtdruid/internal/vartree/VarTree.java...
+Checking patch rtdruid/sources/core/plugin_rtd_core/src/public/com/eu/evidence/rtdruid/vartree/VarTreeIdHandler.java...
+Checking patch rtdruid/sources/core/plugin_rtd_core/src/public/com/eu/evidence/rtdruid/vartree/VarTreePointerEMF.java...
+Checking patch rtdruid/sources/core/plugin_rtd_core/src/public/com/eu/evidence/rtdruid/vartree/VarTreeUtil.java...
+Checking patch rtdruid/sources/oil/core/plugin_rtd_oil_core/.classpath...
+Checking patch rtdruid/sources/oil/core/plugin_rtd_oil_core/build.properties...
+Checking patch rtdruid/sources/oil/core/plugin_rtd_oil_core/old_public/com/eu/evidence/rtdruid/modules/oil/transform/SimpleTransform.java...
+error: while searching for:
+/*
+ * Created on 11-nov-2004
+ *
+ * $Id: SimpleTransform.java,v 1.7 2008/03/26 18:23:51 durin Exp $
+ */
+package com.eu.evidence.rtdruid.modules.oil.transform;
+
+
+
+import org.w3c.dom.Document;
+
+import com.eu.evidence.rtdruid.internal.modules.oil.exceptions.OilTransformException;
+import com.eu.evidence.rtdruid.modules.oil.implementation.IOilImplID;
+import com.eu.evidence.rtdruid.vartree.IVarTree;
+
+/**
+ * This class just store all data inside the OilVar of each FirstLevelObject
+ * (OS, TASK, ...)
+ * 
+ * @author Nicola Serreli
+ */
+public class SimpleTransform implements IOilTransform {
+//
+//	protected final static int SYSTEM_NUMBER = 1;
+//
+//	protected final static OilApplPackage OAPKG = OilApplPackage.eINSTANCE;
+//
+//	protected final static DataPackage DPKG = DataPackage.eINSTANCE;
+//
+//	protected final static String INDENT = "    ";
+//
+//	protected static final String TASK_MAPPING = "sgrk_task_mapping";
+//	protected static final String TASK_FORCE_MAPPING = "sgrk_task_add_mapping";
+//
+//	protected IVarTree vt;
+//
+//	/** If true, is required to write the implementation section */
+//	protected boolean writeImplementation = false;
+//
+//	// -------------------------------
+//	protected String[] rtosNamePath;
+//
+//	protected String[] rtosTypePath = {
+//			DPKG.getSystem_Architectural().getName(),
+//			DPKG.getArchitectural_EcuList().getName(), DPKG.getEcu().getName(),
+//			DPKG.getEcu_CpuList().getName(), DPKG.getCpu().getName(),
+//			DPKG.getCpu_Rtos().getName(), DPKG.getRtos_OilVar().getName() };
+//
+//	/** All types of Oil Object that are stored inside the OS's OilVar * */
+//	protected String[] otherObjectsTypes = { IOilXMLLabels.OBJ_APPMODE,
+//			IOilXMLLabels.OBJ_COM, IOilXMLLabels.OBJ_IPDU,
+//			IOilXMLLabels.OBJ_MESSAGE, //IOilXMLLabels.OBJ_NETWORKMESSAGE,
+//			IOilXMLLabels.OBJ_NM };
+//
+//	// -------------------------------
+//	protected IOilImplementation oilImpl;
+//
+//	// -------------------------------
+//
+//	/**
+//	 * Prepare the prefix for all data that will be stored inside the OilVar.
+//	 * 
+//	 * 
+//	 */
+//	public static String[] makeOilVarPrefix(boolean addName, String name,
+//			String objType, OilImplID id) {
+//		String objId = (addName ? DataPath.makeSlashedId(new String[] {
+//				objType, name }) : objType);
+//
+//		return new String[] { objId, OAPKG.getRoot_HwList().getName(),
+//				DataPath.makeId(id.getHW()), OAPKG.getHW_RtosList().getName(),
+//				DataPath.makeId(id.getRtos()) };
+//	}
+
+	// -------------------------------
+
+	/**
+	 * Store all given data inside the given VarTree. It requires also the id
+	 * of HW and RT-OS. Doesn't check or use Transaction or roll-back. Uses
+	 * VarTree interface. <br>
+	 * <br>
+	 * Before store anythings merge all
+	 * 
+	 * @param vt
+	 *            where store all data
+	 * @param appl
+	 *            the data
+	 * @param id
+	 *            HW and RT-OS ids for data
+	 * 
+	 * @throws OilTransformException
+	 *             if there are some problems
+	 */
+	public void load(IVarTree lvt, Document appl, IOilImplID iid)
+			throws OilTransformException {
+		throw new UnsupportedOperationException();
+//		Assert.isLegal(lvt != null, "Expected a not null VarTree");
+//		Assert.isLegal(appl != null, "Expected a not null Document");
+//		Assert.isLegal(iid != null, "Expected a not null OilImplID");
+//
+//		OilImplID id = (OilImplID) iid;
+//		
+//		vt = lvt;
+//		oilImpl = OilImplFactory.getAnInstance(vt).getImpl(id);
+//
+//		Element application = appl.getDocumentElement();
+//		checkTrue("application".equalsIgnoreCase(application.getNodeName()),
+//				"Expected an application node");
+//		
+//		if (!application.hasAttribute("Name")) {
+//			// empty ?
+//			
+//			checkTrue(!application.hasChildNodes(),
+//					"ask to create an unamed system with some children");
+//			
+//			// nothing to do
+//			return;
+//		}
+//		
+//		String sysName = application.getAttribute("Name");
+//		IVarTreePointer systemVtp = checkSystemName(vt, sysName);
+//
+//		// check and store all objects
+//
+error: patch failed: rtdruid/sources/oil/core/plugin_rtd_oil_core/old_public/com/eu/evidence/rtdruid/modules/oil/transform/SimpleTransform.java:1
+Checking patch rtdruid/testing/analysis/plugin_rtd_sched_analysis_core_tests/src/com/eu/evidence/rtdruid/internal/modules/jscan/TaskSetTest.java...
+Checking patch rtdruid/testing/core/plugin_rtd_core_tests/src/com/eu/evidence/rtdruid/io/XMI2XMLlTest.java...
+Checking patch rtdruid/testing/core/plugin_rtd_core_tests/src/com/eu/evidence/rtdruid/test/vartree/FillVtUtilDataPackageTest.java...
+Checking patch rtdruid/testing/core/plugin_rtd_core_tests/src/com/eu/evidence/rtdruid/test/vartree/FillVtUtilDynamicPackageTest.java...
+Checking patch rtdruid/testing/core/plugin_rtd_core_tests/src/com/eu/evidence/rtdruid/test/vartree/FillVtUtilTest.java...
+Checking patch rtdruid/testing/core/plugin_rtd_core_tests/src/com/eu/evidence/rtdruid/test/vartree/VarTreeTest.java...
+Checking patch rtdruid/testing/core/plugin_rtd_core_tests/src/com/eu/evidence/rtdruid/test/vartree/data/DataTest.java...
+Checking patch rtdruid/testing/core/plugin_rtd_core_tests/src/com/eu/evidence/rtdruid/test/vartree/data/TreeCloneTest.java...
+Checking patch rtdruid/testing/core/plugin_rtd_core_tests/src/com/eu/evidence/rtdruid/vartree/VarTreeUtilTest.java...
+Checking patch rtdruid/testing/core/plugin_rtd_tests/src/com/eu/evidence/rtdruid/tests/vartree/data/FillVtUtil.java...
+Checking patch rtdruid/testing/oil/plugin_rtd_oil_core_tests/src/com/eu/evidence/rtdruid/modules/oil/implementation/OilEcoreCreatorTest.java...
+Applied patch rtdruid/sources/analysis/plugin_rtd_sched_analysis_ui/src/public/com/eu/evidence/rtdruid/vartree/data/presentation/DataModelWizard.java cleanly.
+Applied patch rtdruid/sources/core/plugin_rtd_core/src/internal/com/eu/evidence/rtdruid/internal/io/RTDResourceManager.java cleanly.
+Applied patch rtdruid/sources/core/plugin_rtd_core/src/internal/com/eu/evidence/rtdruid/internal/vartree/VarTree.java cleanly.
+Applied patch rtdruid/sources/core/plugin_rtd_core/src/public/com/eu/evidence/rtdruid/vartree/VarTreeIdHandler.java cleanly.
+Applied patch rtdruid/sources/core/plugin_rtd_core/src/public/com/eu/evidence/rtdruid/vartree/VarTreePointerEMF.java cleanly.
+Applied patch rtdruid/sources/core/plugin_rtd_core/src/public/com/eu/evidence/rtdruid/vartree/VarTreeUtil.java cleanly.
+Applied patch rtdruid/sources/oil/core/plugin_rtd_oil_core/.classpath cleanly.
+Applied patch rtdruid/sources/oil/core/plugin_rtd_oil_core/build.properties cleanly.
+Applying patch rtdruid/sources/oil/core/plugin_rtd_oil_core/old_public/com/eu/evidence/rtdruid/modules/oil/transform/SimpleTransform.java with 1 rejects...
+Rejected hunk #1.
+Applied patch rtdruid/testing/analysis/plugin_rtd_sched_analysis_core_tests/src/com/eu/evidence/rtdruid/internal/modules/jscan/TaskSetTest.java cleanly.
+Applied patch rtdruid/testing/core/plugin_rtd_core_tests/src/com/eu/evidence/rtdruid/io/XMI2XMLlTest.java cleanly.
+Applied patch rtdruid/testing/core/plugin_rtd_core_tests/src/com/eu/evidence/rtdruid/test/vartree/FillVtUtilDataPackageTest.java cleanly.
+Applied patch rtdruid/testing/core/plugin_rtd_core_tests/src/com/eu/evidence/rtdruid/test/vartree/FillVtUtilDynamicPackageTest.java cleanly.
+Applied patch rtdruid/testing/core/plugin_rtd_core_tests/src/com/eu/evidence/rtdruid/test/vartree/FillVtUtilTest.java cleanly.
+Applied patch rtdruid/testing/core/plugin_rtd_core_tests/src/com/eu/evidence/rtdruid/test/vartree/VarTreeTest.java cleanly.
+Applied patch rtdruid/testing/core/plugin_rtd_core_tests/src/com/eu/evidence/rtdruid/test/vartree/data/DataTest.java cleanly.
+Applied patch rtdruid/testing/core/plugin_rtd_core_tests/src/com/eu/evidence/rtdruid/test/vartree/data/TreeCloneTest.java cleanly.
+Applied patch rtdruid/testing/core/plugin_rtd_core_tests/src/com/eu/evidence/rtdruid/vartree/VarTreeUtilTest.java cleanly.
+Applied patch rtdruid/testing/core/plugin_rtd_tests/src/com/eu/evidence/rtdruid/tests/vartree/data/FillVtUtil.java cleanly.
+Applied patch rtdruid/testing/oil/plugin_rtd_oil_core_tests/src/com/eu/evidence/rtdruid/modules/oil/implementation/OilEcoreCreatorTest.java cleanly.
