@@ -203,6 +203,13 @@ public class SectionWriterHalPicBoards implements IEEWriterKeywords {
 					"__MICROCHIP_DSPICDEM11PLUS__",
 					new String[] {"USELEDS", "USEBUTTONS", "USELCD", "USEANALOG", "USEAUDIO"},
 					new String[] {"__USE_LEDS__", "__USE_BUTTONS__", "__USE_LCD__", "__USE_ANALOG__", "__USE_AUDIO__"}));
+			
+
+			STANDARD_BOARD_PROPERTIES.put("EE_EASYLAB", new BOARD_MODEL(
+					"EE_EASYLAB", // name
+					"EE_EASYLAB",
+					new String[] {"USETIMER", "USEUART", "USELEDS", "USEDIO", "USEBUZZER", "USEADC", "USEPWM"},
+					new String[] {"USE_TIMER", "USE_UART", "USE_LEDS", "USE_DIO", "USE_TIMER USE_BUZZER", "USE_ADC", "USE_PWM"}));
 		}
 		
 		final IOilObjectList[] oilObjects = parent.getOilObjects();
@@ -243,9 +250,12 @@ public class SectionWriterHalPicBoards implements IEEWriterKeywords {
 						String tmp = board_properties.properties[i];
 						
 						String value_type = CommonUtils.getFirstChildEnumType(vt, currentMcuPrefix+tmp, null);
-						
-						if ("TRUE".equals(value_type) && !ee_opts.contains(board_properties.defines[i])) {
-							ee_opts.add(board_properties.defines[i]);
+						if ("TRUE".equals(value_type)) {
+							for (String s: board_properties.defines[i].split(" ")) {
+								 if (!ee_opts.contains(s)) {
+									ee_opts.add(s);
+								}
+							}
 						}
 					}
 					
