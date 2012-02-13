@@ -9,9 +9,8 @@ package com.eu.evidence.rtdruid.modules.oil.codewriter.common;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.List;
 
 import org.eclipse.core.runtime.Assert;
 
@@ -199,15 +198,24 @@ public abstract class AbstractRtosWriter implements IRtosWriter {
 	 */
 	public void checkAlarmIncrementCountCycles(IOilObjectList[] objects) {
         LinkedHashMap<String, ISimpleGenRes> counters = new LinkedHashMap<String, ISimpleGenRes>();
+        @SuppressWarnings("unchecked") HashSet<String>[] counters_ool = new HashSet[objects.length];
+        for (int i=0; i<counters_ool.length; i++) {
+        	counters_ool[i] = new HashSet<String>();
+        }
+
+        int i=0;
 		for (IOilObjectList ool :  objects) {
 			for (ISimpleGenRes curr :  ool.getList(IOilObjectList.COUNTER)) {
 				counters.put(curr.getName(), curr);
+				counters_ool[i].add(curr.getName());
 			}
+			i++;
 		}
         
         LinkedHashMap<String, ISimpleGenRes> counter_to_alarm = new LinkedHashMap<String, ISimpleGenRes>();
 		
         LinkedHashMap<String, ISimpleGenRes> alarm_incr_counter = new LinkedHashMap<String, ISimpleGenRes>();
+        i=0;
 		for (IOilObjectList ool :  objects) {
 			for (ISimpleGenRes curr :  ool.getList(IOilObjectList.ALARM)) {
 				final String tipo = curr.getString(ISimpleGenResKeywords.ALARM_ACTION_TYPE);
@@ -222,6 +230,12 @@ public abstract class AbstractRtosWriter implements IRtosWriter {
 										+ ", counter = " + coun_Al_Name
 										+ ")");
 					}
+					if (!counters_ool[i].contains(coun_Al_Name)) {
+						throw new RuntimeException(
+								"Alarm : Alarm " + curr.getName()
+										+ " requires a remote counter = " + coun_Al_Name
+										+ ", but is not supported.");
+					}
 					if (!counters.containsKey(counter_al_name)) {
 						throw new RuntimeException(
 								"Alarm : Wrong counter name for this Alarm."
@@ -229,12 +243,20 @@ public abstract class AbstractRtosWriter implements IRtosWriter {
 										+ ", counter = " + counter_al_name
 										+ ")");
 					}
+					
+					if (!counters_ool[i].contains(counter_al_name)) {
+						throw new RuntimeException(
+								"Alarm : Alarm " + curr.getName()
+								+ " requires a remote counter = " + coun_Al_Name
+								+ ", but this feature is not supported.");
+					}
 						
 					
 					counter_to_alarm.put(coun_Al_Name, curr);
 					alarm_incr_counter.put(curr.getName(), curr);
 				}
 			}
+			i++;
 		}
 			
 		for (ISimpleGenRes starting_alarm :  alarm_incr_counter.values()) {
@@ -841,7 +863,7 @@ public abstract class AbstractRtosWriter implements IRtosWriter {
 	        
 	        // convert the answer 
 	        if (tmpAnswer.size()>0) {
-	        	answer = (SimpleGenRes[]) tmpAnswer.toArray(new SimpleGenRes[tmpAnswer.size()]);
+	        	answer = tmpAnswer.toArray(new SimpleGenRes[tmpAnswer.size()]);
 	        }
 	        
 	        
