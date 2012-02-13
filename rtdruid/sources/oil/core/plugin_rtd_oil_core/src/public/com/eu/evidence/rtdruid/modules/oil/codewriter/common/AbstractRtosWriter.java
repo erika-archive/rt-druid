@@ -9,6 +9,9 @@ package com.eu.evidence.rtdruid.modules.oil.codewriter.common;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
 
 import org.eclipse.core.runtime.Assert;
 
@@ -187,10 +190,71 @@ public abstract class AbstractRtosWriter implements IRtosWriter {
 				ool.setList(i, extractObject(i, rtosPrefix[rtosId]));
 			}
 		}
-
+		
 		return answer;
 	}
 
+	/**
+	 * ALARM INCREMENT COUNTER CHECK
+	 */
+	public void checkAlarmIncrementCountCycles(IOilObjectList[] objects) {
+        LinkedHashMap<String, ISimpleGenRes> counters = new LinkedHashMap<String, ISimpleGenRes>();
+		for (IOilObjectList ool :  objects) {
+			for (ISimpleGenRes curr :  ool.getList(IOilObjectList.COUNTER)) {
+				counters.put(curr.getName(), curr);
+			}
+		}
+        
+        LinkedHashMap<String, ISimpleGenRes> counter_to_alarm = new LinkedHashMap<String, ISimpleGenRes>();
+		
+        LinkedHashMap<String, ISimpleGenRes> alarm_incr_counter = new LinkedHashMap<String, ISimpleGenRes>();
+		for (IOilObjectList ool :  objects) {
+			for (ISimpleGenRes curr :  ool.getList(IOilObjectList.ALARM)) {
+				final String tipo = curr.getString(ISimpleGenResKeywords.ALARM_ACTION_TYPE);
+				if (tipo.equals(ISimpleGenResKeywords.ALARM_INCR_COUNTER)) {
+					String coun_Al_Name = curr.getString(ISimpleGenResKeywords.ALARM_COUNTER);
+					String counter_al_name = curr.getString(ISimpleGenResKeywords.ALARM_INCR_COUNTER);
+					
+					if (!counters.containsKey(coun_Al_Name)) {
+						throw new RuntimeException(
+								"Alarm : Wrong counter name for this Alarm."
+										+ " (Alarm = " + curr.getName()
+										+ ", counter = " + coun_Al_Name
+										+ ")");
+					}
+					if (!counters.containsKey(counter_al_name)) {
+						throw new RuntimeException(
+								"Alarm : Wrong counter name for this Alarm."
+										+ " (Alarm = " + curr.getName()
+										+ ", counter = " + counter_al_name
+										+ ")");
+					}
+						
+					
+					counter_to_alarm.put(coun_Al_Name, curr);
+					alarm_incr_counter.put(curr.getName(), curr);
+				}
+			}
+		}
+			
+		for (ISimpleGenRes starting_alarm :  alarm_incr_counter.values()) {
+			
+			String counter = starting_alarm.getString(ISimpleGenResKeywords.ALARM_INCR_COUNTER);
+			while (counter_to_alarm.containsKey(counter)) {
+				
+				ISimpleGenRes alarm = counter_to_alarm.get(counter);
+				if (alarm == starting_alarm) {
+					throw new RuntimeException(
+							"Alarm : Found an increment counter cycle starting from " + starting_alarm.getName());
+				}
+				
+				counter = alarm.getString(ISimpleGenResKeywords.ALARM_INCR_COUNTER);
+			}
+			
+		}
+	}
+	
+	
 	/**
 	 * This method searchs all Oil Objects of a specific category for a specific
 	 * rtos. All valid categories are listed in
@@ -779,6 +843,8 @@ public abstract class AbstractRtosWriter implements IRtosWriter {
 	        if (tmpAnswer.size()>0) {
 	        	answer = (SimpleGenRes[]) tmpAnswer.toArray(new SimpleGenRes[tmpAnswer.size()]);
 	        }
+	        
+	        
 		}
 			break;
 			

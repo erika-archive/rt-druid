@@ -201,6 +201,8 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 		final String kernelType = parent.getKernelType();
 		// number of rtos
 		final int rtosNumber = oilObjects.length;
+		
+		parent.checkAlarmIncrementCountCycles(oilObjects);
 
 
 		/***********************************************************************
@@ -906,6 +908,7 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 				} // end "if (mutexList.size()>0)"
 			}
 		
+			
 			{
 				/***************************************************************
 				 * COUNTERS
