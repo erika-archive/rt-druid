@@ -577,7 +577,12 @@ public class SectionWriterOrti_osek extends SectionWriter implements
 								String callBackName = curr.getString(ISimpleGenResKeywords.ALARM_CALL_BACK);
 								
 								actionDescr = "callback " + callBackName;
+
+							} else if (tipo.equals(ISimpleGenResKeywords.ALARM_INCR_COUNTER)) {
+								String counterName = curr.getString(ISimpleGenResKeywords.ALARM_INCR_COUNTER);
 								
+								actionDescr = "incr counter " + counterName;
+
 							} else {
 								throw new Error("Unknow type");
 							}

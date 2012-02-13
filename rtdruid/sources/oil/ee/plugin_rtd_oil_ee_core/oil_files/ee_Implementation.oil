@@ -738,6 +738,9 @@ edf
             },
             ALARMCALLBACK {
                 STRING ALARMCALLBACKNAME;
+            },
+            INCREMENTCOUNTER {
+            	COUNTER_TYPE COUNTER;
             }
         ] ACTION;
 

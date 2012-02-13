@@ -569,6 +569,7 @@ public abstract class AbstractRtosWriter implements IRtosWriter {
 							final String str_ACTION_ACTIVATE_TASK = "ACTIVATETASK";
 							final String str_ACTION_SET_EVENT = "SETEVENT";
 							final String str_ACTION_ALARM_CALL_BACK = "ALARMCALLBACK";
+							final String str_ACTION_ALARM_INCR_COUNTER = "INCREMENTCOUNTER";
 							
 							final String str_ACTIVATE_TASK_TASK = "TASK";
 							
@@ -576,7 +577,9 @@ public abstract class AbstractRtosWriter implements IRtosWriter {
 							final String str_SET_EVENT_EVENT = "EVENT";
 							
 							final String str_ALARM_CALL_BACK_NAME = "ALARMCALLBACKNAME";
-							
+
+							final String str_ALARM_COUNTER_NAME = "COUNTER";
+
 							String[] childName = new String[1];
 							String tmpType = CommonUtils.getFirstChildEnumType(vt, path, childName);
 							
@@ -647,6 +650,25 @@ public abstract class AbstractRtosWriter implements IRtosWriter {
 								sgr.setObject(ISimpleGenResKeywords.ALARM_CALL_BACK, callBackName);
 								sgr.setProperty(ISimpleGenResKeywords.ALARM_ACTION_TYPE,
 										ISimpleGenResKeywords.ALARM_CALL_BACK);
+
+							} else if (str_ACTION_ALARM_INCR_COUNTER.equalsIgnoreCase(tmpType)) { // INCREMENT COUNTER
+								final String counterName;
+								
+								path +=CommonUtils.VARIANT_ELIST+childName[0]+CommonUtils.PARAMETER_LIST;
+								
+								// Counter
+								String[] val = CommonUtils.getValue(vt, path+str_ALARM_COUNTER_NAME);
+								if (val != null && val.length>0 && val[0] != null) {
+									counterName = val[0];
+								} else {
+									throw new OilCodeWriterException("Required " + 
+											str_ACTION_ALARM_INCR_COUNTER + "/"+str_ALARM_COUNTER_NAME 
+											+ " for alarm " + sgr.getName());
+								}
+	
+								sgr.setObject(ISimpleGenResKeywords.ALARM_INCR_COUNTER, counterName);
+								sgr.setProperty(ISimpleGenResKeywords.ALARM_ACTION_TYPE,
+										ISimpleGenResKeywords.ALARM_INCR_COUNTER);
 
 							} else {
 

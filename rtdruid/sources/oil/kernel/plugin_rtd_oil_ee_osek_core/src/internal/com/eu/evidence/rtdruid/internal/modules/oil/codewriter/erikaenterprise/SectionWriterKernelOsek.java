@@ -988,6 +988,7 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 						String callBackName = NULL_NAME;
 						//int task_id = 0;
 						String task_al_name = "0"; // default value
+						String counter_al_name = "-1"; // default value
 						String evento = "0U";
 						String notif_type = "";
 		
@@ -1027,6 +1028,7 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 							 * #define EE_ALARM_ACTION_TASK 0
 							 * #define EE_ALARM_ACTION_CALLBACK 1
 							 * #define EE_ALARM_ACTION_EVENT 2
+							 * #define EE_ALARM_ACTION_COUNTER 3
 							 */
 							if (tipo.equals(ISimpleGenResKeywords.ALARM_ACTIVATE_TASK)) {
 								task_al_name = curr.getString(ISimpleGenResKeywords.ALARM_ACTIVATE_TASK);
@@ -1098,6 +1100,41 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 								
 								notif_type = "EE_ALARM_ACTION_CALLBACK";
 								
+							} else if (tipo.equals(ISimpleGenResKeywords.ALARM_INCR_COUNTER)) {
+								counter_al_name = curr.getString(ISimpleGenResKeywords.ALARM_INCR_COUNTER);
+								
+								/* Check the task name */
+								boolean notFound = true; 
+								//search task id
+								for (int cpuId = 0; cpuId < oilObjects.length
+										&& notFound; cpuId++) {
+		
+									List<ISimpleGenRes> list = oilObjects[cpuId].getList(IOilObjectList.COUNTER);
+									for (Iterator<ISimpleGenRes> ii = list.iterator(); ii
+											.hasNext()
+											&& notFound;) {
+										ISimpleGenRes sgr = ii
+												.next();
+		
+										notFound = !counter_al_name.equals(sgr.getName());
+									}
+								}
+								if (notFound) {
+									throw new RuntimeException(
+											"Alarm : Wrong counter name for Alarm "
+													+ curr.getName()
+													+ " ( counter name = "
+													+ counter_al_name + ")");
+								}
+		
+								
+								/*
+								 * some row later, if the associated task is
+								 * EXTENDED, the notify_type is set as event
+								 * instead task.
+								 */
+								notif_type = "EE_ALARM_ACTION_COUNTER    ";
+								
 							} else {
 								throw new Error("Unknow type");
 							}
@@ -1107,7 +1144,8 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 						romBuffer.append(pre2 + indent2 + "{" + counter_id + ", "
 								+ notif_type + ", " + task_al_name
 								+ (withEvents ? ", " + evento : "") + ", "
-								+ (NULL_NAME.equals(callBackName) ? "(EE_VOID_CALLBACK)" : "") + callBackName + "}");
+								+ (NULL_NAME.equals(callBackName) ? "(EE_VOID_CALLBACK)" : "") + callBackName
+								+ ", " + counter_al_name + " }");
 						pre2 = ",\n";
 					}
 					romBuffer.append("\n"+indent1 + "};\n\n");

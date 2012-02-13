@@ -102,6 +102,8 @@ public interface ISimpleGenResKeywords {
 	public final static String ALARM_SET_EVENT = "alarm_set_event";
 	/** contains the callBack name */
 	public final static String ALARM_CALL_BACK = "alarm_call_back";
+	/** contains the counter name */
+	public final static String ALARM_INCR_COUNTER = "alarm_increment_counter";
 	/** contains true if the task name is remote */
 	public final static String ALARM_TASK_IS_REMOTE = "alarm_task_is_remote";
 
