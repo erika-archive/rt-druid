@@ -142,6 +142,7 @@ public class SectionWriterKernelSystemCalls extends SectionWriter
 	}
 	
 	
+	@SuppressWarnings("unchecked")
 	protected void addSysCalls(IOilObjectList ool, IOilWriterBuffer answer, int rtosId) {
 		ISimpleGenRes os = (ISimpleGenRes) ool.getList(IOilObjectList.OS).get(0);
 		List<Integer> requiredOilObjects = (List<Integer>) os.getObject(SGRK__FORCE_ARRAYS_LIST__);
@@ -154,20 +155,20 @@ public class SectionWriterKernelSystemCalls extends SectionWriter
 				"const EE_FADDR EE_syscall_table[EE_SYSCALL_NR] = {\n");
 				
 		StringBuffer ids = new StringBuffer();
-		StringBuffer shortNames = new StringBuffer();
+//		StringBuffer shortNames = new StringBuffer();
 //		ee_asm_buffer.append("#ifndef __EE_ASM_H__\n" +
 //				"#define __EE_ASM_H__\n\n");
 		
 		
 		// this counter is the ID of the next sys call
 		int counter = 0;
-		final String end = ",\n\n";
+//		final String end = ",\n\n";
 		
 		
 		// OS Services
 		for (String s: EE_OS_INTERRUPT_IDs) {
 			ids.append("#define EE_ID_"+s+ (s.length()<40 ? white_spaces.substring(0,40-s.length()) :"") + (counter <10 ? " " : "") + counter +"\n");
-			ee_c_buffer.append(indent1+"(EE_FADDR)EE_as_"+s+",\n");
+			ee_c_buffer.append(indent1+"(EE_FADDR)&EE_as_"+s+",\n");
 			counter ++;
 		}
 		int interrupts_last_id = counter -1;
@@ -175,7 +176,7 @@ public class SectionWriterKernelSystemCalls extends SectionWriter
 		// OS Services
 		for (String s: EE_OS_SERVICES_IDs) {
 			ids.append("#define EE_ID_"+s+ (s.length()<40 ? white_spaces.substring(0,40-s.length()) :"") + (counter <10 ? " " : "") + counter +"\n");
-			ee_c_buffer.append(indent1+"(EE_FADDR)EE_oo_"+s+",\n");
+			ee_c_buffer.append(indent1+"(EE_FADDR)&EE_oo_"+s+",\n");
 			counter ++;
 		}
 		
@@ -191,7 +192,7 @@ public class SectionWriterKernelSystemCalls extends SectionWriter
 			if (isr2_enabled) {
 				for (String s: EE_ISR2_IDs) {
 					ids.append("#define EE_ID_"+s+ (s.length()<40 ? white_spaces.substring(0,40-s.length()) :"") + (counter <10 ? " " : "") + counter +"\n");
-					ee_c_buffer.append(indent1+"(EE_FADDR)EE_as_"+s+",\n");
+					ee_c_buffer.append(indent1+"(EE_FADDR)&EE_as_"+s+",\n");
 					counter ++;
 				}	
 			}
@@ -205,7 +206,7 @@ public class SectionWriterKernelSystemCalls extends SectionWriter
 				if (sections != null && (sections.intValue() & OrtiConstants.EE_ORTI_OS) != 0) {
 					String s="ORTI_ext_set_service";
 					ids.append("#define EE_ID_"+s+ (s.length()<40 ? white_spaces.substring(0,40-s.length()) :"") + (counter <10 ? " " : "") + counter +"\n");
-					ee_c_buffer.append(indent1+"(EE_FADDR)EE_as_ORTI_set_service,\n");
+					ee_c_buffer.append(indent1+"(EE_FADDR)&EE_as_ORTI_set_service,\n");
 					counter ++;
 				}
 			}
@@ -217,7 +218,7 @@ public class SectionWriterKernelSystemCalls extends SectionWriter
 
 			for (String s: EE_RESOURCES_IDs) {
 				ids.append("#define EE_ID_"+s+ (s.length()<40 ? white_spaces.substring(0,40-s.length()) :"") + (counter <10 ? " " : "") + counter +"\n");
-				ee_c_buffer.append(indent1+"(EE_FADDR)EE_oo_"+s+",\n");
+				ee_c_buffer.append(indent1+"(EE_FADDR)&EE_oo_"+s+",\n");
 				counter ++;
 			}
 		}
@@ -228,7 +229,7 @@ public class SectionWriterKernelSystemCalls extends SectionWriter
 
 			for (String s: EE_ALARMS_IDs) {
 				ids.append("#define EE_ID_"+s+ (s.length()<40 ? white_spaces.substring(0,40-s.length()) :"") + (counter <10 ? " " : "") + counter +"\n");
-				ee_c_buffer.append(indent1+"(EE_FADDR)EE_oo_"+s+",\n");
+				ee_c_buffer.append(indent1+"(EE_FADDR)&EE_oo_"+s+",\n");
 				counter ++;
 			}
 		}
@@ -241,7 +242,7 @@ public class SectionWriterKernelSystemCalls extends SectionWriter
 	
 				for (String s: EE_ECC1_2_IDs) {
 					ids.append("#define EE_ID_"+s+ (s.length()<40 ? white_spaces.substring(0,40-s.length()) :"") + (counter <10 ? " " : "") + counter +"\n");
-					ee_c_buffer.append(indent1+"(EE_FADDR)EE_oo_"+s+",\n");
+					ee_c_buffer.append(indent1+"(EE_FADDR)&EE_oo_"+s+",\n");
 					counter ++;
 				}
 			}
@@ -262,7 +263,7 @@ public class SectionWriterKernelSystemCalls extends SectionWriter
 			if (enabled) {
 				for (String s: EE_SEM_IDs) {
 					ids.append("#define EE_ID_"+s+ (s.length()<40 ? white_spaces.substring(0,40-s.length()) :"") + (counter <10 ? " " : "") + counter +"\n");
-					ee_c_buffer.append(indent1+"(EE_FADDR)EE_oo_"+s+",\n");
+					ee_c_buffer.append(indent1+"(EE_FADDR)&EE_oo_"+s+",\n");
 					counter ++;
 				}
 			}
@@ -286,7 +287,7 @@ public class SectionWriterKernelSystemCalls extends SectionWriter
 							
 					for (String s: functions) {
 						ids.append("#define EE_ID_TRUSTED_"+s+ (s.length()<40 ? white_spaces.substring(0,32-s.length()) :"") + (counter <10 ? " " : "") + counter +"\n");
-						ee_c_buffer.append(indent1+"(EE_FADDR)TRUSTED_"+s+",\n");
+						ee_c_buffer.append(indent1+"(EE_FADDR)&TRUSTED_"+s+",\n");
 						counter ++;
 					}
 					

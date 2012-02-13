@@ -292,7 +292,7 @@ public class SectionWriterKernelFP extends SectionWriter implements
 //					sbThread.append(pre + pre2 + indent2 + "(EE_ADDR)Func"
 //							+ tname);
 					sbStub.append(pre + post + indent2
-							+ "Func" + tname);
+							+ "&Func" + tname);
 					pre2 = "\n";
 		
 					pre = ",";

@@ -495,10 +495,10 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 					EE_th_is_extendedBuffer.append(pre + " " + sched + "U");
 		
 					sbDecThread.append(pre2 + indent1 + "DeclareTask(" + tname + ");");
-					sbThread.append(pre + pre2 + indent2 + "Func"
+					sbThread.append(pre + pre2 + indent2 + "&Func"
 							+ tname);
 					sbStub.append(pre + post + indent2
-							+ "EE_oo_thread_stub");
+							+ "&EE_oo_thread_stub");
 					pre2 = "\n";
 		
 					pre = ",";
