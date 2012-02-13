@@ -292,7 +292,7 @@ public class SectionWriterKernelFP extends SectionWriter implements
 //					sbThread.append(pre + pre2 + indent2 + "(EE_ADDR)Func"
 //							+ tname);
 					sbStub.append(pre + post + indent2
-							+ "(EE_FADDR)Func" + tname);
+							+ "Func" + tname);
 					pre2 = "\n";
 		
 					pre = ",";
@@ -315,7 +315,7 @@ public class SectionWriterKernelFP extends SectionWriter implements
 			// declare task and theirs address
 			buffer.append(indent1 + commentWriterC.writerSingleLineComment("Definition of task's body") //\n"
 				+ sbDecThread + "\n\n"
-				+ indent1 + "const EE_FADDR EE_hal_thread_body["+MAX_TASK+"] = {\n"
+				+ indent1 + "const EE_THREAD_PTR EE_hal_thread_body["+MAX_TASK+"] = {\n"
 				+ sbStub + "\n"
 				+ indent1 + "};\n\n");
 //				+ indent1 + "EE_UINT32 EE_terminate_data["+MAX_TASK+"];\n\n"

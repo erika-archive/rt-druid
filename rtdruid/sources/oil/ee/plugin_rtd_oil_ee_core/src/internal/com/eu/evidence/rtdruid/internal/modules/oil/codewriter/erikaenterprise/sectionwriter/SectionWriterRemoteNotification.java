@@ -205,7 +205,7 @@ public class SectionWriterRemoteNotification extends SectionWriter implements
 					for (int rnOS =0; rnOS<rtosNumber; rnOS++) {
 						if (rnOS != rtosId) {
 							sbRnThread[rnOS].append(indent1
-									+ "#define " + task.getName() + " (rn_" + task.getName() + "|EE_REMOTE_TID)\n");
+									+ "#define " + task.getName() + " ((EE_TID)rn_" + task.getName() + "+(EE_TID)EE_REMOTE_TID)\n");
 						}
 					}
 					

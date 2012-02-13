@@ -495,10 +495,10 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 					EE_th_is_extendedBuffer.append(pre + " " + sched + "U");
 		
 					sbDecThread.append(pre2 + indent1 + "DeclareTask(" + tname + ");");
-					sbThread.append(pre + pre2 + indent2 + "(EE_FADDR)Func"
+					sbThread.append(pre + pre2 + indent2 + "Func"
 							+ tname);
 					sbStub.append(pre + post + indent2
-							+ "(EE_FADDR)EE_oo_thread_stub");
+							+ "EE_oo_thread_stub");
 					pre2 = "\n";
 		
 					pre = ",";
@@ -534,12 +534,12 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 
 			buffer.append(indent1 + commentWriterC.writerSingleLineComment("Definition of task's body")
 				+ sbDecThread + "\n\n"
-				+ indent1 + "const EE_FADDR EE_hal_thread_body["+MAX_TASK+"] = {\n"
+				+ indent1 + "const EE_THREAD_PTR EE_hal_thread_body["+MAX_TASK+"] = {\n"
 				+ sbStub + "\n"
 				+ indent1 + "};\n\n"
 				+ indent1 + mem_size + " EE_terminate_data["+MAX_TASK+"];\n\n"
 				+ indent1 + commentWriterC.writerSingleLineComment("ip of each thread body (ROM)")
-				+ indent1 + "const EE_FADDR EE_terminate_real_th_body["+MAX_TASK+"] = {\n"
+				+ indent1 + "const EE_THREAD_PTR EE_terminate_real_th_body["+MAX_TASK+"] = {\n"
 				+ sbThread.toString() + "\n"
 				+ indent1 + "};\n");
 		

@@ -497,7 +497,7 @@ public class SectionWriterKernelFRSH extends SectionWriter implements
 //					sbThread.append(pre + pre2 + indent2 + "(EE_ADDR)Func"
 //							+ tname);
 					sbStub.append(pre + post + indent2
-							+ "(EE_FADDR)Func" + tname);
+							+ "Func" + tname);
 					pre2 = "\n";
 		
 					ee_th.append(indent2 + "{ " + prio + ", EE_TASK_SUSPENDED, EE_NIL, 0, 0, ");
@@ -532,7 +532,7 @@ public class SectionWriterKernelFRSH extends SectionWriter implements
 				+ contractsBuffer // Contracts
 				+ commentWriterC.writerBanner("Tasks")
 				+ ee_th
-				+ indent1 + "const EE_FADDR EE_hal_thread_body["+MAX_TASK+"] = {\n"
+				+ indent1 + "const EE_THREAD_PTR EE_hal_thread_body["+MAX_TASK+"] = {\n"
 				+ sbStub
 				+ indent1 + "};\n\n");
 //				+ indent1 + "EE_UINT32 EE_terminate_data["+MAX_TASK+"];\n\n"
