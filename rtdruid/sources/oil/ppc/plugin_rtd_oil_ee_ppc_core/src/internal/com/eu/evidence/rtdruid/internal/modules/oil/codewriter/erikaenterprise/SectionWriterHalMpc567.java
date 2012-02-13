@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
@@ -612,15 +613,19 @@ public class SectionWriterHalMpc567 extends SectionWriter
 				    long value = size[j][0];
 			    	final String memId = memoryId[j];
 //				    value  = (value + (value%STACK_UNIT)) / STACK_UNIT; // arrottondo a 2
-				    if (usePragma) {
-				    	addPragmaSections(sbStackPragma, j, memId);
-				    }
-					sbStackDecl.append(indent1 + "static EE_STACK_T " +
+					sbStackDeclSize.append(indent1 + "#define STACK_"+j+"_SIZE "+value+" " + commentWriterC.writerSingleLineComment("size = "+size[j][0]+" bytes"));
+			    	
+			    	final String decl = "static EE_STACK_T " +
 							( usePragma ? "" :
 								(memId == null ? "EE_STACK_ATTRIB " : "EE_STACK_ATTRIB_NAME("+memId+") ")
 							) +
-								STACK_BASE_NAME+j+"[EE_STACK_WLEN(STACK_"+j+"_SIZE)];\t/* "+descrStack[j]+" */\n");
-					sbStackDeclSize.append(indent1 + "#define STACK_"+j+"_SIZE "+value+" " + commentWriterC.writerSingleLineComment("size = "+size[j][0]+" bytes"));
+								STACK_BASE_NAME+j+"[EE_STACK_WLEN(STACK_"+j+"_SIZE)];\t/* "+descrStack[j]+" */";
+			    	
+				    if (usePragma) {
+				    	addPragmaSections(sbStackPragma, decl, memId);
+				    } else {
+				    	sbStackDecl.append(indent1 + decl + "\n");
+				    }
 					
 					// USED BY ORTI
 					stackTmp.add(new EEStackData(j, new long[] {size[j][0]}, new long[] {size[j][0]},
@@ -663,13 +668,15 @@ public class SectionWriterHalMpc567 extends SectionWriter
 						int j = size.length;
 					    long value = irqSize[0];
 					    
-					    if (usePragma) {
-					    	addPragmaSections(sbStackPragma, j, null);
-					    }
-					    
 //					    value  = (value + (value%STACK_UNIT)) / STACK_UNIT; // arrottondo a 2
-						sbStackDecl.append(indent1 + "static EE_STACK_T "+( usePragma ? "" : "EE_STACK_ATTRIB ")+STACK_BASE_NAME+j+"[EE_STACK_WLEN(STACK_"+j+"_SIZE)];\t/* irq stack */\n");
 						sbStackDeclSize.append(indent1 + "#define STACK_"+j+"_SIZE "+value+ " " + commentWriterC.writerSingleLineComment("size = "+irqSize[0]+" bytes"));
+						
+						final String decl = "static EE_STACK_T "+( usePragma ? "" : "EE_STACK_ATTRIB ")+STACK_BASE_NAME+j+"[EE_STACK_WLEN(STACK_"+j+"_SIZE)];\t/* irq stack */";
+					    if (usePragma) {
+					    	addPragmaSections(sbStackPragma, decl, null);
+					    } else {
+					    	sbStackDecl.append(indent1 + decl + "\n");
+					    }
 
 						sbStack
 								.append(indent+"/* stack used only by IRQ handlers */\n"
@@ -700,15 +707,21 @@ public class SectionWriterHalMpc567 extends SectionWriter
 
 			}		
 
-			//  add stack buffers
+			// add stack sizes
+			sbInithal_c.append(sbStackDeclSize+"\n");
+
+			//  add pragma sections
+			closePragmaSections(sbStackPragma);
 			for (StringBuffer buff: sbStackPragma.values()) {
 				sbInithal_c.append(buff+"\n\n");
 			}
-			sbInithal_c.append(sbStackDeclSize+"\n"+
-			        sbStackDecl + "\n" +
+
+			// add other stack declarations
+			sbInithal_c.append(sbStackDecl + "\n" +
 			        sbStack
 //			        +stackPatternFill
 			        );
+
 		} else {
 			sgrCpu.setObject(SGRK_OS_STACK_LIST, new EEStackData[] {sys_stack});
 		}
@@ -717,24 +730,33 @@ public class SectionWriterHalMpc567 extends SectionWriter
 	}
 
 	private void addPragmaSections(
-			LinkedHashMap<String, StringBuffer> sbStackPragma, int j,
+			LinkedHashMap<String, StringBuffer> sbStackPragma, String stack_def,
 			final String memId) {
-		String tmpMemId1 = memId == null ? "SYS_STACK" : memId.toUpperCase();
-		String tmpMemId2 = memId == null ? "stack" : "stack_" +memId;
 		StringBuffer buff;
-		String sep;
-		if (sbStackPragma.containsKey(tmpMemId1)) {
-			buff = sbStackPragma.get(tmpMemId1);
-			sep = ", ";
+		if (sbStackPragma.containsKey(memId)) {
+			buff = sbStackPragma.get(memId);
 		} else {
 			buff = new StringBuffer();
-			sbStackPragma.put(tmpMemId1, buff);
-			buff.append("#pragma section "+tmpMemId1+" \"."+tmpMemId2+"\" \"."+tmpMemId2+"\"\n" +
-						"#pragma use_section "+tmpMemId1);
-			sep = " ";
+			sbStackPragma.put(memId, buff);
+			if (memId == null) {
+				buff.append("#pragma section PRAGMA_SECTION_BEGIN_SYS_STACK\n");
+			} else {
+				buff.append("#pragma section DATA \"ee_stack_"+memId+"\" \"ee_stack_"+memId+"\"\n");
+			}
 		}
 		
-		buff.append(sep + STACK_BASE_NAME+j);
+		buff.append(indent1 + stack_def + "\n");
+	}
+	
+	private void closePragmaSections(LinkedHashMap<String, StringBuffer> sbStackPragma){
+		for (Entry<String, StringBuffer> entry : sbStackPragma.entrySet()) {
+			String key = entry.getKey();
+			if (key == null) {
+				entry.getValue().append("#pragma section PRAGMA_SECTION_END_SYS_STACK\n");
+			} else {
+				entry.getValue().append("#pragma section DATA\n");
+			}
+		}
 	}
 
 	/*

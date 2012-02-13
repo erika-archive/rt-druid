@@ -16,43 +16,43 @@ public class EmptyMacrosForSharedData implements IMacrosForSharedData {
 	}
 
 	@Override
-	public String vectorRam(String vectorName, String array) {
-		return vectorName + array;
+	public String vectorRam(String type, String vectorName, String array, String body) {
+		return type + vectorName + array + body;
 	}
 
 	@Override
-	public String vectorRom(String vectorName, String array) {
-		return vectorName + array;
+	public String vectorRom(String type, String vectorName, String array, String body) {
+		return type + vectorName + array + body;
 	}
 
 	@Override
-	public String constVectorRam(String vectorName, String array) {
-		return vectorName + array;
+	public String constVectorRam(String type, String vectorName, String array, String body) {
+		return type + vectorName + array + body;
 	}
 
 	@Override
-	public String constVectorRom(String vectorName, String array) {
-		return vectorName + array;
+	public String constVectorRom(String type, String vectorName, String array, String body) {
+		return type + vectorName + array + body;
 	}
 
 	@Override
-	public String valueRam(String valueName) {
-		return valueName;
+	public String valueRam(String type, String valueName, String body) {
+		return type + valueName + body;
 	}
 
 	@Override
-	public String valueRom(String valueName) {
-		return valueName;
+	public String valueRom(String type, String valueName, String body) {
+		return type + valueName + body;
 	}
 
 	@Override
-	public String constValueRam(String valueName) {
-		return valueName;
+	public String constValueRam(String type, String valueName, String body) {
+		return type + valueName + body;
 	}
 
 	@Override
-	public String constValueRom(String valueName) {
-		return valueName;
+	public String constValueRom(String type, String valueName, String body) {
+		return type + valueName + body;
 	}
 
 }

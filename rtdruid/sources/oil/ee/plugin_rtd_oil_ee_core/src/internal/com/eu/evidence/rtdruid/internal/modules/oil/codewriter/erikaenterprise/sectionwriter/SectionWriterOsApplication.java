@@ -177,14 +177,14 @@ public class SectionWriterOsApplication extends SectionWriter implements
 			// ee_cfg.c
 //			extern const int app0_start, app0_sstart, app0_end;
 			
-			ee_c_buffer.append(indent1 + "extern const int _load_data_"+name+";\n" +
-					indent1 + "extern int _sstack_"+name+";\n" +
-					indent1 + "extern int _sdata_"+name+";\n" +
-					indent1 + "extern int _sbss_"+name+";\n" +
-					indent1 + "extern int _ebss_"+name+";\n");
+			ee_c_buffer.append(indent1 + "extern const int ee_load_data_"+name+";\n" +
+					indent1 + "extern int ee_sstack_"+name+";\n" +
+					indent1 + "extern int ee_sdata_"+name+";\n" +
+					indent1 + "extern int ee_sbss_"+name+";\n" +
+					indent1 + "extern int ee_ebss_"+name+";\n");
 
 			application_rom.append(end +
-					indent2 + "{{ &_load_data_"+name+", &_sstack_"+name+", &_sdata_"+name+", &_sbss_"+name+", &_ebss_"+name+" }}");
+					indent2 + "{{ &ee_load_data_"+name+", &ee_sstack_"+name+", &ee_sdata_"+name+", &ee_sbss_"+name+", &ee_ebss_"+name+" }}");
 
 			application_ram.append(end +
 					indent2 + "EE_APP_RAM_INIT(&"+stack_base_name+stack_id+"[EE_STACK_INITP(STACK_"+stack_id+"_SIZE)], "+

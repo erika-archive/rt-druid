@@ -155,13 +155,8 @@ public class SectionWriterRemoteNotification extends SectionWriter implements
 		StringBuffer sbRnDeclaration = new StringBuffer();
 
 		
-		final StringBuffer EE_rn_cpuBuffer = new StringBuffer(indent1 
-				+ "const EE_UINT8 " +
-				macros.constVectorRom("EE_rn_cpu","["+MAX_RN+"]") +" =\n"+indent2+"{");
-		final StringBuffer EE_rn_taskBuffer = new StringBuffer(indent1
-				+ "#if defined( __RN_EVENT__ ) || defined( __RN_TASK__ )\n"
-				+ indent2 + "const EE_TID " +
-				macros.constVectorRom("EE_rn_task","["+MAX_RN+"]") +" = {\n");
+		final StringBuffer EE_rn_cpuBuffer_body = new StringBuffer(" =\n"+indent2+"{");
+		final StringBuffer EE_rn_taskBuffer_body = new StringBuffer(" = {\n");
 
 		// number of remote notifications
 		int rnNumber = 0;
@@ -198,8 +193,8 @@ public class SectionWriterRemoteNotification extends SectionWriter implements
 				
 				final boolean remote = task.containsProperty(ISimpleGenResKeywords.TASK_REMOTE);
 				if (remote) {
-					EE_rn_cpuBuffer.append(rn_pre + " " + cpuId+"U");
-					EE_rn_taskBuffer.append(rn_pre + rn_post + indent3 + taskId);
+					EE_rn_cpuBuffer_body.append(rn_pre + " " + cpuId+"U");
+					EE_rn_taskBuffer_body.append(rn_pre + rn_post + indent3 + taskId);
 					
 					
 					// definition of remote notification
@@ -233,8 +228,8 @@ public class SectionWriterRemoteNotification extends SectionWriter implements
 		}
 		nGlobRes = globRes.size();
 		
-		EE_rn_cpuBuffer.append("};\n\n");
-		EE_rn_taskBuffer.append(rn_post + indent2 + "};\n"+indent1+"#endif\n\n");
+		EE_rn_cpuBuffer_body.append("};\n");
+		EE_rn_taskBuffer_body.append(rn_post + indent2 + "};\n");
 		
 		
 		/***********************************************************************
@@ -306,39 +301,25 @@ public class SectionWriterRemoteNotification extends SectionWriter implements
 			}
 	
 			StringBuffer tmpCommon_c = new StringBuffer();
-			tmpCommon_c.append(EE_rn_cpuBuffer.toString()
-					+ EE_rn_taskBuffer.toString() );
+			tmpCommon_c.append(
+					macros.constVectorRom(indent1+ "const EE_UINT8 ", "EE_rn_cpu","["+MAX_RN+"]", EE_rn_cpuBuffer_body.toString() ) + "\n"
+					+ indent1 + "#if defined( __RN_EVENT__ ) || defined( __RN_TASK__ )\n"
+					+ macros.constVectorRom(indent2 + "const EE_TID ", "EE_rn_task","["+MAX_RN+"]", EE_rn_taskBuffer_body.toString()) 
+					+indent1+"#endif\n\n");
 			
 	
 			tmpCommon_c.append(
 					indent1 + "/* For each RN: The type of notification that must be used\n" +
 					indent1 + " * EE_RN_COUNTER, EE_RN_EVENT, EE_RN_TASK,\n" +
 					indent1 + " * EE_RN_FUNC, EE_RN_SEM\n" +
-					indent1 + " */\n" +
-					indent1 + "EE_TYPERN_NOTIFY " +
-					macros.vectorRam("EE_rn_type","["+MAX_RN+"][2]") +" = {\n");
+					indent1 + " */\n");
 			
-			StringBuffer sb_rn_counter = new StringBuffer(
-					indent1 + "/* For each RN: The counter number if EE_RN_COUNTER, or -1 */\n"
-					+ indent1 + "#ifdef __RN_COUNTER__\n"
-					+ indent2 + "const EE_TYPECOUNTER "
-					+ macros.constVectorRom("EE_rn_counter","["+MAX_RN+"]") +" =\n"
+			StringBuffer sb_rn_type_body = new StringBuffer(" = {\n");
+			StringBuffer sb_rn_counter_body = new StringBuffer(" =\n"
 					+ indent3 + "{");
-	
-			
-			StringBuffer sb_rn_event = new StringBuffer(
-			        indent1 + "#ifdef __RN_EVENT__ \n"
-					+ indent2 + "EE_TYPEEVENTMASK "
-					+ macros.vectorRam("EE_rn_event","["+MAX_RN+"][2]") +" = {\n");
-	
-			
-			StringBuffer sb_rn_next = new StringBuffer(
-					indent1 + "EE_TYPERN " +
-					macros.vectorRam("EE_rn_next","["+MAX_RN+"][2]") +" = {\n");
-	
-			StringBuffer sb_rn_pending = new StringBuffer(
-			        indent1 + "EE_UREG " +
-			        macros.vectorRam("EE_rn_pending","["+MAX_RN+"][2]") +" = {\n");
+			StringBuffer sb_rn_event_body = new StringBuffer(" = {\n");
+			StringBuffer sb_rn_next_body = new StringBuffer(" = {\n");
+			StringBuffer sb_rn_pending_body = new StringBuffer(" = {\n");
 	
 			{
 				String pre = "";
@@ -346,39 +327,47 @@ public class SectionWriterRemoteNotification extends SectionWriter implements
 				String tp = "";
 				String tp2 = "";
 				for (int i=0; i< rnNumber; i++) {
-					tmpCommon_c.append(pre +post+ indent2+ "{0U, 0U}");
-					sb_rn_counter.append(tp + "-1");
-					sb_rn_event.append(tp2 +indent3+ "{0U, 0U}");
-					sb_rn_next.append(tp2 +indent3+ "{-1, -1}");
-					sb_rn_pending.append(tp2 +indent2+ "{0U, 0U}");
+					sb_rn_type_body.append(pre +post+ indent2+ "{0U, 0U}");
+					sb_rn_counter_body.append(tp + "-1");
+					sb_rn_event_body.append(tp2 +indent3+ "{0U, 0U}");
+					sb_rn_next_body.append(tp2 +indent3+ "{-1, -1}");
+					sb_rn_pending_body.append(tp2 +indent2+ "{0U, 0U}");
 		
 					tp = ", ";
 					tp2 = ",\n";
 					pre = ",";
 					post = (String) rnDescr.get(i);
 				}
-				tmpCommon_c.append(post+indent1+"};\n\n");
+				sb_rn_type_body.append(post+indent1+"};\n");
 			}
 	
-			sb_rn_counter.append("};\n"+ indent1 + "#endif\n\n");
-			sb_rn_event.append("\n" + indent2 +"};\n" + indent1 + "#endif\n\n");
-			sb_rn_next.append("\n" + indent1 + "};\n\n");
-			sb_rn_pending.append("\n" + indent1 + "};\n\n");
+			sb_rn_counter_body.append("};\n");
+			sb_rn_event_body.append("\n" + indent2 +"};\n");
+			sb_rn_next_body.append("\n" + indent1 + "};\n");
+			sb_rn_pending_body.append("\n" + indent1 + "};\n");
 	
 			
-			tmpCommon_c.append( 
-			        sb_rn_counter.toString() + 
-			        sb_rn_event.toString() + 
-			        sb_rn_next.toString() + 
-			        sb_rn_pending.toString() +
+			tmpCommon_c.append(
+					macros.vectorRam(indent1 + "EE_TYPERN_NOTIFY ", "EE_rn_type","["+MAX_RN+"][2]", sb_rn_type_body.toString()) +"\n"
+					
+					+ indent1 + "/* For each RN: The counter number if EE_RN_COUNTER, or -1 */\n"
+					+ indent1 + "#ifdef __RN_COUNTER__\n"
+					+ macros.constVectorRom(indent2 + "const EE_TYPECOUNTER ", "EE_rn_counter","["+MAX_RN+"]", sb_rn_counter_body.toString())
+			        + indent1 + "#endif\n\n"
 			        
-					indent1 + "#ifdef __RN_FUNC__\n" +
-					indent2 + "/* const EE_ADDR "
-					+ macros.constVectorRom("EE_rn_func","["+MAX_RN+"]") +" = {(EE_ADDR)f,...};*/\n" +
+			        + indent1 + "#ifdef __RN_EVENT__ \n"
+					+ macros.vectorRam(indent2 + "EE_TYPEEVENTMASK ", "EE_rn_event","["+MAX_RN+"][2]", sb_rn_event_body.toString())
+			        + indent1 + "#endif\n\n"
+			        
+					+ macros.vectorRam(indent1 + "EE_TYPERN ", "EE_rn_next","["+MAX_RN+"][2]", sb_rn_next_body.toString()) + "\n"
+					
+			        + macros.vectorRam(indent1 + "EE_UREG ", "EE_rn_pending","["+MAX_RN+"][2]", sb_rn_pending_body.toString()) + "\n" +
+			        
+					indent1 + "#ifdef __RN_FUNC__\n"
+					+ macros.constVectorRom(indent2 + "/* const EE_ADDR ", "EE_rn_func","["+MAX_RN+"]"," = {(EE_ADDR)f,...};*/\n") +
 					indent1 + "#endif\n\n" +
 					indent1 + "#ifdef __RN_SEM__\n" +
-					indent2 + "/*EE_SEM * const " +
-					macros.constVectorRom("EE_rn_sem","["+MAX_RN+"]") +";*/\n" +
+					macros.constVectorRom(indent2 + "/*EE_SEM * const ", "EE_rn_sem","["+MAX_RN+"]",";*/\n") +
 					indent1 + "#endif\n\n");
 	
 			/*
@@ -390,30 +379,28 @@ public class SectionWriterRemoteNotification extends SectionWriter implements
 			 * 
 			 */
 			
-			StringBuffer sbRnFirst = new StringBuffer(indent1 + "EE_TYPERN " +
-					macros.vectorRam("EE_rn_first","["+MAX_CPU+"][2]") +" = {\n"+indent2);
-			StringBuffer sbRnSpin = new StringBuffer(indent1 + "const EE_TYPESPIN " +
-					macros.constVectorRom("EE_rn_spin","["+MAX_CPU+"]") +" = { ");
-			StringBuffer sbRnSwitch = new StringBuffer(indent1 + "EE_TYPERN_SWITCH " +
-					macros.vectorRam("EE_rn_switch","["+MAX_CPU+"]") +" = { ");
+			StringBuffer sbRnFirst_body = new StringBuffer(" = {\n"+indent2);
+			StringBuffer sbRnSpin_body = new StringBuffer(" = { ");
+			StringBuffer sbRnSwitch_body = new StringBuffer(" = { ");
 			
 			// prepare strings
 			String pre2="";
 			for (int i=0; i<rtosNumber; i++) {
-				sbRnFirst.append(pre2+"{ -1, -1}");
-				sbRnSpin.append(pre2+(nGlobRes+i)+"U");
-				sbRnSwitch.append(pre2+"0U");
+				sbRnFirst_body.append(pre2+"{ -1, -1}");
+				sbRnSpin_body.append(pre2+(nGlobRes+i)+"U");
+				sbRnSwitch_body.append(pre2+"0U");
 				
 				pre2 =", ";
 			}
-			sbRnFirst.append("\n"+indent1 + "};\n\n");
-			sbRnSpin.append("};\n\n");
-			sbRnSwitch.append("};\n\n");
+			sbRnFirst_body.append("\n"+indent1 + "};\n");
+			sbRnSpin_body.append("};\n");
+			sbRnSwitch_body.append("};\n");
 	
 			tmpCommon_c.append(
-					sbRnFirst.toString() +
-					sbRnSpin.toString() +
-					sbRnSwitch.toString()
+					
+					macros.vectorRam(indent1 + "EE_TYPERN ", "EE_rn_first","["+MAX_CPU+"][2]", sbRnFirst_body.toString()) + "\n" +
+					macros.constVectorRom(indent1 + "const EE_TYPESPIN ", "EE_rn_spin","["+MAX_CPU+"]", sbRnSpin_body.toString()) + "\n" +
+					macros.vectorRam(indent1 + "EE_TYPERN_SWITCH ", "EE_rn_switch","["+MAX_CPU+"]", sbRnSwitch_body.toString()) + "\n"
 					//+"#endif /* __RN__ */"
 			);
 			
