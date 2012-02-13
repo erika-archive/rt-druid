@@ -1910,5 +1910,17 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 				(String) options.get(IWritersKeywords.ERIKA_ENTERPRISE_LOCATION) : EEPaths.getEe_base();
 	}
 
+	public boolean checkPragma(int currentRtosId) {
+		String[] existing = parent.extractEE_Opts(EE_OPT_USER_ONLY, currentRtosId);
+		
+		for (String s: existing) {
+			if ("USE_PRAGMAS".equals(s)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 }
 

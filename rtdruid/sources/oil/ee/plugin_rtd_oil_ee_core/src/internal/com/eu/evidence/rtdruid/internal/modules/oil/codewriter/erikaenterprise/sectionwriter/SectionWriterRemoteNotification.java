@@ -133,8 +133,11 @@ public class SectionWriterRemoteNotification extends SectionWriter implements
 		if (rtosNumber>0) {
 			List<ISimpleGenRes> oslist = oilObjects[0].getList(IOilObjectList.OS);
 			if (oslist.size()>0 && oslist.get(0).containsProperty(ISimpleGenResKeywords.OS_CPU_DESCRIPTOR)) {
-				macros = ((CpuHwDescription) oslist.get(0).getObject(ISimpleGenResKeywords.OS_CPU_DESCRIPTOR)).getShareDataMacros();
+				macros = ((CpuHwDescription) oslist.get(0).getObject(ISimpleGenResKeywords.OS_CPU_DESCRIPTOR)).getShareDataMacros();				
 			}
+		}
+		if (parent.checkPragma(0)) {
+			macros = macros.getPragma();
 		}
 
 		
@@ -302,11 +305,12 @@ public class SectionWriterRemoteNotification extends SectionWriter implements
 						+ "#endif\n\n");
 			}
 	
-			sbCommon_c.append(EE_rn_cpuBuffer.toString()
+			StringBuffer tmpCommon_c = new StringBuffer();
+			tmpCommon_c.append(EE_rn_cpuBuffer.toString()
 					+ EE_rn_taskBuffer.toString() );
 			
 	
-			sbCommon_c.append(
+			tmpCommon_c.append(
 					indent1 + "/* For each RN: The type of notification that must be used\n" +
 					indent1 + " * EE_RN_COUNTER, EE_RN_EVENT, EE_RN_TASK,\n" +
 					indent1 + " * EE_RN_FUNC, EE_RN_SEM\n" +
@@ -342,7 +346,7 @@ public class SectionWriterRemoteNotification extends SectionWriter implements
 				String tp = "";
 				String tp2 = "";
 				for (int i=0; i< rnNumber; i++) {
-					sbCommon_c.append(pre +post+ indent2+ "{0U, 0U}");
+					tmpCommon_c.append(pre +post+ indent2+ "{0U, 0U}");
 					sb_rn_counter.append(tp + "-1");
 					sb_rn_event.append(tp2 +indent3+ "{0U, 0U}");
 					sb_rn_next.append(tp2 +indent3+ "{-1, -1}");
@@ -353,7 +357,7 @@ public class SectionWriterRemoteNotification extends SectionWriter implements
 					pre = ",";
 					post = (String) rnDescr.get(i);
 				}
-				sbCommon_c.append(post+indent1+"};\n\n");
+				tmpCommon_c.append(post+indent1+"};\n\n");
 			}
 	
 			sb_rn_counter.append("};\n"+ indent1 + "#endif\n\n");
@@ -362,7 +366,7 @@ public class SectionWriterRemoteNotification extends SectionWriter implements
 			sb_rn_pending.append("\n" + indent1 + "};\n\n");
 	
 			
-			sbCommon_c.append( 
+			tmpCommon_c.append( 
 			        sb_rn_counter.toString() + 
 			        sb_rn_event.toString() + 
 			        sb_rn_next.toString() + 
@@ -406,12 +410,17 @@ public class SectionWriterRemoteNotification extends SectionWriter implements
 			sbRnSpin.append("};\n\n");
 			sbRnSwitch.append("};\n\n");
 	
-			sbCommon_c.append(
+			tmpCommon_c.append(
 					sbRnFirst.toString() +
 					sbRnSpin.toString() +
 					sbRnSwitch.toString()
 					//+"#endif /* __RN__ */"
 			);
+			
+			if (macros instanceof IMacrosForSharedData.IPragma) {
+				sbCommon_c.append(((IMacrosForSharedData.IPragma) macros).getPragmaSections());
+			}
+			sbCommon_c.append(tmpCommon_c);
 			
 		}
 		return answer;

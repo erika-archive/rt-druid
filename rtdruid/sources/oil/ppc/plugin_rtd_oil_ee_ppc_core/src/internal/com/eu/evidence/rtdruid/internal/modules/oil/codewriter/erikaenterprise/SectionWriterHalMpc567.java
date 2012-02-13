@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 
@@ -275,7 +276,7 @@ public class SectionWriterHalMpc567 extends SectionWriter
 			sgrCpu.setObject(ISimpleGenResKeywords.OS_CPU_COMMON_EE_OPTS, tmp_common_eeopts.toArray(new String[tmp_common_eeopts.size()]));			
 			
 			// updateStacks (needed by orti)... not the best solution....
-			handleStacks(ool);
+			handleStacks(currentRtosId, ool);
 		}
 
 	
@@ -333,7 +334,7 @@ public class SectionWriterHalMpc567 extends SectionWriter
 			/***********************************************************************
 			 * OTHER STACKs
 			 **********************************************************************/
-			sbInithal_c.append(handleStacks(ool));
+			sbInithal_c.append(handleStacks(currentRtosId, ool));
 			
 	
 			
@@ -349,7 +350,7 @@ public class SectionWriterHalMpc567 extends SectionWriter
 	}
 
 
-	protected StringBuffer handleStacks(final IOilObjectList ool) throws OilCodeWriterException  {
+	protected StringBuffer handleStacks(int currentRtosId, final IOilObjectList ool) throws OilCodeWriterException  {
 		String stackType = parent.getStackType(); // MULTI or MONO
 		StringBuffer sbInithal_c = new StringBuffer();
 
@@ -398,6 +399,8 @@ public class SectionWriterHalMpc567 extends SectionWriter
 			/* A buffer about declarations of stacks  */
 			StringBuffer sbStackDecl = new StringBuffer();
 			StringBuffer sbStackDeclSize = new StringBuffer();
+			final boolean usePragma = parent.checkPragma(currentRtosId);
+			LinkedHashMap<String, StringBuffer> sbStackPragma = new LinkedHashMap<String, StringBuffer>();
 //			StringBuffer stackPatternFill = new StringBuffer();
 			
 			sbInithal_c.append(commentWriterC
@@ -607,10 +610,16 @@ public class SectionWriterHalMpc567 extends SectionWriter
 //				 DECLARE STACK SIZE && STACK (ARRAY)
 				for (int j = 1; j < size.length; j++) {
 				    long value = size[j][0];
+			    	final String memId = memoryId[j];
 //				    value  = (value + (value%STACK_UNIT)) / STACK_UNIT; // arrottondo a 2
+				    if (usePragma) {
+				    	addPragmaSections(sbStackPragma, j, memId);
+				    }
 					sbStackDecl.append(indent1 + "static EE_STACK_T " +
-								(memoryId[j] == null ? "EE_STACK_ATTRIB" : "EE_STACK_ATTRIB_NAME("+memoryId[j]+")") +
-								" "+STACK_BASE_NAME+j+"[EE_STACK_WLEN(STACK_"+j+"_SIZE)];\t/* "+descrStack[j]+" */\n");
+							( usePragma ? "" :
+								(memId == null ? "EE_STACK_ATTRIB " : "EE_STACK_ATTRIB_NAME("+memId+") ")
+							) +
+								STACK_BASE_NAME+j+"[EE_STACK_WLEN(STACK_"+j+"_SIZE)];\t/* "+descrStack[j]+" */\n");
 					sbStackDeclSize.append(indent1 + "#define STACK_"+j+"_SIZE "+value+" " + commentWriterC.writerSingleLineComment("size = "+size[j][0]+" bytes"));
 					
 					// USED BY ORTI
@@ -651,10 +660,15 @@ public class SectionWriterHalMpc567 extends SectionWriter
 
 				{ // if required, init also the irq stack
 					if (irqSize != null) {
-					    int j = size.length;
+						int j = size.length;
 					    long value = irqSize[0];
+					    
+					    if (usePragma) {
+					    	addPragmaSections(sbStackPragma, j, null);
+					    }
+					    
 //					    value  = (value + (value%STACK_UNIT)) / STACK_UNIT; // arrottondo a 2
-						sbStackDecl.append(indent1 + "static EE_STACK_T EE_STACK_ATTRIB "+STACK_BASE_NAME+j+"[EE_STACK_WLEN(STACK_"+j+"_SIZE)];\t/* irq stack */\n");
+						sbStackDecl.append(indent1 + "static EE_STACK_T "+( usePragma ? "" : "EE_STACK_ATTRIB ")+STACK_BASE_NAME+j+"[EE_STACK_WLEN(STACK_"+j+"_SIZE)];\t/* irq stack */\n");
 						sbStackDeclSize.append(indent1 + "#define STACK_"+j+"_SIZE "+value+ " " + commentWriterC.writerSingleLineComment("size = "+irqSize[0]+" bytes"));
 
 						sbStack
@@ -687,6 +701,9 @@ public class SectionWriterHalMpc567 extends SectionWriter
 			}		
 
 			//  add stack buffers
+			for (StringBuffer buff: sbStackPragma.values()) {
+				sbInithal_c.append(buff+"\n\n");
+			}
 			sbInithal_c.append(sbStackDeclSize+"\n"+
 			        sbStackDecl + "\n" +
 			        sbStack
@@ -698,7 +715,28 @@ public class SectionWriterHalMpc567 extends SectionWriter
 
 		return sbInithal_c;
 	}
-	
+
+	private void addPragmaSections(
+			LinkedHashMap<String, StringBuffer> sbStackPragma, int j,
+			final String memId) {
+		String tmpMemId1 = memId == null ? "SYS_STACK" : memId.toUpperCase();
+		String tmpMemId2 = memId == null ? "stack" : "stack_" +memId;
+		StringBuffer buff;
+		String sep;
+		if (sbStackPragma.containsKey(tmpMemId1)) {
+			buff = sbStackPragma.get(tmpMemId1);
+			sep = ", ";
+		} else {
+			buff = new StringBuffer();
+			sbStackPragma.put(tmpMemId1, buff);
+			buff.append("#pragma section "+tmpMemId1+" \"."+tmpMemId2+"\" \"."+tmpMemId2+"\"\n" +
+						"#pragma use_section "+tmpMemId1);
+			sep = " ";
+		}
+		
+		buff.append(sep + STACK_BASE_NAME+j);
+	}
+
 	/*
 	 * Parse and write the MCU Section
 	 */

@@ -3,6 +3,17 @@ package com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.hw;
 import com.eu.evidence.rtdruid.modules.oil.erikaenterprise.interfaces.IMacrosForSharedData;
 
 public class EmptyMacrosForSharedData implements IMacrosForSharedData {
+	private class SharedDataWithPragma extends EmptyMacrosForSharedData implements IPragma {
+		@Override
+		public String getPragmaSections() {
+			return "";
+		}
+	}
+
+	@Override
+	public IPragma getPragma() {
+		return new SharedDataWithPragma();
+	}
 
 	@Override
 	public String vectorRam(String vectorName, String array) {

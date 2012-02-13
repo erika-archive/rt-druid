@@ -8,6 +8,12 @@ package com.eu.evidence.rtdruid.modules.oil.erikaenterprise.interfaces;
  */
 public interface IMacrosForSharedData {
 	
+	public interface IPragma extends IMacrosForSharedData {
+		String getPragmaSections();
+	}
+	
+	IPragma getPragma();
+	
 	String vectorRam(String vectorName, String array);
 
 	String vectorRom(String vectorName, String array);

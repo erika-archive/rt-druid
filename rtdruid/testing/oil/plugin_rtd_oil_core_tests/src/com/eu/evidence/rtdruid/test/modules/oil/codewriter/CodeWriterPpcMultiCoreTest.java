@@ -297,4 +297,173 @@ public class CodeWriterPpcMultiCoreTest extends AbstractCodeWriterTest {
 	   DefaultTestResult res = commonWriterTest(text, 2);
 	    System.out.println(Vt2StringUtilities.explodeOilVar(Vt2StringUtilities.varTreeToStringErtd(res.vt)));
 	}
+	
+
+	public void testMultiStack() {
+	    final String text = 	
+			"CPU test_application {\n" +
+			"\n" +
+			"	OS EE {\n" +
+			"		EE_OPT = \"__ASSERT__\";\n" +
+			"		CFLAGS = \"-g2\";\n" +
+			"		ASFLAGS = \"\";\n" +
+			"		LDFLAGS = \"\";\n" +
+			"\n" +
+			"		EE_OPT = \"__E200ZX_EXECUTE_FROM_RAM__\";\n" +
+			"\n" +
+			"		MASTER_CPU = \"master\";\n" +
+			"\n" +
+			"		CPU_DATA = PPCE200ZX {\n" +
+			"			ID = \"master\";\n" +
+			"			MODEL = E200Z6;\n" +
+			"			APP_SRC = \"master.c\";\n" +
+			"			MULTI_STACK = TRUE {\n" +
+			"				IRQ_STACK = TRUE {\n" +
+			"					SYS_SIZE = 512;\n" +
+			"				};\n" +
+			"			};\n" +
+			"			VLE = TRUE;\n" +
+			"			SYS_STACK_SIZE = 4096;\n" +
+			"		};\n" +
+			"\n" +
+			"		CPU_DATA = PPCE200ZX {\n" +
+			"			MODEL = E200Z0;\n" +
+			"			ID = \"slave\";\n" +
+			"			APP_SRC = \"slave.c\";\n" +
+			"			MULTI_STACK = TRUE {\n" +
+			"				IRQ_STACK = TRUE {\n" +
+			"					SYS_SIZE = 512;\n" +
+			"				};\n" +
+			"			};\n" +
+			"			VLE = TRUE;\n" +
+			"			SYS_STACK_SIZE = 4096;\n" +
+			"		};\n" +
+			"\n" +
+			"		MCU_DATA = PPCE200ZX {\n" +
+			"			MODEL = MPC5668G;\n" +
+			"		};\n" +
+			"\n" +
+			"		STATUS = EXTENDED;\n" +
+			"		STARTUPHOOK = FALSE;\n" +
+			"		ERRORHOOK = FALSE;\n" +
+			"		SHUTDOWNHOOK = FALSE;\n" +
+			"		PRETASKHOOK = FALSE;\n" +
+			"		POSTTASKHOOK = FALSE;\n" +
+			"		USEGETSERVICEID = FALSE;\n" +
+			"		USEPARAMETERACCESS = FALSE;\n" +
+			"		USERESSCHEDULER = FALSE;\n" +
+			"\n" +
+			"		USEREMOTETASK = ALWAYS;\n" +
+			"\n" +
+			"		KERNEL_TYPE = BCC1;\n" +
+			"	};\n" +
+			"\n" +
+			"	TASK TaskZ6 {\n" +
+			"		CPU_ID = \"master\";\n" +
+			"		PRIORITY = 0x01;   /* Low priority */\n" +
+			"		AUTOSTART = FALSE;\n" +
+			"		STACK = PRIVATE {\n" +
+			"			SYS_SIZE = 1024;\n" +
+			"		};\n" +
+			"		ACTIVATION = 1;	   /* only one pending activation */\n" +
+			"	};\n" +
+			"\n" +
+			"	TASK TaskZ0 {\n" +
+			"		CPU_ID = \"slave\";\n" +
+			"		PRIORITY = 0x01;   /* Low priority */\n" +
+			"		AUTOSTART = TRUE;\n" +
+			"		STACK = PRIVATE {\n" +
+			"			SYS_SIZE = 1024;\n" +
+			"		};\n" +
+			"		ACTIVATION = 1;	   /* only one pending activation */\n" +
+			"	};\n" +
+			"};";
+	   DefaultTestResult res = commonWriterTest(text, 2);
+	    System.out.println(Vt2StringUtilities.explodeOilVar(Vt2StringUtilities.varTreeToStringErtd(res.vt)));
+	}
+	
+	public void testPragmaMultiStack() {
+	    final String text = 	
+			"CPU test_application {\n" +
+			"\n" +
+			"	OS EE {\n" +
+			"		EE_OPT = \"__ASSERT__\";\n" +
+			"		CFLAGS = \"-g2\";\n" +
+			"		ASFLAGS = \"\";\n" +
+			"		LDFLAGS = \"\";\n" +
+			"\n" +
+			"		EE_OPT = \"__E200ZX_EXECUTE_FROM_RAM__\";\n" +
+			"		EE_OPT = \"USE_PRAGMAS\";\n" +
+			"\n" +
+			"		MASTER_CPU = \"master\";\n" +
+			"\n" +
+			"		CPU_DATA = PPCE200ZX {\n" +
+			"			ID = \"master\";\n" +
+			"			MODEL = E200Z6;\n" +
+			"			APP_SRC = \"master.c\";\n" +
+			"			MULTI_STACK = TRUE {\n" +
+			"				IRQ_STACK = TRUE {\n" +
+			"					SYS_SIZE = 512;\n" +
+			"				};\n" +
+			"			};\n" +
+			"			VLE = TRUE;\n" +
+			"			SYS_STACK_SIZE = 4096;\n" +
+			"		};\n" +
+			"\n" +
+			"		CPU_DATA = PPCE200ZX {\n" +
+			"			MODEL = E200Z0;\n" +
+			"			ID = \"slave\";\n" +
+			"			APP_SRC = \"slave.c\";\n" +
+			"			MULTI_STACK = TRUE {\n" +
+			"				IRQ_STACK = TRUE {\n" +
+			"					SYS_SIZE = 512;\n" +
+			"				};\n" +
+			"			};\n" +
+			"			VLE = TRUE;\n" +
+			"			SYS_STACK_SIZE = 4096;\n" +
+			"		};\n" +
+			"\n" +
+			"		MCU_DATA = PPCE200ZX {\n" +
+			"			MODEL = MPC5668G;\n" +
+			"		};\n" +
+			"\n" +
+			"		STATUS = EXTENDED;\n" +
+			"		STARTUPHOOK = FALSE;\n" +
+			"		ERRORHOOK = FALSE;\n" +
+			"		SHUTDOWNHOOK = FALSE;\n" +
+			"		PRETASKHOOK = FALSE;\n" +
+			"		POSTTASKHOOK = FALSE;\n" +
+			"		USEGETSERVICEID = FALSE;\n" +
+			"		USEPARAMETERACCESS = FALSE;\n" +
+			"		USERESSCHEDULER = FALSE;\n" +
+			"\n" +
+			"		USEREMOTETASK = ALWAYS;\n" +
+			"\n" +
+			"		KERNEL_TYPE = BCC1;\n" +
+			"	};\n" +
+			"\n" +
+			"	TASK TaskZ6 {\n" +
+			"		CPU_ID = \"master\";\n" +
+			"		PRIORITY = 0x01;   /* Low priority */\n" +
+			"		AUTOSTART = FALSE;\n" +
+			"		STACK = PRIVATE {\n" +
+			"			SYS_SIZE = 1024;\n" +
+			"		};\n" +
+			"		ACTIVATION = 1;	   /* only one pending activation */\n" +
+			"	};\n" +
+			"\n" +
+			"	TASK TaskZ0 {\n" +
+			"		CPU_ID = \"slave\";\n" +
+			"		PRIORITY = 0x01;   /* Low priority */\n" +
+			"		AUTOSTART = TRUE;\n" +
+			"		STACK = PRIVATE {\n" +
+			"			SYS_SIZE = 1024;\n" +
+			"		};\n" +
+			"		ACTIVATION = 1;	   /* only one pending activation */\n" +
+			"	};\n" +
+			"};";
+	   DefaultTestResult res = commonWriterTest(text, 2);
+	    System.out.println(Vt2StringUtilities.explodeOilVar(Vt2StringUtilities.varTreeToStringErtd(res.vt)));
+	}
+
 }

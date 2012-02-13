@@ -604,6 +604,161 @@ public class CodeWriterMpc567Test extends AbstractCodeWriterTest {
 		System.out.println(Vt2StringUtilities.explodeOilVar(Vt2StringUtilities.varTreeToStringErtd(result.vt)));
 	}
 
+	public void testMpc567_full_os_application__pragma() {
+	    final String text = "CPU test_application {\n" +
+			"\n" +
+			"	OS EE {		\n" +
+			"		EE_OPT = \"DEBUG_STACK\";\n" +
+			"		EE_OPT = \"USE_PRAGMAS\";\n" +
+			"\n" +
+			"		CFLAGS = \"-g2\";\n" +
+			"		ASFLAGS = \"\";\n" +
+			"		LDFLAGS = \"\"; \n" +
+			"\n" +
+			"		CPU_DATA = PPCE200ZX {\n" +
+			"			APP_SRC = \"main.c\";\n" +
+			"			MULTI_STACK = TRUE {\n" + 
+			"				IRQ_STACK = TRUE {\n" + 
+			"					SYS_SIZE=512;\n" + 
+			"				};\n" + 
+			"			};\n" + 
+			"			MODEL = E200Z6;\n" +
+			"		};\n" +
+			"		\n" +
+//			"		MCU_DATA = PPCE200ZX {\n" +
+//			"			MODEL = MPC5668G;\n" + 
+//			"		};\n" +
+			"		\n" +
+			"\n" +
+			"		STATUS = EXTENDED;\n" +
+			"		STARTUPHOOK = FALSE;\n" +
+			"		ERRORHOOK = FALSE;\n" +
+			"		SHUTDOWNHOOK = FALSE;\n" +
+			"		PRETASKHOOK = FALSE;\n" +
+			"		POSTTASKHOOK = FALSE;\n" +
+			"		USEGETSERVICEID = FALSE;\n" +
+			"		USEPARAMETERACCESS = FALSE;\n" +
+			"		USERESSCHEDULER = FALSE;\n" +
+			"		\n" +
+			"    };\n" +
+			"    \n" +
+
+			"    APPLICATION main_app {\n" +
+			"		TRUSTED = TRUE;\n" +
+			"		IRQ_STACK_SIZE = 512;\n" +
+			"       TASK = MainTask;\n" +
+			"       TASK = MyTask1;\n" +
+			"       TASK = MyTask3;\n" +
+			"       TASK = MyTask4;\n" +
+			
+			"       ISR = isr2entry_isr2;\n" +
+			"       ISR = isrentry_isr1;\n" +
+			"       ISR = isrexit_isr1;\n" +
+			"       ISR = istentry_isr2;\n" +
+			"       ISR = istexit_isr2;\n" +
+			
+    		"		SHARED_STACK_SIZE = 512;\n"+
+    		"		MEMORY_BASE = 0x40020000;\n"+
+    		"		MEMORY_SIZE = 0x10000;\n"+
+			"    };\n" +
+
+			"    APPLICATION app1 {\n" +
+			"		TRUSTED = FALSE;\n" +
+			"		IRQ_STACK_SIZE = 512;\n" +
+			"       TASK = TaskApp1;\n" +
+    		"		SHARED_STACK_SIZE = 512;\n"+
+    		"		MEMORY_BASE = 0x40020000;\n"+
+    		"		MEMORY_SIZE = 0x10000;\n"+
+			"    };\n" +
+			"    APPLICATION app2 {\n" +
+			"		TRUSTED = FALSE;\n" +
+			"		IRQ_STACK_SIZE = 512;\n" +
+    		"		SHARED_STACK_SIZE = 512;\n"+
+    		"		MEMORY_BASE = 0x40020000;\n"+
+    		"		MEMORY_SIZE = 0x10000;\n"+
+			"       TASK = TaskApp2;\n" +
+			"    };\n" +
+			
+			"    /* this is the OIL part for the first task */\n" +
+			"    TASK MainTask {\n" +
+			"		PRIORITY = 0x02;\n" +
+			"		AUTOSTART = TRUE;\n" +
+			"		STACK = PRIVATE {\n" +
+			"			SYS_SIZE = 128;\n" +
+			"		};\n" +
+			"		ACTIVATION = 1;    /* only one pending activation */\n" +
+			"	};	\n" +
+			"\n" +
+			"    /* this is the OIL part for the second task */\n" +
+			"    TASK MyTask1 {\n" +
+			"		PRIORITY = 0x01;\n" +
+			"		AUTOSTART = FALSE;\n" +
+			"		STACK = PRIVATE {\n" +
+			"			SYS_SIZE = 128;\n" +
+			"		};\n" +
+			"		ACTIVATION = 1;    /* only one pending activation */\n" +
+			"	};	\n" +
+			"    TASK MyTask3 {\n" +
+			"		PRIORITY = 0x04;\n" +
+			"		AUTOSTART = FALSE;\n" +
+			"		STACK = PRIVATE {\n" +
+			"			SYS_SIZE = 128;\n" +
+			"		};\n" +
+			"		ACTIVATION = 1;    /* only one pending activation */\n" +
+			"	};	\n" +
+			"    TASK MyTask4 {\n" +
+			"		PRIORITY = 0x08;\n" +
+			"		AUTOSTART = FALSE;\n" +
+			"		STACK = PRIVATE {\n" +
+			"			SYS_SIZE = 128;\n" +
+			"		};\n" +
+			"		ACTIVATION = 1;    /* only one pending activation */\n" +
+			"	};	\n" +
+			"    TASK TaskApp1 {\n" +
+			"		PRIORITY = 0x08;\n" +
+			"		APP_SRC = \"app1.c\";\n" +
+			"		AUTOSTART = FALSE;\n" +
+			"		STACK = PRIVATE {\n" +
+			"			SYS_SIZE = 128;\n" +
+			"		};\n" +
+			"		ACTIVATION = 1;    /* only one pending activation */\n" +
+			"	};	\n" +
+			"    TASK TaskApp2 {\n" +
+			"		PRIORITY = 0x08;\n" +
+			"		APP_SRC = \"app2.c\";\n" +
+			"		AUTOSTART = FALSE;\n" +
+			"		STACK = PRIVATE {\n" +
+			"			SYS_SIZE = 128;\n" +
+			"		};\n" +
+			"		ACTIVATION = 1;    /* only one pending activation */\n" +
+			"	};	\n" +
+			
+			"    ISR isr2entry_isr2 {\n" +
+			"		CATEGORY = 2;\n" +
+			"	};	\n" +			
+			"    ISR isrentry_isr1 {\n" +
+			"		CATEGORY = 2;\n" +
+			"	};	\n" +			
+			"    ISR isrexit_isr1 {\n" +
+			"		CATEGORY = 2;\n" +
+			"	};	\n" +			
+			"    ISR istentry_isr2 {\n" +
+			"		CATEGORY = 2;\n" +
+			"	};	\n" +			
+			"    ISR istexit_isr2 {\n" +
+			"		CATEGORY = 2;\n" +
+			"	};	\n" +		
+			
+			"    OS EE { \n" +
+			"		KERNEL_TYPE = ECC2;\n" +
+			"		ORTI_SECTIONS = ALL;\n" +
+			"		MAX_NESTING_LEVEL = 8;\n" +
+			"		MEMORY_PROTECTION = TRUE;\n" +
+			"  }; 	\n" +
+			"};";
+		DefaultTestResult result = commonWriterTest(text, 1);
+		System.out.println(Vt2StringUtilities.explodeOilVar(Vt2StringUtilities.varTreeToStringErtd(result.vt)));
+	}
 	
 	public void testMpc567_bug90_stack() {
 	    final String text = "CPU test_application {\n" +
