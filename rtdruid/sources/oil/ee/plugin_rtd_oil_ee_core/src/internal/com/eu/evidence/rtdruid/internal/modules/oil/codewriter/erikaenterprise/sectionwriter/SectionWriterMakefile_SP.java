@@ -226,7 +226,8 @@ public class SectionWriterMakefile_SP extends SectionWriter implements IEEWriter
 						"endif\n"+
 						"endif # ERIKA_FILES\n"+
 						"# ERIKA_FILES has fulfilled its role. Make sure it's not used inside Erika makefiles\n"+ 
-						"ERIKA_FILES :=\n"					
+						"ERIKA_FILES :=\n"+
+						 "$(info Using erika files in $(EEBASE))\n"
 		        );
 			}
 			

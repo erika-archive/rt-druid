@@ -187,6 +187,7 @@ public class SectionWriterMakefile_MP extends SectionWriter implements IEEWriter
 					"endif # ERIKA_FILES\n"+
 					"# ERIKA_FILES has fulfilled its role. Make sure it's not used inside Erika makefiles\n"+ 
 					"ERIKA_FILES :=\n\n"+
+					"$(info Using erika files in $(EEBASE))\n"+
 					"endif " +commentWriterMf.writerSingleLineComment(ERIKA_INNER_MAKEFILE_DEFINE)+"\n"
 	        );
 			
