@@ -14,7 +14,7 @@
 		<property name="bundleVersion" value="${templates_ee_cortex_v}.${build_number}"/>
 
 		<fileset dir="${ee.base.location}" id="ee_examples">
-			<include name="examples/cortex_m0/**/*"/>
+			<include name="examples/cortex_mx/**/*"/>
 		</fileset>
 
 
