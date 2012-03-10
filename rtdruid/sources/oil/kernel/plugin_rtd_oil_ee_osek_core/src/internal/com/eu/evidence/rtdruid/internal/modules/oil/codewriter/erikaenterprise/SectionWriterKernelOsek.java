@@ -1296,6 +1296,8 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 							
 						}
 						arraySize[appN] =  tmpArray.size();
+						final boolean disable_define  = tmpArray.size() == 0;
+						StringBuffer tmp_buffer = new StringBuffer();
 						
 						// search if the same array already exist
 						final int arrayId = CommonUtils.searchArray(allArrays,
@@ -1307,7 +1309,7 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 							allArrays[appN] = tmpArray;
 		
 							// .. and define it in the code
-							buffer.append(indent1+"static const EE_TYPEALARM EE_oo_autostart_alarm_mode_"
+							tmp_buffer.append(indent1+"static const EE_TYPEALARM EE_oo_autostart_alarm_mode_"
 									+ appModeName+ "["+tmpArray.size()+"] =\n"+indent2+"{ ");
 							pre2 = "";
 							for (int i = 0; i < tmpArray.size(); i++) {
@@ -1319,16 +1321,21 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 								} catch (Exception e) {
 									// id is not a number. ok... do nothing
 								}
-								buffer.append(pre2 + id);
+								tmp_buffer.append(pre2 + id);
 								pre2 = ", ";
 							}
-							buffer.append(" };\n");
+							tmp_buffer.append(" };\n");
 						}  else {
 							// link to a previous defined array
 							
-							buffer.append(indent1+"#define EE_oo_autostart_alarm_mode_"
+							tmp_buffer.append(indent1+"#define EE_oo_autostart_alarm_mode_"
 									+ appModeName+ " EE_oo_autostart_alarm_mode_"+appModes.get(arrayId)+"\n");
 						}
+						
+						buffer.append(disable_define ? 
+								  commentWriterC.writerMultiLineComment(indent1, tmp_buffer.toString())
+								: tmp_buffer.toString());
+
 		
 					}
 		
@@ -1337,11 +1344,13 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 					buffer
 							.append("\n"+ indent1+"const struct EE_oo_autostart_alarm_type EE_oo_autostart_alarm_data["+MAX_APPMODE+"] = {\n");
 					for (int appN = 0; appN < appModes.size(); appN++) {
+						final boolean disable_define  = arraySize[appN] == 0; // ? ", 0}, //" : ""; 
 						buffer
 								.append(pre2 + indent2+"{ "
 										+ arraySize[appN]+"U"
-										+ ", EE_oo_autostart_alarm_mode_"
-										+ appModes.get(appN) + "}");
+										+ ", " + (disable_define ? "0U" 
+												:"EE_oo_autostart_alarm_mode_"+ appModes.get(appN))
+										+ "}");
 						pre2 = ",\n";
 					}
 					buffer.append("\n"+ indent1+"};\n");

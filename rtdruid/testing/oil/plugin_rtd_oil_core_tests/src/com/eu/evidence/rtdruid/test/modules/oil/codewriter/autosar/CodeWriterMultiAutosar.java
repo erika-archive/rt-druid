@@ -20,12 +20,13 @@ import com.eu.evidence.rtdruid.io.MultiSourceImporterFactory;
 import com.eu.evidence.rtdruid.modules.oil.abstractions.IOilWriterBuffer;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.CommonUtils;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.RtosFactory;
+import com.eu.evidence.rtdruid.test.modules.oil.codewriter.AbstractCodeWriterTest;
 import com.eu.evidence.rtdruid.vartree.ITreeInterface;
 import com.eu.evidence.rtdruid.vartree.IVarTree;
 import com.eu.evidence.rtdruid.vartree.data.ObjectWithID;
 import com.eu.evidence.rtdruid.vartree.data.init.Vt2StringUtilities;
 
-public class CodeWriterMultiAutosar {
+public class CodeWriterMultiAutosar extends AbstractCodeWriterTest {
 
 	@Test
 	public void test() throws IOException {
@@ -103,7 +104,8 @@ public class CodeWriterMultiAutosar {
 		System.out.println("\t------------FINE ERTD------------\n\n");
 
 		System.out.println("\t------------ALTRO OIL------------\n\n");
-		System.out.println(Vt2StringUtilities.writeString(vt, "oil"));
+		String OIL = Vt2StringUtilities.writeString(vt, "oil");
+		System.out.println(OIL);
 		System.out.println("\t------------FINE ALTRO OIL------------\n\n");
 
 		
@@ -123,10 +125,14 @@ public class CodeWriterMultiAutosar {
 			throw new RuntimeException("Write fail: " + e.getMessage(), e);
 		}
 
+		final int expectedSize = 1;
 		assertNotNull(buffers);
-		assertEquals(1, buffers.length);
-		for (int i=0; i<1; i++)
-			System.out.println("buff " + i + ":\n" + (buffers[i]).toString());
+		assertEquals(expectedSize, buffers.length);
 
+	    DefaultTestResult result = commonWriterTest(OIL, 1);
+		for (int i=0; i<expectedSize; i++) {
+			assertEquals(buffers[i].toString(), result.buffers[i].toString());
+		}
 	}
+		
 }
