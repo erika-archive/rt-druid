@@ -14,6 +14,7 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 
 import com.eu.evidence.rtdruid.desk.RTDFactory;
+import com.eu.evidence.rtdruid.io.IRTDExporter;
 import com.eu.evidence.rtdruid.io.IRTDImporter;
 import com.eu.evidence.rtdruid.vartree.IVarTree;
 
@@ -54,6 +55,26 @@ public class Vt2StringUtilities {
 			throw new RuntimeException(e);
 		}
 		return vt;
+	}
+	
+	/**   LOAD data from a string
+	 * 
+	 * @param input a string that contains all data
+	 * @return 
+	 */ 
+	public static String writeString(IVarTree input, String format) {
+		
+		HashMap<String, String> map = new HashMap<String, String>();
+		map.put(IRTDExporter.OPT_USE_EXPORTER_TYPE, format);
+		
+		Resource res = (Resource) input.getResourceSet().getResources().get(0);
+		ByteArrayOutputStream output = new ByteArrayOutputStream();
+		try {
+			res.save(output, map);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		return output.toString();
 	}
 	
 	public static String varTreeToString(IVarTree vt) {
