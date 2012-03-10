@@ -53,6 +53,7 @@ public class WorkerExampleList implements IWorkerExampleWriter {
 					+       "Title = " + ex.getTitle()+"\n"
 					+ wsp + "Cat.  = " + ex.getCategory() + "\n"
 					+ wsp + "ID    = " + ex.getExampleID() + "\n"
+					+ wsp + "Path  = " + ex.getFs_path() + "\n"
 					+ wsp + "Descr.= " + ex.getShortDescr();
 			myLog("", buff);
 		}
