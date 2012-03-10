@@ -1612,7 +1612,7 @@ public class SimpleTransform implements IOilTransform {
 					}
 					//checkTrue(var instanceof OilVar, "Required an OilVar");
 
-					curr.setVar(storeInsideAOilVar(/*(OilVar)*/ var, parent, id,
+					curr.setVar(storeInsideAOilVar(/*(OilVar)*/ var, objList[i], id,
 							name, true));
 
 				} // end for(osList[0] ... osList[n])
@@ -2152,7 +2152,8 @@ public class SimpleTransform implements IOilTransform {
 				try {
 					newName = svtp.add(names[i], types[i]);
 				} catch (RuntimeException e) {
-					throw new OilTransformException(e.getMessage(), e);
+					throw new OilTransformException("Error when try to add a node :\n\t" + "name = "
+							+ names[i] + "\n\ttype = " + types[i], e);
 				}
 
 				// TODO: controllare se necessita di protezioni aggiuntive

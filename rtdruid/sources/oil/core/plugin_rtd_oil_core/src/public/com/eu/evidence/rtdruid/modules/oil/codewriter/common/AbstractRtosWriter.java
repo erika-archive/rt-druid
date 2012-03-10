@@ -931,6 +931,48 @@ public abstract class AbstractRtosWriter implements IRtosWriter {
 		case IOilObjectList.COM:
 		case IOilObjectList.IPDU:
 		case IOilObjectList.NM:
+		{
+			String objPath = rtosPrefix + S+ DPKG.getRtos_OilVar().getName();
+
+			// search all Modes ...
+	        String[] modesNames = vt.newTreeInterface().getAllName(objPath, null);
+	        if (modesNames.length>0) {
+	        	final String expectedType;
+	        	switch (type) {
+	    		case IOilObjectList.MESSAGE:
+	    			expectedType = IOilXMLLabels.OBJ_MESSAGE;
+	    			break;
+	    		case IOilObjectList.NETWORKMESSAGE:
+	    			expectedType = IOilXMLLabels.OBJ_NETWORKMESSAGE;
+	    			break;
+	    		case IOilObjectList.COM:
+	    			expectedType = IOilXMLLabels.OBJ_COM;
+	    			break;
+	    		case IOilObjectList.IPDU:
+	    			expectedType = IOilXMLLabels.OBJ_IPDU;
+	    			break;
+	    		case IOilObjectList.NM:
+	    			expectedType = IOilXMLLabels.OBJ_NM;
+	    			break;
+    			default:
+	    			expectedType = "";
+	    			break;
+	        	}
+	        	
+				ArrayList<SimpleGenRes> tmpList = new ArrayList<SimpleGenRes>(); 
+
+				// ... and store as SimpleGenRes 
+		        for (int i=0; i<modesNames.length; i++) {
+		        	
+		        	String[] split = DataPath.resolveId(DataPath.removeSlash(DataPath.removeSlash(modesNames[i])));
+		        	if (split.length == 2 && expectedType.equals(split[0])) {
+						tmpList.add(new SimpleGenRes(
+								split[1], objPath+S+modesNames[i]+S));
+		        	}
+		        }
+		        answer = (SimpleGenRes[]) tmpList.toArray(new SimpleGenRes[tmpList.size()]);
+	        }
+		}
 			break;
 
 		/* ----------------------  CPU  ---------------------- */

@@ -134,34 +134,36 @@ public class OilWriterBuffer implements IOilWriterBuffer {
 	 *            the source
 	 */
 	public void append(IOilWriterBuffer ibuffer) {
+		if (ibuffer != null) {
+			
+			if (ibuffer instanceof OilWriterBuffer) {
+				OilWriterBuffer buffer = (OilWriterBuffer) ibuffer; 
 		
-		if (ibuffer instanceof OilWriterBuffer) {
-			OilWriterBuffer buffer = (OilWriterBuffer) ibuffer; 
-	
-			Set<String> keys = buffer.buffers.keySet();
-			for (Iterator<String> iter = keys.iterator(); iter.hasNext();) {
-				String key = (String) iter.next();
-				// use this.get(String) to get the rigth StringBuffer (and create a
-				// new one if needed)
-				appendAndCheckImports(get(key), buffer.buffers.get(key).toString());
-			}
-			
-			
-			for (Entry<Object, Object> val : buffer.fileName.entrySet()) {
-				if (!fileName.containsKey(val.getKey())) {
-					fileName.put(val.getKey(), val.getValue());
+				Set<String> keys = buffer.buffers.keySet();
+				for (Iterator<String> iter = keys.iterator(); iter.hasNext();) {
+					String key = (String) iter.next();
+					// use this.get(String) to get the rigth StringBuffer (and create a
+					// new one if needed)
+					appendAndCheckImports(get(key), buffer.buffers.get(key).toString());
 				}
-			}
-			
-			for (Entry<Object, Object> val : buffer.filePath.entrySet()) {
-				if (!filePath.containsKey(val.getKey())) {
-					filePath.put(val.getKey(), val.getValue());
+				
+				
+				for (Entry<Object, Object> val : buffer.fileName.entrySet()) {
+					if (!fileName.containsKey(val.getKey())) {
+						fileName.put(val.getKey(), val.getValue());
+					}
 				}
+				
+				for (Entry<Object, Object> val : buffer.filePath.entrySet()) {
+					if (!filePath.containsKey(val.getKey())) {
+						filePath.put(val.getKey(), val.getValue());
+					}
+				}
+				
+			} else {
+				// TODO: add support for a generic IOilWriterBuffer  
+				throw new UnsupportedOperationException();
 			}
-			
-		} else {
-			// TODO: add support for a generic IOilWriterBuffer  
-			throw new UnsupportedOperationException();
 		}
 	}
 

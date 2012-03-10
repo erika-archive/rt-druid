@@ -1922,5 +1922,30 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 		return false;
 	}
 
+	public boolean existObject(int objId) {
+		IOilObjectList[] oList = getOilObjects();
+		if (oList != null) {
+			for (IOilObjectList list : oList) {
+				if (list.getList(objId).size()>0) {
+					return true;
+				}
+			}
+		}
+		
+		// check directly in the tree
+		for (String prefix : rtosPrefix) {
+			try {
+				if (extractObject(objId, prefix).length >0) {
+					return true;
+				}
+			} catch (OilCodeWriterException e) {
+				// do nothing
+			}
+		}
+		
+		
+		return false;
+	}
+ 
 }
 
