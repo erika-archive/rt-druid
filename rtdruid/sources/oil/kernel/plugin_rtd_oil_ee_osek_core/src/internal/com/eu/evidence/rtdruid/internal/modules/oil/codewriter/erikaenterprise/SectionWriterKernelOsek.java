@@ -1382,6 +1382,13 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 							
 							alarmTime = aasd.getAlarmTime();
 							cycleTime = aasd.getCycleTime();
+
+							if (alarmTime == 0) {
+								throw new OilCodeWriterException("The ALARMTIME attribute of alarm " + alarm.getName() + " cannot be zero.");
+							}
+							if (cycleTime == 0) {
+								throw new OilCodeWriterException("The CYCLETIME attribute of alarm " + alarm.getName() + " cannot be zero.");
+							}
 							
 						} else	if (alarm.containsProperty(ISimpleGenResKeywords.ALARM_INIT)) {
 							AlarmAutoStartDescr aasd = (AlarmAutoStartDescr) alarm.getObject(ISimpleGenResKeywords.ALARM_INIT);
@@ -1389,7 +1396,6 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 							alarmTime = aasd.getAlarmTime();
 							cycleTime = aasd.getCycleTime();
 						}
-
 		
 						sbAlarmTime.append(pre2 + alarmTime +"U");
 						sbCycleTime.append(pre2 + cycleTime +"U");
