@@ -23,13 +23,15 @@ import com.eu.evidence.rtdruid.vartree.tools.Search;
 public class OilIO implements IRTDImporter, IRTDExporter {
 	
 
-	@Override
-	public System load(InputStream input, Map<?, ?> options) throws IOException {
+	public System load(InputStream input, IVarTree vt, Map<?, ?> options) throws IOException {
 		if (input == null) {
 			throw new NullPointerException("Null input");
 		}
 		
-		IVarTree vt = (IVarTree) RTDFactory.get(IVarTree.class);
+		if (vt == null) {
+			vt = (IVarTree) RTDFactory.get(IVarTree.class);
+		}
+		
 		String fileName = null;
 		String filePath = null;
 		if (options != null && options.containsKey(OPT_FILE_FULLNAME)) {
@@ -47,6 +49,12 @@ public class OilIO implements IRTDImporter, IRTDExporter {
 		answer = obj instanceof System ? (System) obj : null;
 
 		return answer;
+	}
+
+	
+	@Override
+	public System load(InputStream input, Map<?, ?> options) throws IOException {
+		return load(input, null, options);
 	}
 
 	@Override
