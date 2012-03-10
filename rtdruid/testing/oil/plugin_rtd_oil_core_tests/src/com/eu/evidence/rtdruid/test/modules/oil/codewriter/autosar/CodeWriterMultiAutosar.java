@@ -15,6 +15,10 @@ import org.junit.Test;
 import com.eu.evidence.rtdruid.desk.RTDFactory;
 import com.eu.evidence.rtdruid.internal.modules.oil.exceptions.OilCodeWriterException;
 import com.eu.evidence.rtdruid.internal.modules.oil.reader.OilReader;
+import com.eu.evidence.rtdruid.internal.modules.oil.workers.Logger;
+import com.eu.evidence.rtdruid.internal.modules.oil.workers.OilWorkerException;
+import com.eu.evidence.rtdruid.internal.modules.oil.workers.StdOutLogger;
+import com.eu.evidence.rtdruid.internal.modules.oil.workers.WorkerOilConfWriter;
 import com.eu.evidence.rtdruid.io.IRTDMultiFileImporter;
 import com.eu.evidence.rtdruid.io.MultiSourceImporterFactory;
 import com.eu.evidence.rtdruid.modules.oil.abstractions.IOilWriterBuffer;
@@ -29,7 +33,7 @@ import com.eu.evidence.rtdruid.vartree.data.init.Vt2StringUtilities;
 public class CodeWriterMultiAutosar extends AbstractCodeWriterTest {
 
 	@Test
-	public void test() throws IOException {
+	public void test1() throws IOException {
 
 		String text = "CPU system {\n" +
 				"	OS EE {\n" +
@@ -77,10 +81,12 @@ public class CodeWriterMultiAutosar extends AbstractCodeWriterTest {
 		File dir = new File("D:\\work\\autosar_test");
 		File[] files = dir.listFiles();
 		ArrayList<String> types = new ArrayList<String>();
+		ArrayList<String> names = new ArrayList<String>();
 		ArrayList<InputStream> inputs = new ArrayList<InputStream>();
 		for (File f: files) {
 			if (f.getName().endsWith(".arxml")) {
 				types.add("arxml");
+				names.add(f.getAbsolutePath());
 				inputs.add(new FileInputStream(f));
 			}
 		}
@@ -88,7 +94,7 @@ public class CodeWriterMultiAutosar extends AbstractCodeWriterTest {
 		IRTDMultiFileImporter importer = MultiSourceImporterFactory.getFactory().getImporterFor(types.toArray(new String[types.size()]));
 		assertNotNull(importer);
 		IVarTree vt = RTDFactory.newVarTree();
-		ObjectWithID root = importer.load((InputStream[]) inputs.toArray(new InputStream[inputs.size()]), types.toArray(new String[types.size()]), null);
+		ObjectWithID root = importer.load((InputStream[]) inputs.toArray(new InputStream[inputs.size()]), names.toArray(new String[names.size()]), null);
 		assertNotNull(root);
 		vt.setRoot(root);
 		
@@ -134,5 +140,32 @@ public class CodeWriterMultiAutosar extends AbstractCodeWriterTest {
 			assertEquals(buffers[i].toString(), result.buffers[i].toString());
 		}
 	}
+
+	@Test
+	public void testMulti() throws IOException, OilWorkerException {
 		
+		WorkerOilConfWriter worker = new WorkerOilConfWriter(new StdOutLogger()) {
+			// override worker's save method
+			@Override
+			protected void save(IOilWriterBuffer[] buffers) {
+				for (IOilWriterBuffer buff : buffers) {
+					System.out.println(buff.toString());
+				}
+			}
+		};
+		
+		
+		File dir = new File("D:\\work\\autosar_test");
+		File[] files = dir.listFiles();
+		for (File f: files) {
+			if (f.getName().endsWith(".arxml") || f.getName().endsWith(".oil") ) {
+				worker.addInputfile(f.getAbsolutePath());
+			}
+		}
+
+		worker.setOutputdir("e:/");
+		worker.execute();
+	}
+
+	
 }

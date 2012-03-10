@@ -7,25 +7,32 @@ package com.eu.evidence.rtdruid.internal.modules.oil.workers;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
+import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.resource.Resource;
 
-import com.eu.evidence.rtdruid.desk.Messages;
 import com.eu.evidence.rtdruid.desk.RTDFactory;
 import com.eu.evidence.rtdruid.desk.RtdruidLog;
 import com.eu.evidence.rtdruid.internal.modules.oil.exceptions.OilCodeWriterException;
 import com.eu.evidence.rtdruid.internal.modules.oil.keywords.IWritersKeywords;
+import com.eu.evidence.rtdruid.io.MultiSourceImporterFactory;
 import com.eu.evidence.rtdruid.modules.oil.abstractions.IOilWriterBuffer;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.RtosFactory;
 import com.eu.evidence.rtdruid.vartree.ITreeInterface;
 import com.eu.evidence.rtdruid.vartree.IVarTree;
+import com.eu.evidence.rtdruid.vartree.data.ObjectWithID;
 import com.eu.evidence.rtdruid.vartree.data.init.IVTResource;
 import com.eu.evidence.rtdruid.vartree.data.init.RTD_XMI_Factory;
+import com.eu.evidence.rtdruid.vartree.data.init.Vt2StringUtilities;
 import com.eu.evidence.rtdruid.vartree.tools.Search;
 
 /**
@@ -33,7 +40,7 @@ import com.eu.evidence.rtdruid.vartree.tools.Search;
  * File.
  * 
  * @author Nicola Serreli
- *  
+ * 
  */
 public class WorkerOilConfWriter {
 
@@ -41,7 +48,7 @@ public class WorkerOilConfWriter {
 	private final static String LEFT = "OIL WRITER";
 
 	/** The input file (oil) */
-	protected String inputFile = null;
+	protected ArrayList<String> inputFiles;
 
 	/** The directory where store all outputs */
 	protected String outputDir = null;
@@ -50,14 +57,15 @@ public class WorkerOilConfWriter {
 	protected HashMap<String, Object> options = new HashMap<String, Object>();
 
 	/** The default separator for current OS */
-	static final String dirSep = System.getProperty("file.separator");
-	
+	static final String dirSep = java.lang.System.getProperty("file.separator");
+
 	protected Logger logger;
-	
+
 	public WorkerOilConfWriter(Logger logger) {
 		this.logger = logger;
+		this.inputFiles = new ArrayList<String>();
 	}
-	
+
 	/**
 	 * Add a new option of the writer
 	 * 
@@ -70,7 +78,7 @@ public class WorkerOilConfWriter {
 	public void addOption(String option, String value) {
 		options.put(option, value);
 	}
-	
+
 	/**
 	 * Add a new option of the writer
 	 * 
@@ -83,15 +91,31 @@ public class WorkerOilConfWriter {
 	public void addOptions(HashMap<String, ? extends Object> values) {
 		options.putAll(values);
 	}
-	
+
 	/**
-	 * Specifies the input oil file
+	 * Specifies the input file (if there was already specified one or more
+	 * input file, only this one is considered)
 	 * 
 	 * @param fileName
 	 *            contains the name of Oil file
 	 */
 	public void setInputfile(String fileName) {
-		inputFile = fileName;
+		inputFiles.clear();
+		if (fileName != null) {
+			inputFiles.add(fileName);
+		}
+	}
+
+	/**
+	 * Add the specified file in the input list
+	 * 
+	 * @param fileName
+	 *            contains the name of Oil file
+	 */
+	public void addInputfile(String fileName) {
+		if (fileName != null && !inputFiles.contains(fileName)) {
+			inputFiles.add(fileName);
+		}
 	}
 
 	/**
@@ -104,8 +128,8 @@ public class WorkerOilConfWriter {
 		outputDir = value;
 		if (outputDir == null || outputDir.length() == 0) {
 			outputDir = "";
-//		} else if (!outputDir.endsWith(dirSep)) {
-//			outputDir += dirSep;
+			// } else if (!outputDir.endsWith(dirSep)) {
+			// outputDir += dirSep;
 		}
 
 	}
@@ -116,7 +140,7 @@ public class WorkerOilConfWriter {
 	public Logger getLogger() {
 		return logger;
 	}
-	
+
 	/**
 	 * This method loads the specified oil file.
 	 * 
@@ -127,36 +151,113 @@ public class WorkerOilConfWriter {
 	protected IVarTree load() throws OilWorkerException {
 		IVarTree vt = (IVarTree) RTDFactory.get(IVarTree.class);
 
-		myLog("LOAD", inputFile);
 		try {
-			// load and parse the input file
-			IVTResource res = (IVTResource) new RTD_XMI_Factory().createResource(URI.createFileURI(inputFile));
-			try {
-				res.load(new FileInputStream(inputFile), new HashMap());
-			} catch (Exception e) {
-				
-				RtdruidLog.log("Unable to load \"" + inputFile + "\".");
-				RtdruidLog.log(e);
-				Messages.sendErrorNl("Unable to load \"" + inputFile
-						+ "\" caused by :", "", "ASDASDAS", null);
-				Messages.sendErrorNl(e.getMessage(), "", "ASDASDAS", null);
-				return null;
+
+			// prepare
+			ArrayList<MultiSourceImporterFactory.LoadHelper> helpers = new ArrayList<MultiSourceImporterFactory.LoadHelper>();
+			ArrayList<String> simpleLoad = new ArrayList<String>();
+			for (String inputFile : inputFiles) {
+
+				InputStream input;
+				try {
+					input = new FileInputStream(inputFile);
+				} catch (FileNotFoundException e) {
+					throw new OilWorkerException(e.getMessage());
+				}
+
+				boolean found = false;
+				// check already existing helpers
+				for (MultiSourceImporterFactory.LoadHelper helper : helpers) {
+					if (helper.add(inputFile, input)) {
+						found = true;
+						break;
+					}
+				}
+
+				if (!found) {
+					// check a new helper
+					MultiSourceImporterFactory.LoadHelper helper = new MultiSourceImporterFactory.LoadHelper();
+					if (helper.add(inputFile, input)) {
+						found = true;
+						helpers.add(helper);
+					}
+				}
+
+				if (!found) {
+					// ok. it should be handled as single file
+					simpleLoad.add(inputFile);
+				}
 			}
-			vt.setRoot(res);
+
+			// load
+			for (String inputFile : simpleLoad) {
+
+				myLog("LOAD", inputFile);
+				// load and parse the input file
+				IVTResource res = (IVTResource) new RTD_XMI_Factory()
+						.createResource(URI.createFileURI(inputFile));
+				try {
+					res.load(new FileInputStream(inputFile), null);
+					mergeInput(vt, res);
+				} catch (Exception e) {
+					throw new OilWorkerException("Unable to load \""
+							+ inputFile + "\" caused by :" + e.getMessage(), e);
+				}
+			}
+
+			// load
+			for (MultiSourceImporterFactory.LoadHelper helper : helpers) {
+
+				for (String s: helper.getNames()) {
+					myLog("LOAD", s);
+				}
+				
+				try {
+					com.eu.evidence.rtdruid.vartree.data.System root = helper.load();
+					mergeInput(vt, root);
+				} catch (Exception e) {
+					throw new OilWorkerException(e.getMessage());
+				}
+			}
+
 		} catch (RuntimeException e) {
-			//e.printStackTrace();
+			// e.printStackTrace();
 			throw new OilWorkerException(e.getMessage());
 		}
 
 		return vt;
 	}
+
+	protected void mergeInput(IVarTree vt, IVTResource res) {
+		EList<EObject> objList = res.getContents();
+		if (objList.size() > 0) {
+			mergeInput(vt, ((com.eu.evidence.rtdruid.vartree.data.System) objList.get(0)));
+		}
+	}
+	
+	protected void mergeInput(IVarTree vt, com.eu.evidence.rtdruid.vartree.data.System root) {
 		
+		// get the old root
+		EList<Resource> resList = vt.getResourceSet().getResources();
+		if (resList.size() == 0) {
+			resList.add((new RTD_XMI_Factory()).createResource());
+		}
+		EList<EObject> objList = resList.get(0).getContents();
+		if (objList.size() == 0) {
+			// set the new root
+			objList.add(root);
+		} else {
+			// merge old and new root
+			((ObjectWithID) objList.get(0)).merge(root, null, false);
+		}
+	}
+
 	/**
 	 * Stores all buffers inside the specified directory.
 	 * 
 	 * @throws OilWorkerException
 	 *             if there is one or more errors during store operation
-	 *  
+	 * 
 	 */
 	protected void save(IOilWriterBuffer[] buffers) throws OilWorkerException {
 
@@ -171,8 +272,8 @@ public class WorkerOilConfWriter {
 				String fileName = buffers[bi].getFileName(keys[ki]);
 				String filePath = buffers[bi].getFilePath(keys[ki]);
 
-				if (!filePath.endsWith(System.getProperty("file.separator"))) {
-					filePath += System.getProperty("file.separator");
+				if (!filePath.endsWith(java.lang.System.getProperty("file.separator"))) {
+					filePath += java.lang.System.getProperty("file.separator");
 				}
 				myLog("WRITE", outputDir + filePath + fileName);
 				try {
@@ -186,7 +287,7 @@ public class WorkerOilConfWriter {
 					file.write(buffers[bi].get(keys[ki]).toString().getBytes());
 					file.close();
 				} catch (IOException e) {
-					//e.printStackTrace();
+					// e.printStackTrace();
 					throw new OilWorkerException(e.getMessage());
 				}
 			}
@@ -202,7 +303,7 @@ public class WorkerOilConfWriter {
 	 */
 	public void execute() throws OilWorkerException {
 		// ------------- make all checks ----------------
-		if (inputFile == null) {
+		if (inputFiles.isEmpty()) {
 			throw new OilWorkerException("Required an input file");
 		}
 		if (outputDir == null) {
@@ -210,22 +311,22 @@ public class WorkerOilConfWriter {
 		}
 
 		logger.log(""); // empty line
-		
+
 		{
 			String tmp = outputDir;
 			char c = dirSep.charAt(0);
 			int pos = outputDir.lastIndexOf(c);
 			int pos2 = 0;
-			
+
 			if (pos == -1) {
 				// do nothing
-			} else if (pos == (outputDir.length() -1)) {
-				pos2 = tmp.lastIndexOf(c, pos-1);
-				
+			} else if (pos == (outputDir.length() - 1)) {
+				pos2 = tmp.lastIndexOf(c, pos - 1);
+
 				if (pos2 == -1) {
-					tmp = tmp.substring(0,pos);
+					tmp = tmp.substring(0, pos);
 				} else {
-					tmp = tmp.substring(pos2+1,pos);
+					tmp = tmp.substring(pos2 + 1, pos);
 				}
 			} else {
 				tmp = tmp.substring(pos);
@@ -253,8 +354,7 @@ public class WorkerOilConfWriter {
 			rtosPath.addAll(Arrays.asList(tmp));
 		}
 
-		
-		//myLog("ELENCO", ""+rtosPath);
+		// myLog("ELENCO", ""+rtosPath);
 		if (rtosPath.size() == 0) {
 			myLog(LEFT, "No RT-OS found");
 			return;
@@ -267,13 +367,13 @@ public class WorkerOilConfWriter {
 
 		{
 			String stmp = outputDir;
-			//stmp = stmp.replace('\\','/');
+			// stmp = stmp.replace('\\','/');
 			if (stmp.endsWith("/") || stmp.endsWith("\\")) {
-				stmp = stmp.substring(0, stmp.length()-1);
+				stmp = stmp.substring(0, stmp.length() - 1);
 			}
 			vt.getProperties().put(IWritersKeywords.VTProperty_OilProjectPath,
 					stmp);
-			
+
 		}
 
 		// --------------- Compute -------------------
@@ -281,8 +381,9 @@ public class WorkerOilConfWriter {
 		myLog("WORKING", "Prepare configuration's files");
 		IOilWriterBuffer[] buffers = null;
 		try {
-			buffers = RtosFactory.INSTANCE.write(vt, (String[]) rtosPath
-					.toArray(new String[rtosPath.size()]), options);
+			buffers = RtosFactory.INSTANCE.write(vt,
+					(String[]) rtosPath.toArray(new String[rtosPath.size()]),
+					options);
 		} catch (OilCodeWriterException e) {
 			RtdruidLog.showDebug(e);
 			throw new OilWorkerException(e.getMessage());
@@ -309,10 +410,10 @@ public class WorkerOilConfWriter {
 
 		logger.log("["
 				+ left
-				+ ("                 ".substring(0,
+				+ ("                 ".substring(
+						0,
 						(left.length() > LEFT_SIZE - 1 ? 1 : LEFT_SIZE
 								- left.length()))) + right + "]");
 	}
 
-	
 }
