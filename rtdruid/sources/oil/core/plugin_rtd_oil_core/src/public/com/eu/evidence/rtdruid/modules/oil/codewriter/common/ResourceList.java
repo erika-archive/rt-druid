@@ -747,17 +747,19 @@ public class ResourceList {
 		 * Set ResScheduler's ceiling as highet values to "disable" preemption. */
 
 		// search where store new name
-		int posName = Collections.binarySearch(nomiRis, IWritersKeywords.RES_SCHEDULER);
-		if (posName > 0) {
-			throw new IllegalStateException(
-					"Resources: Try to store more times the RES_SCHEDUER resource.");
+		final int posName = Collections.binarySearch(nomiRis, IWritersKeywords.RES_SCHEDULER);
+		ResInfo res_sched;
+		if (posName < 0) {
+			// create a new
+			res_sched = new ResInfo(oilObjects.length);
+			res_sched.type = STANDARD;
+			res_sched.chainRoot = IWritersKeywords.RES_SCHEDULER;
+			res_sched.chainNames.add(IWritersKeywords.RES_SCHEDULER);
+		} else {
+			res_sched = (ResInfo) infoRis.get(((ResName) nomiRis.get(posName)).pos);
 		}
 
 		// search the max priority
-		ResInfo res_sched = new ResInfo(oilObjects.length);
-		res_sched.type = STANDARD;
-		res_sched.chainRoot = IWritersKeywords.RES_SCHEDULER;
-		res_sched.chainNames.add(IWritersKeywords.RES_SCHEDULER);
 		for (int cpuId = 0; cpuId < oilObjects.length; cpuId++) {
 			
 			int maxPrio = 0;
@@ -786,9 +788,11 @@ public class ResourceList {
 
 		res_sched.global = false;
 
-		infoRis.add(res_sched);
-		nomiRis.add(-posName - 1, new ResName(IWritersKeywords.RES_SCHEDULER, 
-				infoRis.size() - 1, STANDARD));
+		if (posName<0) {
+			infoRis.add(res_sched);
+			nomiRis.add(-posName - 1, new ResName(IWritersKeywords.RES_SCHEDULER, 
+					infoRis.size() - 1, STANDARD));
+		}
 	}
 	
 	
