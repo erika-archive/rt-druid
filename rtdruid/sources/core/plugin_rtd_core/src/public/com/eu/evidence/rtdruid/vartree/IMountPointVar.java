@@ -14,4 +14,11 @@ import org.eclipse.emf.edit.domain.EditingDomain;
 public interface IMountPointVar {
 
 	ISubVarTreePointer getPointer(EditingDomain vt);
+	
+	 /** Try to merge current node with another Object of the same type (and all its attributes and references).
+	  * The result is stored in current node.
+	  * 
+	  * @throws IllegalArgumentException if two object are not compatible (or one of theirs descendants)
+	  * */
+	void merge(IMountPointVar var, String path, boolean overwrite);
 }

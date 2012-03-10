@@ -48,5 +48,9 @@ public abstract class OilObjectWithIDImpl extends ObjectWithIDImpl implements Oi
 	 	return (ObjectWithID) OilApplFactoryImpl.eINSTANCE.create(eClass());
 	 }
 	 
+	 @Override
+	public OilObjectWithID clone() {
+		return (OilObjectWithID) super.clone();
+	}
 
 } //OilObjectWithIDImpl

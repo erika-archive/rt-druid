@@ -18,9 +18,10 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.impl.ENotificationImpl;
 import org.eclipse.emf.ecore.impl.EObjectImpl;
+import org.eclipse.emf.ecore.util.EcoreUtil;
 
+import com.eu.evidence.rtdruid.vartree.IMountPointVar;
 import com.eu.evidence.rtdruid.vartree.IVariable;
-import com.eu.evidence.rtdruid.vartree.data.DataFactory;
 import com.eu.evidence.rtdruid.vartree.data.DataPackage;
 import com.eu.evidence.rtdruid.vartree.data.ObjectWithID;
 import com.eu.evidence.rtdruid.vartree.data.init.DataPath;
@@ -327,7 +328,7 @@ public static int cont =0;
  
  /** Makes a new Instance of this object */
  protected ObjectWithID newInstance() {
- 	return (ObjectWithID) DataFactory.eINSTANCE.create(eClass());
+ 	return (ObjectWithID) EcoreUtil.create(eClass());
  }
  
  /** Make a distinct copy of current node and all its attributes and references
@@ -438,42 +439,45 @@ public static int cont =0;
  		} else {
 	 		IVariable var = (IVariable) eGet(attr);
 	 		IVariable newVar = (IVariable) source.eGet(attr);
-	 		if (var != null && newVar != null) {
-	 			Object v1 = var.get();
-	 			Object v2 = newVar.get();
-	 			
-	 			boolean eq = (v1 == null? v2 == null : 
-	 				//v1.toString().equals(v2.toString())); // not work with TimeVar (var=1ms, newVar=1us)
-	 				var.toString().equals(newVar.toString()));
-	 			//if (var.getClass() != newVar.getClass() || !eq) { // if current and source are the same type, also two vars are the same type
-	 			if (!eq) {
-	 				if (overwrite) {
-	 					eSet(attr, newVar);
-	 				} else {
-	 					
-	 					// check if it was the  default value
-	 					source.eUnset(attr);
-	 					IVariable defaultValue = (IVariable) eGet(attr);
-	 					Object def = defaultValue.get();
-	 					boolean eq2 = (v1 == null? def == null : 
-	 		 				//v1.toString().equals(v2.toString())); // not work with TimeVar (var=1ms, newVar=1us)
-	 						var.toString().equals(defaultValue.toString()));
-	 					
-	 					if (eq2) {
-		 					eSet(attr, newVar);
-	 					} else {
-		 					throw new IllegalArgumentException("Try to change the vaule of an already set attribute (mono value). " + "path = "
-			 					 + path + DataPath.SEPARATOR + attr.getName());
-	 					}
-	 				}
-	 			}
-
-	 		} else {
-	 			if (newVar != null) {
-	 				eSet(attr, newVar.clone());
-	 			}
-	 		}
 	 		
+	 		if (var instanceof IMountPointVar) {
+	 			((IMountPointVar) var).merge((IMountPointVar) newVar, path, overwrite);
+	 		} else {
+		 		if (var != null && newVar != null) {
+		 			Object v1 = var.get();
+		 			Object v2 = newVar.get();
+		 			
+		 			boolean eq = (v1 == null? v2 == null : 
+		 				//v1.toString().equals(v2.toString())); // not work with TimeVar (var=1ms, newVar=1us)
+		 				var.toString().equals(newVar.toString()));
+		 			//if (var.getClass() != newVar.getClass() || !eq) { // if current and source are the same type, also two vars are the same type
+		 			if (!eq) {
+		 				if (overwrite) {
+		 					eSet(attr, newVar);
+		 				} else {
+		 					
+		 					// check if it was the  default value
+		 					//source.eUnset(attr);
+		 					IVariable defaultValue = (IVariable) attr.getDefaultValue();// (IVariable) eGet(attr);
+		 					Object def = defaultValue.get();
+		 					boolean eq2 = (v1 == null? def == null : 
+		 		 				//v1.toString().equals(v2.toString())); // not work with TimeVar (var=1ms, newVar=1us)
+		 						var.toString().equals(defaultValue.toString()));
+		 					
+		 					if (eq2) {
+			 					eSet(attr, newVar);
+		 					} else {
+			 					throw new IllegalArgumentException("Try to change the vaule of an already set attribute (mono value). " + "path = "
+				 					 + path + DataPath.SEPARATOR + attr.getName());
+		 					}
+		 				}
+		 			}
+		 		} else {
+		 			if (newVar != null) {
+		 				eSet(attr, newVar.clone());
+		 			}
+		 		}
+	 		}
  		}
  	}
  	
@@ -491,7 +495,7 @@ public static int cont =0;
  		 		if (newChild != null) {
  		 			int pos = children.indexOf(newChild);
  		 			if (pos < 0) {
- 		 				ObjectWithID child = (ObjectWithID) DataFactory.eINSTANCE.create(newChild.eClass());
+ 		 				ObjectWithID child = (ObjectWithID) EcoreUtil.create(newChild.eClass());
  		 				child.setObjectID(newChild.getObjectID());
 
  		 				children.add(child);
@@ -512,7 +516,7 @@ public static int cont =0;
 	 		ObjectWithID newChild = (ObjectWithID) source.eGet(ref);
 	 		if (newChild != null) {
 	 			if (child == null) {
-	 				child = (ObjectWithID) DataFactory.eINSTANCE.create(newChild.eClass());
+	 				child = (ObjectWithID) EcoreUtil.create(newChild.eClass());
 	 				child.setObjectID(newChild.getObjectID());
 
 	 				eSet(ref, child);
