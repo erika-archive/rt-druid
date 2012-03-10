@@ -190,6 +190,22 @@ public class WorkerOilConfWriter {
 			}
 
 			// load
+			for (MultiSourceImporterFactory.LoadHelper helper : helpers) {
+
+				for (String s: helper.getNames()) {
+					myLog("LOAD", s);
+				}
+				
+				try {
+					com.eu.evidence.rtdruid.vartree.data.System root = helper.load();
+					mergeInput(vt, root);
+				} catch (Exception e) {
+					throw new OilWorkerException(e.getMessage());
+				}
+
+			}
+			
+			// load
 			for (String inputFile : simpleLoad) {
 
 				myLog("LOAD", inputFile);
@@ -205,21 +221,6 @@ public class WorkerOilConfWriter {
 				}
 			}
 
-			// load
-			for (MultiSourceImporterFactory.LoadHelper helper : helpers) {
-
-				for (String s: helper.getNames()) {
-					myLog("LOAD", s);
-				}
-				
-				try {
-					com.eu.evidence.rtdruid.vartree.data.System root = helper.load();
-					mergeInput(vt, root);
-				} catch (Exception e) {
-					throw new OilWorkerException(e.getMessage());
-				}
-			}
-
 		} catch (RuntimeException e) {
 			// e.printStackTrace();
 			throw new OilWorkerException(e.getMessage());
@@ -231,12 +232,19 @@ public class WorkerOilConfWriter {
 	protected void mergeInput(IVarTree vt, IVTResource res) {
 		EList<EObject> objList = res.getContents();
 		if (objList.size() > 0) {
+			IVarTree vtt = RTDFactory.newVarTree();
+			vtt.setRoot(res);
+			
+			System.out.println("\t------------OI1L------------\n\n");
+			System.out.println(Vt2StringUtilities.explodeOilVar(Vt2StringUtilities.writeString(vtt, "ertd")));
+			System.out.println("\t------------FINE OI1L------------\n\n");
+
+			
 			mergeInput(vt, ((com.eu.evidence.rtdruid.vartree.data.System) objList.get(0)));
 		}
 	}
 	
 	protected void mergeInput(IVarTree vt, com.eu.evidence.rtdruid.vartree.data.System root) {
-		
 		// get the old root
 		EList<Resource> resList = vt.getResourceSet().getResources();
 		if (resList.size() == 0) {
@@ -250,6 +258,9 @@ public class WorkerOilConfWriter {
 			// merge old and new root
 			((ObjectWithID) objList.get(0)).merge(root, null, false);
 		}
+		System.out.println("\t------------ERTD------------\n\n");
+		System.out.println(Vt2StringUtilities.explodeOilVar(Vt2StringUtilities.writeString(vt, "ertd")));
+		System.out.println("\t------------FINE ERTD------------\n\n");
 	}
 
 	/**

@@ -1,8 +1,5 @@
 package com.eu.evidence.rtdruid.test.modules.oil.codewriter.autosar;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,7 +12,6 @@ import org.junit.Test;
 import com.eu.evidence.rtdruid.desk.RTDFactory;
 import com.eu.evidence.rtdruid.internal.modules.oil.exceptions.OilCodeWriterException;
 import com.eu.evidence.rtdruid.internal.modules.oil.reader.OilReader;
-import com.eu.evidence.rtdruid.internal.modules.oil.workers.Logger;
 import com.eu.evidence.rtdruid.internal.modules.oil.workers.OilWorkerException;
 import com.eu.evidence.rtdruid.internal.modules.oil.workers.StdOutLogger;
 import com.eu.evidence.rtdruid.internal.modules.oil.workers.WorkerOilConfWriter;
@@ -35,7 +31,7 @@ public class CodeWriterMultiAutosar extends AbstractCodeWriterTest {
 	@Test
 	public void test1() throws IOException {
 
-		String text = "CPU system {\n" +
+		String text = "CPU ActiveEcuC {\n" +
 				"	OS EE {\n" +
 				"		EE_OPT = \"DEBUG\";\n" +
 				"		EE_OPT = \"__USE_BUTTONS__\";\n" +
@@ -78,7 +74,7 @@ public class CodeWriterMultiAutosar extends AbstractCodeWriterTest {
 				"	};\n" +
 				"};\n";
 		
-		File dir = new File("D:\\work\\autosar_test");
+		File dir = new File("D:\\work\\autosar_test\\all");
 		File[] files = dir.listFiles();
 		ArrayList<String> types = new ArrayList<String>();
 		ArrayList<String> names = new ArrayList<String>();
