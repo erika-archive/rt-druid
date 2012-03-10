@@ -155,12 +155,19 @@ public class SimpleTransform implements IOilTransform {
 			return;
 		}
 		
-		String sysName = application.getAttribute("Name");
-		IVarTreePointer systemVtp = checkSystemName(vt, sysName);
+		IVarTreePointer systemVtp;
+		String oilSysName = application.getAttribute("Name");
+		{
+			String sysName =  Search.systemName(vt);
+			if (sysName == null) {
+				sysName = oilSysName;
+			}
+			systemVtp = checkSystemName(vt, sysName);
+		}
 
 		// check and store all objects
 		/* RT-OS */
-		String rtosName = storeOS(systemVtp, application, sysName, id);
+		String rtosName = storeOS(systemVtp, application, oilSysName, id);
 		/* TASK */
 		storeTasks(systemVtp, application, id, rtosName);
 		/* ISR */
@@ -172,7 +179,7 @@ public class SimpleTransform implements IOilTransform {
 		/* APPMODE */
 		storeAppmode(systemVtp, application, id);
 		/* OS Application */
-		storeOsApplication(systemVtp, application, sysName, id);
+		storeOsApplication(systemVtp, application, oilSysName, id);
 		/* Network messages */
 		storeNetworkMessages(systemVtp, application, id);
 
@@ -214,7 +221,7 @@ public class SimpleTransform implements IOilTransform {
 					"The required System already exist, but with a different type.");
 			return vtp;
 		}
-
+		
 		/*checkTrue(
 				currSysNumber < SYSTEM_NUMBER,
 				"VarTree already contains the max number of System, and cannot add the new given system :"

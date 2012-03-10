@@ -269,6 +269,8 @@ public class OilVarMP extends OilVar implements IMountPointVar {
 			if (current.hasAttribute(IOilXMLLabels.ATTR_NAME)) {
 				String att = current.getAttribute(IOilXMLLabels.ATTR_NAME);
 				((HW) answer).setName(new StringVar(att));
+			} else {
+				((HW) answer).setName(null);
 			}
         	
 			childrenList = ((HW) answer).getRtosList();
@@ -282,6 +284,8 @@ public class OilVarMP extends OilVar implements IMountPointVar {
 			if (current.hasAttribute(IOilXMLLabels.ATTR_NAME)) {
 				String att = current.getAttribute(IOilXMLLabels.ATTR_NAME);
 				((RTOS) answer).setName(new StringVar(att));
+			} else {
+				((RTOS) answer).setName(null);
 			}
         	
 			childrenList = ((RTOS) answer).getParameterList();

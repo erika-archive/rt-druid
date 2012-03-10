@@ -335,6 +335,9 @@ public static int cont =0;
   * */
  public ObjectWithID clone() {
  	ObjectWithID answer = newInstance();
+ 	if (answer instanceof ObjectWithIDImpl) {
+ 		((ObjectWithIDImpl)answer).new_object = this.new_object;
+ 	}
 
  	// copy all attributes
  	EList<EAttribute> attrs = eClass().getEAllAttributes();
@@ -405,7 +408,7 @@ public static int cont =0;
  	//	throw new RuntimeException("Expected a not null resource. Perhaps it's a Bug!!!");
  	//}
 
- 	{
+ 	if (!(this instanceof com.eu.evidence.rtdruid.vartree.data.System)) {
 	 	String curID = getObjectID();
 	 	String sourceID = source.getObjectID();
 	 	if (curID == null ? sourceID != null : !curID.equals(sourceID)) {
@@ -437,45 +440,50 @@ public static int cont =0;
  			}
  			
  		} else {
-	 		IVariable var = (IVariable) eGet(attr);
-	 		IVariable newVar = (IVariable) source.eGet(attr);
-	 		
-	 		if (var instanceof IMountPointVar) {
-	 			((IMountPointVar) var).merge((IMountPointVar) newVar, path, overwrite);
-	 		} else {
-		 		if (var != null && newVar != null) {
-		 			Object v1 = var.get();
-		 			Object v2 = newVar.get();
-		 			
-		 			boolean eq = (v1 == null? v2 == null : 
-		 				//v1.toString().equals(v2.toString())); // not work with TimeVar (var=1ms, newVar=1us)
-		 				var.toString().equals(newVar.toString()));
-		 			//if (var.getClass() != newVar.getClass() || !eq) { // if current and source are the same type, also two vars are the same type
-		 			if (!eq) {
-		 				if (overwrite) {
-		 					eSet(attr, newVar);
-		 				} else {
-		 					
-		 					// check if it was the  default value
-		 					//source.eUnset(attr);
-		 					IVariable defaultValue = (IVariable) attr.getDefaultValue();// (IVariable) eGet(attr);
-		 					Object def = defaultValue.get();
-		 					boolean eq2 = (v1 == null? def == null : 
-		 		 				//v1.toString().equals(v2.toString())); // not work with TimeVar (var=1ms, newVar=1us)
-		 						var.toString().equals(defaultValue.toString()));
-		 					
-		 					if (eq2) {
-			 					eSet(attr, newVar);
-		 					} else {
-			 					throw new IllegalArgumentException("Try to change the vaule of an already set attribute (mono value). " + "path = "
-				 					 + path + DataPath.SEPARATOR + attr.getName());
-		 					}
-		 				}
-		 			}
+ 			if (DataPackage.eINSTANCE.getSystem_Name().getName().equals(attr.getName()) &&
+ 					(this instanceof com.eu.evidence.rtdruid.vartree.data.System)) {
+ 				// ignore this check
+ 			} else {
+		 		IVariable var = (IVariable) eGet(attr);
+		 		IVariable newVar = (IVariable) source.eGet(attr);
+		 		
+		 		if (var instanceof IMountPointVar) {
+		 			((IMountPointVar) var).merge((IMountPointVar) newVar, path, overwrite);
 		 		} else {
-		 			if (newVar != null) {
-		 				eSet(attr, newVar.clone());
-		 			}
+			 		if (var != null && newVar != null) {
+			 			Object v1 = var.get();
+			 			Object v2 = newVar.get();
+			 			
+			 			boolean eq = (v1 == null? v2 == null : 
+			 				//v1.toString().equals(v2.toString())); // not work with TimeVar (var=1ms, newVar=1us)
+			 				var.toString().equals(newVar.toString()));
+			 			//if (var.getClass() != newVar.getClass() || !eq) { // if current and source are the same type, also two vars are the same type
+			 			if (!eq) {
+			 				if (overwrite) {
+			 					eSet(attr, newVar);
+			 				} else {
+			 					
+			 					// check if it was the  default value
+			 					//source.eUnset(attr);
+			 					IVariable defaultValue = (IVariable) attr.getDefaultValue();// (IVariable) eGet(attr);
+			 					Object def = defaultValue.get();
+			 					boolean eq2 = (v1 == null? def == null : 
+			 		 				//v1.toString().equals(v2.toString())); // not work with TimeVar (var=1ms, newVar=1us)
+			 						var.toString().equals(defaultValue.toString()));
+			 					
+			 					if (eq2) {
+				 					eSet(attr, newVar);
+			 					} else {
+				 					throw new IllegalArgumentException("Try to change the vaule of an already set attribute (mono value). " + "path = "
+					 					 + path + DataPath.SEPARATOR + attr.getName());
+			 					}
+			 				}
+			 			}
+			 		} else {
+			 			if (newVar != null) {
+			 				eSet(attr, newVar.clone());
+			 			}
+			 		}
 		 		}
 	 		}
  		}
