@@ -537,7 +537,7 @@ public class ErikaEnterpriseTransform extends SimpleTransform {
 			if (object.containsProperty(TASK_FORCE_MAPPING) 
 					&& "TRUE".equalsIgnoreCase(object.getString(TASK_FORCE_MAPPING))
 					&& object.containsProperty(TASK_MAPPING)) {
-				String rtos_name = extractRtosName(object.getString(TASK_MAPPING));
+				String rtos_name = extractCpuName(object.getString(TASK_MAPPING));
 				
 				buffer.append(indent + "CPU_ID = \"" + rtos_name + "\"; // auto value\n");
 			}
@@ -561,4 +561,15 @@ public class ErikaEnterpriseTransform extends SimpleTransform {
 		}
 		return answer;
 	}
+	private String extractCpuName(String rtosAndCpu) {
+		if (rtosAndCpu == null) return null;
+
+		String answer = rtosAndCpu;
+		String[] tmp = DataPath.resolveId(DataPath.removeSlash(rtosAndCpu));
+		if (tmp.length == 2) {
+			answer = tmp[0];
+		}
+		return answer;
+	}
+
 }
