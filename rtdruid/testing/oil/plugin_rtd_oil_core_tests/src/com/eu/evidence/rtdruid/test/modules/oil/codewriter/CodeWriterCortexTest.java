@@ -254,6 +254,7 @@ public class CodeWriterCortexTest extends AbstractCodeWriterTest {
 	    				"	ISR systick_handler {\n"+
 	    				"	  CATEGORY = 2;\n"+
 	    				"	  ENTRY = \"SYSTICK\";\n"+
+	    				"	  PRIORITY = 4;\n"+
 	    				"	};\n"+
 	    				"\n"+
 	    				"};";

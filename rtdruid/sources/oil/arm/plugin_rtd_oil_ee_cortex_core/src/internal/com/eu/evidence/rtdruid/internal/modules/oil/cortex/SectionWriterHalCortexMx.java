@@ -36,6 +36,7 @@ import com.eu.evidence.rtdruid.modules.oil.codewriter.common.SWCategoryManager;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.SectionWriter;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.comments.FileTypes;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.comments.ICommentWriter;
+import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.SectionWriterIsr;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.hw.CpuHwDescription;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.hw.EEStacks;
 import com.eu.evidence.rtdruid.modules.oil.cortex.constants.CortexConstants;
@@ -267,6 +268,10 @@ public class SectionWriterHalCortexMx extends SectionWriter
 		 * Binary distribution uses the suffix RTD_. 
 		 */
 		final String MAX_TASK = (binaryDistr ? "RTD_" : "EE_") + "MAX_TASK";
+		
+
+		SectionWriterIsr isrWriter = new SectionWriterIsr(parent, IWritersKeywords.CPU_CORTEX_MX);
+		isrWriter.setValidEntries(ISR_LIST);
 
 		for ( int currentRtosId = 0; currentRtosId <oilObjects.length; currentRtosId ++) {
 			IOilWriterBuffer answer = new OilWriterBuffer();
@@ -298,7 +303,7 @@ public class SectionWriterHalCortexMx extends SectionWriter
 	
 			// ------------- Compute --------------------
 
-			writeIsr(ool, answer);
+			isrWriter.writeIsr(currentRtosId, ool, answer);
 
 			sbInithal_c.append("\n#include \"ee.h\"\n");
 	
@@ -616,28 +621,6 @@ public class SectionWriterHalCortexMx extends SectionWriter
 		mcuWrite(allBuffers);
 
 		return allBuffers;
-	}
-
-	private void writeIsr(IOilObjectList ool, IOilWriterBuffer oilWBuff) throws OilCodeWriterException {
-
-		List<ISimpleGenRes> isrList = ool.getList(IOilObjectList.ISR);
-		if (isrList.size()>0) {
-			final StringBuffer buffer = oilWBuff.get(FILE_EE_CFG_H);
-			final ISimpleGenRes sgrCpu = (ISimpleGenRes) ool.getList(IOilObjectList.OS).get(0);
-			final ICommentWriter commentWriterH = getCommentWriter(sgrCpu, FileTypes.H);
-	
-			buffer.append(commentWriterH.writerBanner("ISR definition")); // \n");
-			for (ISimpleGenRes curr : isrList) {
-				String entry = curr.containsProperty(ISimpleGenResKeywords.ISR_ENTRY) ? curr.getString(ISimpleGenResKeywords.ISR_ENTRY) : "";
-				String entry_id = "EE_CORTEX_MX_"+entry+"_ISR";
-				if (!ISR_LIST.contains(entry_id)) {
-					throw new OilCodeWriterException("Found a not valid isr entry: " + entry_id + " (ISR " + curr.getName() + ")");
-				}
-				
-				buffer.append("#define " + entry_id + " " + curr.getName()+"\n");
-			}
-		}
-
 	}
 
 	/*

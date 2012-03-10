@@ -32,6 +32,7 @@ import com.eu.evidence.rtdruid.modules.oil.codewriter.common.SWCategoryManager;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.SectionWriter;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.comments.FileTypes;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.comments.ICommentWriter;
+import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.SectionWriterIsr;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.hw.CpuHwDescription;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.hw.EECpuDescriptionManager;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.hw.EEStackData;
@@ -298,6 +299,7 @@ public class SectionWriterHalMpc567 extends SectionWriter
 		IOilWriterBuffer[] answer = new IOilWriterBuffer[oilObjects.length];
 
 		final int rtosNumber = oilObjects.length;
+		SectionWriterIsr isrWriter = new SectionWriterIsr(parent, IWritersKeywords.CPU_PPCE200ZX);
 
 
 		/***********************************************************************
@@ -341,6 +343,9 @@ public class SectionWriterHalMpc567 extends SectionWriter
 			
 			//  ------------- MORE FILES ---------------
 			
+			
+			// isr
+			isrWriter.writeIsr(currentRtosId, ool, cpuBuffs);
 			
 			// makefile
 			prepareMakeFile(sgrCpu);
@@ -895,7 +900,6 @@ public class SectionWriterHalMpc567 extends SectionWriter
             sgrCpu.setProperty(SGRK__MAKEFILE_EXTENTIONS__, sbMakefile_variables.toString());
 
 	}
-
 	
 	/**
 	 * This metod takes an array and returns the first element, or null if the

@@ -711,7 +711,9 @@ edf
 		UINT32 [1, 2] CATEGORY;
 		RESOURCE_TYPE RESOURCE[];
 		MESSAGE_TYPE MESSAGE[];
-		STRING ENTRY;
+		STRING ENTRY: "the interrupt source id or source number (arch. dependent)"; 
+		UINT32 PRIORITY: "the interrupt priority";
+		STRING HANDLER: "if defined, this is the name of the function, otherwise the isr name is used as function name";
 	};
 
     COUNTER {
