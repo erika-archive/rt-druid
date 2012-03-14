@@ -32,7 +32,6 @@ import com.eu.evidence.rtdruid.vartree.IVarTree;
 import com.eu.evidence.rtdruid.vartree.data.ObjectWithID;
 import com.eu.evidence.rtdruid.vartree.data.init.IVTResource;
 import com.eu.evidence.rtdruid.vartree.data.init.RTD_XMI_Factory;
-import com.eu.evidence.rtdruid.vartree.data.init.Vt2StringUtilities;
 import com.eu.evidence.rtdruid.vartree.tools.Search;
 
 /**
@@ -234,10 +233,10 @@ public class WorkerOilConfWriter {
 		if (objList.size() > 0) {
 			IVarTree vtt = RTDFactory.newVarTree();
 			vtt.setRoot(res);
-			
-			System.out.println("\t------------OI1L------------\n\n");
-			System.out.println(Vt2StringUtilities.explodeOilVar(Vt2StringUtilities.writeString(vtt, "ertd")));
-			System.out.println("\t------------FINE OI1L------------\n\n");
+//			
+//			System.out.println("\t------------OI1L------------\n\n");
+//			System.out.println(Vt2StringUtilities.explodeOilVar(Vt2StringUtilities.writeString(vtt, "ertd")));
+//			System.out.println("\t------------FINE OI1L------------\n\n");
 
 			
 			mergeInput(vt, ((com.eu.evidence.rtdruid.vartree.data.System) objList.get(0)));
@@ -258,9 +257,9 @@ public class WorkerOilConfWriter {
 			// merge old and new root
 			((ObjectWithID) objList.get(0)).merge(root, null, false);
 		}
-		System.out.println("\t------------ERTD------------\n\n");
-		System.out.println(Vt2StringUtilities.explodeOilVar(Vt2StringUtilities.writeString(vt, "ertd")));
-		System.out.println("\t------------FINE ERTD------------\n\n");
+//		System.out.println("\t------------ERTD------------\n\n");
+//		System.out.println(Vt2StringUtilities.explodeOilVar(Vt2StringUtilities.writeString(vt, "ertd")));
+//		System.out.println("\t------------FINE ERTD------------\n\n");
 	}
 
 	/**
