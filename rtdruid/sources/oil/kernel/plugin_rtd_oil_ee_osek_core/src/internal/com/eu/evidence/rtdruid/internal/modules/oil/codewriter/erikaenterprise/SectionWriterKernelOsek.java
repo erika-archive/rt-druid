@@ -22,6 +22,7 @@ import com.eu.evidence.rtdruid.internal.modules.oil.keywords.IWritersKeywords;
 import com.eu.evidence.rtdruid.modules.oil.abstractions.IOilObjectList;
 import com.eu.evidence.rtdruid.modules.oil.abstractions.IOilWriterBuffer;
 import com.eu.evidence.rtdruid.modules.oil.abstractions.ISimpleGenRes;
+import com.eu.evidence.rtdruid.modules.oil.codewriter.common.AbstractRtosWriter;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.AlarmAutoStartDescr;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.CommonUtils;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.OilWriterBuffer;
@@ -31,7 +32,6 @@ import com.eu.evidence.rtdruid.modules.oil.codewriter.common.comments.FileTypes;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.comments.ICommentWriter;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.hw.CpuHwDescription;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.hw.CpuUtility;
-import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.hw.EECpuDescriptionManager;
 import com.eu.evidence.rtdruid.modules.oil.erikaenterprise.constants.IEEWriterKeywords;
 import com.eu.evidence.rtdruid.modules.oil.erikaenterprise.interfaces.IExtractKeywordsExtentions;
 import com.eu.evidence.rtdruid.modules.oil.erikaenterprise.interfaces.IGetEEOPTExtentions;
@@ -216,11 +216,8 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 			IOilObjectList ool = oilObjects[rtosId];
 			// appModes contains the list of available modes
 			ArrayList<String> appModes = null;
-			// current os
-			ISimpleGenRes os = (ISimpleGenRes) ool.getList(IOilObjectList.OS).get(
-					0);
-			List<Integer> requiredOilObjects = (List<Integer>) os.getObject(SGRK__FORCE_ARRAYS_LIST__);
-			final ICommentWriter commentWriterC = getCommentWriter(os, FileTypes.C);
+			List<Integer> requiredOilObjects = (List<Integer>) AbstractRtosWriter.getOsObject(ool, SGRK__FORCE_ARRAYS_LIST__);
+			final ICommentWriter commentWriterC = getCommentWriter(ool, FileTypes.C);
 
 			
 			/*
@@ -245,10 +242,10 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 				} else if (IWritersKeywords.OSEK_BCC1.equals(kernelType) || IWritersKeywords.OSEK_ECC1.equals(kernelType)) {
 		
 					// search the current HW and then the correct number of Priorities
-					String cpuType = os.getString(ISimpleGenResKeywords.OS_CPU_TYPE);
 					int curr = DefaultMaxPrioties;
-					if (EECpuDescriptionManager.containsHWDescription(cpuType)) {
-						curr = EECpuDescriptionManager.getHWDescription(cpuType).prioSize;
+					CpuHwDescription descr = ErikaEnterpriseWriter.getCpuHwDescription(ool);
+					if (descr != null) {
+						curr = descr.prioSize;
 					}
 		
 					MaxPriorityLevels = curr;
@@ -525,13 +522,16 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 		
 			// declare task and theirs address
 			String mem_size = "EE_UINT32"; // 4 byte, default
-			if (os.containsProperty(ISimpleGenResKeywords.OS_CPU_DESCRIPTOR)) {
-				int stack_size = ((CpuHwDescription) os.getObject(ISimpleGenResKeywords.OS_CPU_DESCRIPTOR)).stackAddress;
-				if (stack_size == 2) { // 2 byte
-					mem_size = "EE_UINT16";
-				} else if (stack_size == 1) { // 1 byte
-					mem_size = "EE_UINT8";
-				}  
+			{
+				CpuHwDescription descr = ErikaEnterpriseWriter.getCpuHwDescription(ool);
+				if (descr != null) {
+					int stack_size = descr.stackAddress;
+					if (stack_size == 2) { // 2 byte
+						mem_size = "EE_UINT16";
+					} else if (stack_size == 1) { // 1 byte
+						mem_size = "EE_UINT8";
+					}  
+				}
 			}
 
 			buffer.append(indent1 + commentWriterC.writerSingleLineComment("Definition of task's body")
@@ -821,9 +821,8 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 					{
 						int current_orti = 0;
 					
-						if (parent.checkKeyword(IWritersKeywords.ENABLE_ORTI) &&
-								os.containsProperty(OrtiConstants.OS_CPU_ORTI_ENABLED_SECTIONS)) 
-							current_orti = ((Integer) os.getObject(OrtiConstants.OS_CPU_ORTI_ENABLED_SECTIONS));
+						if (parent.checkKeyword(IWritersKeywords.ENABLE_ORTI) && AbstractRtosWriter.getOsObject(ool, OrtiConstants.OS_CPU_ORTI_ENABLED_SECTIONS) != null) 
+							current_orti = ((Integer) AbstractRtosWriter.getOsObject(ool, OrtiConstants.OS_CPU_ORTI_ENABLED_SECTIONS));
 					
 						if (parent.checkKeyword(OsekConstants.DEF__OSEKOS_EXTENDED_STATUS__)
 								|| (current_orti & OrtiConstants.EE_ORTI_RESOURCE) != 0) {
@@ -1191,13 +1190,11 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 			/*******************************************************************
 			 * AUTOSTART
 			 ******************************************************************/
-			if ("true".equalsIgnoreCase(os
-					.getString(ISimpleGenResKeywords.OSEK_AUTOSTART))) {
+			if ("true".equalsIgnoreCase(AbstractRtosWriter.getOsProperty(ool, ISimpleGenResKeywords.OSEK_AUTOSTART))) {
 				
 				
 				// -------- TASK --------
-				if ("true".equalsIgnoreCase(os
-						.getString(ISimpleGenResKeywords.OSEK_TASK_AUTOSTART))) {
+				if ("true".equalsIgnoreCase(AbstractRtosWriter.getOsProperty(ool, ISimpleGenResKeywords.OSEK_TASK_AUTOSTART))) {
 		
 					buffer.append(commentWriterC.writerBanner("Auto Start (TASK)"));
 					
@@ -1265,8 +1262,7 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 				}
 				
 				// -------- ALARM --------
-				if ("true".equalsIgnoreCase(os
-						.getString(ISimpleGenResKeywords.OSEK_ALARM_AUTOSTART))) {
+				if ("true".equalsIgnoreCase(AbstractRtosWriter.getOsProperty(ool, ISimpleGenResKeywords.OSEK_ALARM_AUTOSTART))) {
 					
 					buffer.append(commentWriterC.writerBanner("Auto Start (ALARM)"));
 					
@@ -1357,8 +1353,7 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 					appModes.remove(0);
 				}
 				if (ool.getList(IOilObjectList.ALARM).size() > 0 && 
-						("true".equalsIgnoreCase(os
-								.getString(ISimpleGenResKeywords.OSEK_ALARM_AUTOSTART)))) {
+						("true".equalsIgnoreCase(AbstractRtosWriter.getOsProperty(ool, ISimpleGenResKeywords.OSEK_ALARM_AUTOSTART)))) {
 
 					buffer.append(commentWriterC.writerBanner("Init alarms parameters (ALARM)"));
 
@@ -1576,8 +1571,7 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 			/*******************************************************************
 			 * AUTOMATIC OPTIONS (not CPU DEPENDENT)
 			 ******************************************************************/
-		    ISimpleGenRes sgrCpu = (ISimpleGenRes) ool.getList(IOilObjectList.OS).get(0);
-			List<Integer> requiredOilObjects = (List<Integer>) sgrCpu.getObject(SGRK__FORCE_ARRAYS_LIST__);
+			List<Integer> requiredOilObjects = (List<Integer>) AbstractRtosWriter.getOsObject(ool, SGRK__FORCE_ARRAYS_LIST__);
 
 //			boolean supportNestedIRQ = CpuUtility.getSupportForNestedIRQ(sgrCpu);
 
@@ -1605,16 +1599,12 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 			
 
 			{ // ... autostart
-				ISimpleGenRes os = (ISimpleGenRes) ool.getList(IOilObjectList.OS).get(0);
-
-				if (os.containsProperty(ISimpleGenResKeywords.OSEK_TASK_AUTOSTART) && "true".equalsIgnoreCase(os
-						.getString(ISimpleGenResKeywords.OSEK_TASK_AUTOSTART))) {
+				if ("true".equalsIgnoreCase(AbstractRtosWriter.getOsProperty(ool, ISimpleGenResKeywords.OSEK_TASK_AUTOSTART))) {
 					
 					answer.add("__OO_AUTOSTART_TASK__");
 				}
 
-				if (os.containsProperty(ISimpleGenResKeywords.OSEK_ALARM_AUTOSTART) && "true".equalsIgnoreCase(os
-						.getString(ISimpleGenResKeywords.OSEK_ALARM_AUTOSTART))) {
+				if ("true".equalsIgnoreCase(AbstractRtosWriter.getOsProperty(ool, ISimpleGenResKeywords.OSEK_ALARM_AUTOSTART))) {
 					
 					answer.add("__OO_AUTOSTART_ALARM__");
 				}
@@ -1622,7 +1612,7 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 			}
 			
 			// USE RES SCHEDULER
-			if (CpuUtility.getSupportForNestedIRQ(sgrCpu)
+			if (CpuUtility.getSupportForNestedIRQ(ool)
 					// always enabled for an osek system (if supported by HW)
 					// && parent.checkKeyword(DEF__ALLOW_NESTED_IRQ__)
 					) {

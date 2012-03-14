@@ -10,6 +10,7 @@ import com.eu.evidence.rtdruid.internal.modules.oil.keywords.IWritersKeywords;
 import com.eu.evidence.rtdruid.modules.oil.abstractions.IOilObjectList;
 import com.eu.evidence.rtdruid.modules.oil.abstractions.IOilWriterBuffer;
 import com.eu.evidence.rtdruid.modules.oil.abstractions.ISimpleGenRes;
+import com.eu.evidence.rtdruid.modules.oil.codewriter.common.AbstractRtosWriter;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.OilWriterBuffer;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.SWCategoryManager;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.SectionWriter;
@@ -144,11 +145,10 @@ public class SectionWriterKernelSystemCalls extends SectionWriter
 	
 	@SuppressWarnings("unchecked")
 	protected void addSysCalls(IOilObjectList ool, IOilWriterBuffer answer, int rtosId) {
-		ISimpleGenRes os = (ISimpleGenRes) ool.getList(IOilObjectList.OS).get(0);
-		List<Integer> requiredOilObjects = (List<Integer>) os.getObject(SGRK__FORCE_ARRAYS_LIST__);
+		List<Integer> requiredOilObjects = (List<Integer>) AbstractRtosWriter.getOsObject(ool, SGRK__FORCE_ARRAYS_LIST__);
 
-		final ICommentWriter commentWriterH = getCommentWriter(os, FileTypes.H);
-		final ICommentWriter commentWriterC = getCommentWriter(os, FileTypes.C);
+		final ICommentWriter commentWriterH = getCommentWriter(ool, FileTypes.H);
+		final ICommentWriter commentWriterC = getCommentWriter(ool, FileTypes.C);
 
 		StringBuffer ee_c_buffer = answer.get(FILE_EE_CFG_C);
 		ee_c_buffer.append(commentWriterC.writerBanner("System Calls") + 
@@ -201,14 +201,13 @@ public class SectionWriterKernelSystemCalls extends SectionWriter
 		}
 		
 		{
-			if (os.containsProperty(OrtiConstants.OS_CPU_ORTI_ENABLED_SECTIONS)) {
-				Integer sections = (Integer)os.getObject(OrtiConstants.OS_CPU_ORTI_ENABLED_SECTIONS);
-				if (sections != null && (sections.intValue() & OrtiConstants.EE_ORTI_OS) != 0) {
-					String s="ORTI_ext_set_service";
-					ids.append("#define EE_ID_"+s+ (s.length()<40 ? white_spaces.substring(0,40-s.length()) :"") + (counter <10 ? " " : "") + counter +"\n");
-					ee_c_buffer.append(indent1+"(EE_FADDR)&EE_as_ORTI_set_service,\n");
-					counter ++;
-				}
+		
+			Integer sections = (Integer) AbstractRtosWriter.getOsObject(ool, OrtiConstants.OS_CPU_ORTI_ENABLED_SECTIONS);
+			if (sections != null && (sections.intValue() & OrtiConstants.EE_ORTI_OS) != 0) {
+				String s="ORTI_ext_set_service";
+				ids.append("#define EE_ID_"+s+ (s.length()<40 ? white_spaces.substring(0,40-s.length()) :"") + (counter <10 ? " " : "") + counter +"\n");
+				ee_c_buffer.append(indent1+"(EE_FADDR)&EE_as_ORTI_set_service,\n");
+				counter ++;
 			}
 		}
 		

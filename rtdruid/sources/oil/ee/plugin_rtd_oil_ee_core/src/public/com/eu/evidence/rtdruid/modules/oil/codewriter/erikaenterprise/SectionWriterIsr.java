@@ -82,8 +82,7 @@ public class SectionWriterIsr implements IEEWriterKeywords {
 			List<ISimpleGenRes> isrList = ool.getList(IOilObjectList.ISR);
 			if (isrList.size()>0) {
 				final StringBuffer buffer = oilWBuff.get(FILE_EE_CFG_H);
-				final ISimpleGenRes sgrCpu = (ISimpleGenRes) ool.getList(IOilObjectList.OS).get(0);
-				final ICommentWriter commentWriterH = SectionWriter.getCommentWriter(sgrCpu, FileTypes.H);
+				final ICommentWriter commentWriterH = SectionWriter.getCommentWriter(ool, FileTypes.H);
 		
 				buffer.append(commentWriterH.writerBanner("ISR definition")); // \n");
 				for (ISimpleGenRes curr : isrList) {

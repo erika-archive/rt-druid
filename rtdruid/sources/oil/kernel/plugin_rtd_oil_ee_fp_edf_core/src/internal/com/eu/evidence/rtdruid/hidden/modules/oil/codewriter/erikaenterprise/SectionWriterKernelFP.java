@@ -5,6 +5,8 @@
  */
 package com.eu.evidence.rtdruid.hidden.modules.oil.codewriter.erikaenterprise;
 
+import static com.eu.evidence.rtdruid.modules.oil.codewriter.common.AbstractRtosWriter.getOsProperty;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -18,6 +20,7 @@ import com.eu.evidence.rtdruid.internal.modules.oil.keywords.IWritersKeywords;
 import com.eu.evidence.rtdruid.modules.oil.abstractions.IOilObjectList;
 import com.eu.evidence.rtdruid.modules.oil.abstractions.IOilWriterBuffer;
 import com.eu.evidence.rtdruid.modules.oil.abstractions.ISimpleGenRes;
+import com.eu.evidence.rtdruid.modules.oil.codewriter.common.AbstractRtosWriter;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.CommonUtils;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.OilWriterBuffer;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.SWCategoryManager;
@@ -26,7 +29,6 @@ import com.eu.evidence.rtdruid.modules.oil.codewriter.common.comments.FileTypes;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.comments.ICommentWriter;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.hw.CpuHwDescription;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.hw.CpuUtility;
-import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.hw.EECpuDescriptionManager;
 import com.eu.evidence.rtdruid.modules.oil.erikaenterprise.constants.IEEWriterKeywords;
 import com.eu.evidence.rtdruid.modules.oil.erikaenterprise.interfaces.IExtractKeywordsExtentions;
 import com.eu.evidence.rtdruid.modules.oil.erikaenterprise.interfaces.IGetEEOPTExtentions;
@@ -143,12 +145,8 @@ public class SectionWriterKernelFP extends SectionWriter implements
 		// number of rtos
 		final int rtosNumber = oilObjects.length;
 
-		CpuHwDescription currentStackDescription = null;
-		{
-			// usw thw cpu type of first cpu (all cpus have the same type) 
-			String cpuType = ((ISimpleGenRes) oilObjects[0].getList(IOilObjectList.OS).get(0)).getString(ISimpleGenResKeywords.OS_CPU_TYPE);
-			currentStackDescription = EECpuDescriptionManager.getHWDescription(cpuType);
-		}
+		// usw thw cpu type of first cpu (all cpus have the same type) 
+		CpuHwDescription currentStackDescription = ErikaEnterpriseWriter.getCpuHwDescription(oilObjects[0]);
 
 		/*
 		 * Extract the max number of distrinct Priorities for current HW.
@@ -174,9 +172,8 @@ public class SectionWriterKernelFP extends SectionWriter implements
 			// all objects for current os
 			IOilObjectList ool = oilObjects[rtosId];
 			// current os
-			ISimpleGenRes os = (ISimpleGenRes) ool.getList(IOilObjectList.OS).get(0);
-			List<Integer> requiredOilObjects = (List<Integer>) os.getObject(SGRK__FORCE_ARRAYS_LIST__);
-			final ICommentWriter commentWriterC = getCommentWriter(os, FileTypes.C);
+			List<Integer> requiredOilObjects = (List<Integer>) AbstractRtosWriter.getOsObject(ool, SGRK__FORCE_ARRAYS_LIST__);
+			final ICommentWriter commentWriterC = getCommentWriter(ool, FileTypes.C);
 
 			StringBuffer buffer = answer[rtosId].get(FILE_EE_CFG_C);
 
@@ -766,8 +763,7 @@ public class SectionWriterKernelFP extends SectionWriter implements
 			/*******************************************************************
 			 * AUTOMATIC OPTIONS (not CPU DEPENDENT)
 			 ******************************************************************/
-		    ISimpleGenRes sgrCpu = (ISimpleGenRes) ool.getList(IOilObjectList.OS).get(0);
-			List<Integer> requiredOilObjects = (List<Integer>) sgrCpu.getObject(SGRK__FORCE_ARRAYS_LIST__);
+			List<Integer> requiredOilObjects = (List<Integer>) AbstractRtosWriter.getOsObject(ool, SGRK__FORCE_ARRAYS_LIST__);
 
 			// from Oil Object List
 			// ... alarm
@@ -783,16 +779,12 @@ public class SectionWriterKernelFP extends SectionWriter implements
 			}
 
 			{ // ... autostart
-				ISimpleGenRes os = (ISimpleGenRes) ool.getList(IOilObjectList.OS).get(0);
-
-				if (os.containsProperty(ISimpleGenResKeywords.OSEK_TASK_AUTOSTART) && "true".equalsIgnoreCase(os
-						.getString(ISimpleGenResKeywords.OSEK_TASK_AUTOSTART))) {
+				if ("true".equalsIgnoreCase(getOsProperty(ool, ISimpleGenResKeywords.OSEK_TASK_AUTOSTART))) {
 					
 					answer.add("__OO_AUTOSTART_TASK__");
 				}
 
-				if (os.containsProperty(ISimpleGenResKeywords.OSEK_ALARM_AUTOSTART) && "true".equalsIgnoreCase(os
-						.getString(ISimpleGenResKeywords.OSEK_ALARM_AUTOSTART))) {
+				if ("true".equalsIgnoreCase(getOsProperty(ool, ISimpleGenResKeywords.OSEK_ALARM_AUTOSTART))) {
 					
 					answer.add("__OO_AUTOSTART_ALARM__");
 				}
@@ -800,7 +792,7 @@ public class SectionWriterKernelFP extends SectionWriter implements
 			}
 			
 			// ... nested IRQ
-			if (CpuUtility.getSupportForNestedIRQ(sgrCpu) 
+			if (CpuUtility.getSupportForNestedIRQ(ool) 
 					&& parent.checkKeyword(DEF__ALLOW_NESTED_IRQ__)) {
 				answer.add("__ALLOW_NESTED_IRQ__");
 			}

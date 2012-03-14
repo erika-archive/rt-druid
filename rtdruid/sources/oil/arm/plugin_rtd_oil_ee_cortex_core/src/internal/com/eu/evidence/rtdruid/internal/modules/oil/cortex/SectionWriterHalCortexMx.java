@@ -23,12 +23,12 @@ import com.eu.evidence.rtdruid.desk.Messages;
 import com.eu.evidence.rtdruid.desk.RtdruidLog;
 import com.eu.evidence.rtdruid.internal.modules.oil.codewriter.erikaenterprise.ErikaEnterpriseWriter;
 import com.eu.evidence.rtdruid.internal.modules.oil.exceptions.OilCodeWriterException;
-import com.eu.evidence.rtdruid.internal.modules.oil.keywords.IOilXMLLabels;
 import com.eu.evidence.rtdruid.internal.modules.oil.keywords.ISimpleGenResKeywords;
 import com.eu.evidence.rtdruid.internal.modules.oil.keywords.IWritersKeywords;
 import com.eu.evidence.rtdruid.modules.oil.abstractions.IOilObjectList;
 import com.eu.evidence.rtdruid.modules.oil.abstractions.IOilWriterBuffer;
 import com.eu.evidence.rtdruid.modules.oil.abstractions.ISimpleGenRes;
+import com.eu.evidence.rtdruid.modules.oil.codewriter.common.AbstractRtosWriter;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.CommonUtils;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.HostOsUtils;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.OilWriterBuffer;
@@ -37,7 +37,6 @@ import com.eu.evidence.rtdruid.modules.oil.codewriter.common.SectionWriter;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.comments.FileTypes;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.comments.ICommentWriter;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.SectionWriterIsr;
-import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.hw.CpuHwDescription;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.hw.EEStacks;
 import com.eu.evidence.rtdruid.modules.oil.cortex.constants.CortexConstants;
 import com.eu.evidence.rtdruid.modules.oil.erikaenterprise.constants.IEEWriterKeywords;
@@ -46,7 +45,6 @@ import com.eu.evidence.rtdruid.modules.oil.erikaenterprise.interfaces.IExtractOb
 import com.eu.evidence.rtdruid.vartree.ITreeInterface;
 import com.eu.evidence.rtdruid.vartree.IVarTree;
 import com.eu.evidence.rtdruid.vartree.IVariable;
-import com.eu.evidence.rtdruid.vartree.data.DataPackage;
 
 /**
  * This writer build files for a CORTEX M0 CPU - Board
@@ -153,8 +151,6 @@ public class SectionWriterHalCortexMx extends SectionWriter
 		
 		for ( int currentRtosId = 0; currentRtosId <oilObjects.length; currentRtosId ++) {
 			final IOilObjectList ool = oilObjects[currentRtosId];
-			final ISimpleGenRes sgrCpu = (ISimpleGenRes) ool.getList(IOilObjectList.OS).get(0);
-			final String currentCpuPrefix = sgrCpu.getString(SGRK_OS_CPU_DATA_PREFIX);
 	
 			/***********************************************************************
 			 * 
@@ -167,6 +163,7 @@ public class SectionWriterHalCortexMx extends SectionWriter
 		        ArrayList<String> tmp = new ArrayList<String>(commonEEopt);
 		        
 		        // store all older values (if there are)
+		        ISimpleGenRes sgrCpu = ool.getList(IOilObjectList.OS).get(0);
 		        if (sgrCpu.containsProperty(ISimpleGenResKeywords.OS_CPU_EE_OPTS)) {
 		        	String[] old = (String[]) sgrCpu.getObject(ISimpleGenResKeywords.OS_CPU_EE_OPTS);
 		        	tmp.addAll(Arrays.asList(old));
@@ -175,9 +172,8 @@ public class SectionWriterHalCortexMx extends SectionWriter
 		        tmp.add(EEOPT__CORTEX_MX__);
 		        String cpu_model;
 		        {
-					cpu_model = CommonUtils
-							.getFirstChildEnumType(vt, currentCpuPrefix
-									+ "MODEL", null);
+		        	List<String> all = parent.getCpuDataEnum(ool, "MODEL");
+					cpu_model = all.size() == 0? null : all.get(0);
 					if (CortexConstants.SGRK__CORTEX_M0__.equalsIgnoreCase(cpu_model)) {
 			            sgrCpu.setProperty(CortexConstants.SGRK__CORTEX_CPU_MODEL__, CortexConstants.SGRK__CORTEX_M0__);
 			            tmp.add(EEOPT__CORTEX_MODEL_M0__);
@@ -191,9 +187,8 @@ public class SectionWriterHalCortexMx extends SectionWriter
 
 		        
 		        {
-					String tmp1 = CommonUtils
-							.getFirstChildEnumType(vt, currentCpuPrefix
-									+ "JLINK", null);
+		        	List<String> all = parent.getCpuDataEnum(ool, "JLINK");
+					String tmp1 = all.size() == 0? null : all.get(0);
 					if ("TRUE".equalsIgnoreCase(tmp1)) {
 						if ( !(CortexConstants.SGRK__CORTEX_M0__.equalsIgnoreCase(cpu_model)) ) {
 							Messages.sendWarningNl("JLINK option is enabled only with cortex M0 cpus");
@@ -205,9 +200,8 @@ public class SectionWriterHalCortexMx extends SectionWriter
 				}
 	
 				{
-					String tmp1 = CommonUtils
-						.getFirstChildEnumType(vt, currentCpuPrefix
-									+ "COMPILER_TYPE", null);
+		        	List<String> all = parent.getCpuDataEnum(ool, "COMPILER_TYPE");
+					String tmp1 = all.size() == 0? null : all.get(0);
 					if (tmp1 == null) {
 						if (CortexConstants.SGRK__CORTEX_M0__.equalsIgnoreCase(cpu_model)) {
 							tmp1 = CortexConstants.SGRK__IAR_COMPILER__;
@@ -285,10 +279,8 @@ public class SectionWriterHalCortexMx extends SectionWriter
 			StringBuffer sbInithal_c = answer.get(FILE_EE_CFG_C);
 			
 			final IOilObjectList ool = oilObjects[currentRtosId];
-			final ISimpleGenRes sgrCpu = (ISimpleGenRes) ool.getList(IOilObjectList.OS).get(0);
-			final String currentCpuPrefix = sgrCpu.getString(SGRK_OS_CPU_DATA_PREFIX);
-			final ICommentWriter commentWriterC = getCommentWriter(sgrCpu, FileTypes.C);
-			final ICommentWriter commentWriterMf = getCommentWriter(sgrCpu, FileTypes.MAKEFILE);
+			final ICommentWriter commentWriterC = getCommentWriter(ool, FileTypes.C);
+			final ICommentWriter commentWriterMf = getCommentWriter(ool, FileTypes.MAKEFILE);
 
 			List<ISimpleGenRes> taskNames = ool.getList(IOilObjectList.TASK);
 			String stackType = parent.getStackType(); // MULTI or MONO
@@ -313,13 +305,7 @@ public class SectionWriterHalCortexMx extends SectionWriter
 	//         *  
 	//         **********************************************************************/
 	
-		    final int STACK_UNIT;
-			if (sgrCpu.containsProperty(ISimpleGenResKeywords.OS_CPU_DESCRIPTOR)) {
-				CpuHwDescription currentStackDescription = (CpuHwDescription) sgrCpu.getObject(ISimpleGenResKeywords.OS_CPU_DESCRIPTOR);
-				STACK_UNIT = currentStackDescription.stackSize;
-			} else {
-				STACK_UNIT = 4;
-			}
+		    final int STACK_UNIT = ErikaEnterpriseWriter.getStackUnit(ool);
 			
 			/***********************************************************************
 			 * MULTI STACK
@@ -337,48 +323,54 @@ public class SectionWriterHalCortexMx extends SectionWriter
 					/***************************************************************
 					 * IRQ_STACK
 					 **************************************************************/
-					
-					String[] child = new String[1];
-					String type = CommonUtils
-							.getFirstChildEnumType(vt, currentCpuPrefix
-									+ "MULTI_STACK", child);
-	
-					if ("TRUE".equalsIgnoreCase(type)) {
-						String prefixIRQ = currentCpuPrefix
-							+ "MULTI_STACK" + VARIANT_ELIST+child[0] + PARAMETER_LIST
-							+ "IRQ_STACK";
-						boolean ok = "TRUE".equalsIgnoreCase(CommonUtils
-						.getFirstChildEnumType(vt, prefixIRQ, child));
+					final List<String> currentCpuPrefixes = AbstractRtosWriter.getOsProperties(ool, SGRK_OS_CPU_DATA_PREFIX);
+					for (String currentCpuPrefix: currentCpuPrefixes) {
+					if (irqSize != null) {
+						break;
+					}
 						
-						if (ok) {
+						String[] child = new String[1];
+						String type = CommonUtils
+								.getFirstChildEnumType(vt, currentCpuPrefix
+										+ "MULTI_STACK", child);
+		
+						if ("TRUE".equalsIgnoreCase(type)) {
+							String prefixIRQ = currentCpuPrefix
+								+ "MULTI_STACK" + VARIANT_ELIST+child[0] + PARAMETER_LIST
+								+ "IRQ_STACK";
+							boolean ok = "TRUE".equalsIgnoreCase(CommonUtils
+							.getFirstChildEnumType(vt, prefixIRQ, child));
 							
-							prefixIRQ += VARIANT_ELIST + child[0] +PARAMETER_LIST;
-							irqSize = new int[1];
-							{ // get data for IRQ STACK ...
-								String path[] = { "SYS_SIZE" };
-	
-								for (int i = 0; i < path.length; i++) {
-									String tmp = null;
-									IVariable var = ti.getValue(prefixIRQ + path[i]
-											+ VALUE_VALUE);
-									if (var != null && var.get() != null) {
-										tmp = var.toString();
-									}
-									if (tmp == null)
-										throw new RuntimeException(
-												ERR_CPU_TYPE + " : Expected " + path[i]);
-	
-									// check for value
-									try {
-										// ... store them inside the irqSize vector
-										irqSize[0] = (Integer.decode("" + tmp))
-												.intValue();
-										// ... and increase the memory requirement
-	//									stackEnd += irqSize[0];
-									} catch (Exception e) {
-										throw new RuntimeException(
-												ERR_CPU_TYPE + " : Wrong int" + path[i]
-														+ ", value = " + tmp + ")");
+							if (ok) {
+								
+								prefixIRQ += VARIANT_ELIST + child[0] +PARAMETER_LIST;
+								irqSize = new int[1];
+								{ // get data for IRQ STACK ...
+									String path[] = { "SYS_SIZE" };
+		
+									for (int i = 0; i < path.length; i++) {
+										String tmp = null;
+										IVariable var = ti.getValue(prefixIRQ + path[i]
+												+ VALUE_VALUE);
+										if (var != null && var.get() != null) {
+											tmp = var.toString();
+										}
+										if (tmp == null)
+											throw new RuntimeException(
+													ERR_CPU_TYPE + " : Expected " + path[i]);
+		
+										// check for value
+										try {
+											// ... store them inside the irqSize vector
+											irqSize[0] = (Integer.decode("" + tmp))
+													.intValue();
+											// ... and increase the memory requirement
+		//									stackEnd += irqSize[0];
+										} catch (Exception e) {
+											throw new RuntimeException(
+													ERR_CPU_TYPE + " : Wrong int" + path[i]
+															+ ", value = " + tmp + ")");
+										}
 									}
 								}
 							}
@@ -573,8 +565,7 @@ public class SectionWriterHalCortexMx extends SectionWriter
 			                "APPBASE := " + appBase + "\n" +
 			                "OUTBASE := " + outputDir + "\n\n");
 			        
-			        String compiler_type = sgrCpu.containsProperty(CortexConstants.SGRK__CORTEX_COMPILER_TYPE__) ?
-			        		sgrCpu.getString(CortexConstants.SGRK__CORTEX_COMPILER_TYPE__) : null;
+			        String compiler_type = AbstractRtosWriter.getOsProperty(ool,CortexConstants.SGRK__CORTEX_COMPILER_TYPE__);
 			        if (CortexConstants.SGRK__IAR_COMPILER__.equalsIgnoreCase(compiler_type)) {
 				        String gcc = CortexConstants.DEFAULT_CORTEXMX_CONF_IAR_CC;
 				    	if (options.containsKey(CortexConstants.PREF_CORTEXMx_IAR_CC_PATH)) {
@@ -611,6 +602,7 @@ public class SectionWriterHalCortexMx extends SectionWriter
 			        } 
 			    }
 	
+			    ISimpleGenRes sgrCpu = ool.getList(IOilObjectList.OS).get(0);
 	            sgrCpu.setProperty(SGRK__MAKEFILE_EXTENTIONS__, sbMakefile.toString());
 	
 			}
@@ -636,90 +628,84 @@ public class SectionWriterHalCortexMx extends SectionWriter
 		String prefix = "";
 		for (int currentRtosId = 0; mcu_model == null && currentRtosId < oilObjects.length; currentRtosId ++) { 
 			
-			/* COMMON VARIABLES */
-			ISimpleGenRes os = (ISimpleGenRes) oilObjects[currentRtosId].getList(IOilObjectList.OS).get(0);
+			ArrayList<String> childPaths = new ArrayList<String>();
+			List<String> childFound = parent.getRtosCommonChildType(oilObjects[currentRtosId], "MCU_DATA", childPaths);
 
-			{
+			for (int index = 0; index<childFound.size(); index++) {
+				mcu_type = childFound.get(index);
+				if (mcu_model == null) {
 				/***********************************************************************
 				 * get values
 				 **********************************************************************/
-	
-				// prepare the path :
-				// ... the prefix ...
-				String currentMcuPrefix = os.getPath() + S
-						+ DataPackage.eINSTANCE.getRtos_OilVar().getName() + S
-						+ IOilXMLLabels.OBJ_OS + parent.getOilHwRtosPrefix() + "MCU_DATA";
+					String currentMcuPrefix = childPaths.get(index) + PARAMETER_LIST + "MODEL";
 				
-				// ... get the node identifier
-				String[] child = new String[1];
-				mcu_type = CommonUtils.getFirstChildEnumType(vt, currentMcuPrefix, child);
-				
-				if (child.length >0 && LPCX_MCU.equals(mcu_type)) {
-					prefix = "LPCXPRESSO_";
-					// ... and compete it 
-					currentMcuPrefix += VARIANT_ELIST + child[0] + PARAMETER_LIST + "MODEL";
+					if (LPCX_MCU.equals(mcu_type)) {
+						prefix = "LPCXPRESSO_";
+						// ... and compete it 
+		
+						String[] child = new String[1];
+						String model_type = CommonUtils.getFirstChildEnumType(vt, currentMcuPrefix, child);
+						
+						/* CUSTOM */
+						if (CUSTOM_MCU.equals(model_type)) {
+							// read also LINKERSCRIPT, DEV_LIB, INCLUDE_C, INCLUDE_S
+							currentMcuPrefix += VARIANT_ELIST + child[0] + PARAMETER_LIST;
+							String[] model = CommonUtils.getValue(vt, currentMcuPrefix+"MODEL");
+							String[] linker = CommonUtils.getValue(vt, currentMcuPrefix+"LINKERSCRIPT");
+							String[] inc_c  = CommonUtils.getValue(vt, currentMcuPrefix+"INCLUDE_C");
+							String[] inc_s  = CommonUtils.getValue(vt, currentMcuPrefix+"INCLUDE_S");
+							String[] startup  = CommonUtils.getValue(vt, currentMcuPrefix+"STARTUP");
 	
-					String model_type = CommonUtils.getFirstChildEnumType(vt, currentMcuPrefix, child);
-					
-					/* CUSTOM */
-					if (CUSTOM_MCU.equals(model_type)) {
-						// read also LINKERSCRIPT, DEV_LIB, INCLUDE_C, INCLUDE_S
-						currentMcuPrefix += VARIANT_ELIST + child[0] + PARAMETER_LIST;
-						String[] model = CommonUtils.getValue(vt, currentMcuPrefix+"MODEL");
-						String[] linker = CommonUtils.getValue(vt, currentMcuPrefix+"LINKERSCRIPT");
-						String[] inc_c  = CommonUtils.getValue(vt, currentMcuPrefix+"INCLUDE_C");
-						String[] inc_s  = CommonUtils.getValue(vt, currentMcuPrefix+"INCLUDE_S");
-						String[] startup  = CommonUtils.getValue(vt, currentMcuPrefix+"STARTUP");
-
-						mcu_properties = new Mcu_Model(
-								CUSTOM_MCU,
-								clean(model),
-								"__"+clean(model)+"__",
-								clean(linker),
-								clean(inc_c),
-								clean(inc_s),
-								clean(startup)
-						);
-						mcu_model = CUSTOM_MCU;
-					} else {
-							/* STANDARD MCU */
-						mcu_properties = LPCX_MCU_PROPERTIES.get(model_type);
-						if (mcu_properties != null) {
-							mcu_model = model_type;
+							mcu_properties = new Mcu_Model(
+									CUSTOM_MCU,
+									clean(model),
+									"__"+clean(model)+"__",
+									clean(linker),
+									clean(inc_c),
+									clean(inc_s),
+									clean(startup)
+							);
+							mcu_model = CUSTOM_MCU;
+						} else {
+								/* STANDARD MCU */
+							mcu_properties = LPCX_MCU_PROPERTIES.get(model_type);
+							if (mcu_properties != null) {
+								mcu_model = model_type;
+							}
 						}
-					}
-				} else if (child.length >0 && STELLARIS_MCU.equals(mcu_type)) {
-					prefix = "STELLARIS_";
-					// ... and compete it 
-					currentMcuPrefix += VARIANT_ELIST + child[0] + PARAMETER_LIST + "MODEL";
+					} else if (STELLARIS_MCU.equals(mcu_type)) {
+						prefix = "STELLARIS_";
+						// ... and compete it 
+		
+						String[] child = new String[1];
+						String model_type = CommonUtils.getFirstChildEnumType(vt, currentMcuPrefix, child);
+						
+						/* CUSTOM */
+						if (CUSTOM_MCU.equals(model_type)) {
+							// read also LINKERSCRIPT, DEV_LIB, INCLUDE_C, INCLUDE_S
+							currentMcuPrefix += VARIANT_ELIST + child[0] + PARAMETER_LIST;
+							String[] model = CommonUtils.getValue(vt, currentMcuPrefix+"MODEL");
+							String[] linker = CommonUtils.getValue(vt, currentMcuPrefix+"LINKERSCRIPT");
+							String[] inc_c  = CommonUtils.getValue(vt, currentMcuPrefix+"INCLUDE_C");
+							String[] inc_s  = CommonUtils.getValue(vt, currentMcuPrefix+"INCLUDE_S");
+							String[] startup  = CommonUtils.getValue(vt, currentMcuPrefix+"STARTUP");
 	
-					String model_type = CommonUtils.getFirstChildEnumType(vt, currentMcuPrefix, child);
-					
-					/* CUSTOM */
-					if (CUSTOM_MCU.equals(model_type)) {
-						// read also LINKERSCRIPT, DEV_LIB, INCLUDE_C, INCLUDE_S
-						currentMcuPrefix += VARIANT_ELIST + child[0] + PARAMETER_LIST;
-						String[] model = CommonUtils.getValue(vt, currentMcuPrefix+"MODEL");
-						String[] linker = CommonUtils.getValue(vt, currentMcuPrefix+"LINKERSCRIPT");
-						String[] inc_c  = CommonUtils.getValue(vt, currentMcuPrefix+"INCLUDE_C");
-						String[] inc_s  = CommonUtils.getValue(vt, currentMcuPrefix+"INCLUDE_S");
-						String[] startup  = CommonUtils.getValue(vt, currentMcuPrefix+"STARTUP");
-
-						mcu_properties = new Mcu_Model(
-								CUSTOM_MCU,
-								clean(model),
-								"__"+clean(model)+"__",
-								clean(linker),
-								clean(inc_c),
-								clean(inc_s),
-								clean(startup)
-						);
-						mcu_model = CUSTOM_MCU;
-					} else {
-							/* STANDARD MCU */
-						mcu_properties = STELLARIS_MCU_PROPERTIES.get(model_type);
-						if (mcu_properties != null) {
-							mcu_model = model_type;
+							mcu_properties = new Mcu_Model(
+									CUSTOM_MCU,
+									clean(model),
+									"__"+clean(model)+"__",
+									clean(linker),
+									clean(inc_c),
+									clean(inc_s),
+									clean(startup)
+							);
+							mcu_model = CUSTOM_MCU;
+						} else {
+								/* STANDARD MCU */
+							mcu_properties = STELLARIS_MCU_PROPERTIES.get(model_type);
+							if (mcu_properties != null) {
+								mcu_model = model_type;
+							}
 						}
 					}
 				}
@@ -748,10 +734,10 @@ public class SectionWriterHalCortexMx extends SectionWriter
 				answerBuffer.append(prefix + "STARTUP       := " +mcu_properties.startup + "\n");
 
 			for (int currentRtosId = 0; currentRtosId < oilObjects.length; currentRtosId ++) { 
-				ISimpleGenRes os = (ISimpleGenRes) oilObjects[currentRtosId].getList(IOilObjectList.OS).get(0);
-				final ICommentWriter commentWriterMf = getCommentWriter(os, FileTypes.MAKEFILE);
+				final ICommentWriter commentWriterMf = getCommentWriter(oilObjects[currentRtosId], FileTypes.MAKEFILE);
 
 				
+				ISimpleGenRes os = (ISimpleGenRes) oilObjects[currentRtosId].getList(IOilObjectList.OS).get(0);
 				String temp = os.getString(SGRK__MAKEFILE_EXTENTIONS__);
 	            os.setProperty(SGRK__MAKEFILE_EXTENTIONS__, temp +
 	            		commentWriterMf.writerBanner("Init MCU for CORTEX Mx ("+mcu_model+")") +
@@ -771,114 +757,103 @@ public class SectionWriterHalCortexMx extends SectionWriter
 		Mcu_Model mcu_properties = null;
 		for (int currentRtosId = 0; mcu_properties == null && currentRtosId < oilObjects.length; currentRtosId ++) { 
 			
-			/* COMMON VARIABLES */
-			ISimpleGenRes os = (ISimpleGenRes) oilObjects[currentRtosId].getList(IOilObjectList.OS).get(0);
-			//String mcu_model = null;	// != null only if found a valid mcu
+			ArrayList<String> childPaths = new ArrayList<String>();
+			List<String> childFound = parent.getRtosCommonChildType(oilObjects[currentRtosId], "MCU_DATA", childPaths);
+
+			for (int index = 0; index<childFound.size(); index++) {
+				String mcu_type = childFound.get(index);
+				if (mcu_properties == null) {
+
+					/***********************************************************************
+					 * get values
+					 **********************************************************************/
+					String currentMcuPrefix = childPaths.get(index) + PARAMETER_LIST + "MODEL";
 	
-			{
-				/***********************************************************************
-				 * get values
-				 **********************************************************************/
-	
-				// prepare the path :
-				// ... the prefix ...
-				String currentMcuPrefix = os.getPath() + S
-						+ DataPackage.eINSTANCE.getRtos_OilVar().getName() + S
-						+ IOilXMLLabels.OBJ_OS + parent.getOilHwRtosPrefix() + "MCU_DATA";
-				
-				// ... get the node identifier
-				String[] child = new String[1];
-				String mcu_type = CommonUtils.getFirstChildEnumType(vt, currentMcuPrefix, child);
-				
-				if (child.length >0 && LPCX_MCU.equals(mcu_type)) {
-					{
-						String t = "__LPCXPRESSO__";
-						if (!ee_opts.contains(t)) {
-							ee_opts.add(t);
+					if (LPCX_MCU.equals(mcu_type)) {
+						{
+							String t = "__LPCXPRESSO__";
+							if (!ee_opts.contains(t)) {
+								ee_opts.add(t);
+							}
 						}
-					}
-					
-					// ... and compete it 
-					currentMcuPrefix += VARIANT_ELIST + child[0] + PARAMETER_LIST + "MODEL";
-	
-					String model_type = CommonUtils.getFirstChildEnumType(vt, currentMcuPrefix, child);
-					
-					/* CUSTOM */
-					if (CUSTOM_MCU.equals(model_type)) {
+
+						String[] child = new String[1];
+						String model_type = CommonUtils.getFirstChildEnumType(vt, currentMcuPrefix, child);
 						
-						// read only MODEL
-						currentMcuPrefix += VARIANT_ELIST + child[0] + PARAMETER_LIST;
-						String model = clean(CommonUtils.getValue(vt, currentMcuPrefix+"MODEL"));
-						if (model != null) {
-							if (!ee_opts.contains("__"+model+"__")) {
-								ee_opts.add("__"+model+"__");
-							}
+						/* CUSTOM */
+						if (CUSTOM_MCU.equals(model_type)) {
 							
-							String linkscript = clean(CommonUtils.getValue(vt, currentMcuPrefix+"LINKERSCRIPT"));
-							if (linkscript != null && !ee_opts.contains("__USE_CUSTOM_LINKER_SCRIPT__")) {
-								ee_opts.add("__USE_CUSTOM_LINKER_SCRIPT__");
+							// read only MODEL
+							currentMcuPrefix += VARIANT_ELIST + child[0] + PARAMETER_LIST;
+							String model = clean(CommonUtils.getValue(vt, currentMcuPrefix+"MODEL"));
+							if (model != null) {
+								if (!ee_opts.contains("__"+model+"__")) {
+									ee_opts.add("__"+model+"__");
+								}
+								
+								String linkscript = clean(CommonUtils.getValue(vt, currentMcuPrefix+"LINKERSCRIPT"));
+								if (linkscript != null && !ee_opts.contains("__USE_CUSTOM_LINKER_SCRIPT__")) {
+									ee_opts.add("__USE_CUSTOM_LINKER_SCRIPT__");
+								}
 							}
-						}
-	
-					} else {
-							/* STANDARD MCU */
-						mcu_properties = LPCX_MCU_PROPERTIES.get(model_type);
-						if (mcu_properties != null) {
-							
-							String[] splitted = mcu_properties.ee_opt == null ? new String[0] : mcu_properties.ee_opt.split(" ");
-							for (String t : splitted) {
-								if (!ee_opts.contains(t)) {
-									ee_opts.add(t);
+		
+						} else {
+								/* STANDARD MCU */
+							mcu_properties = LPCX_MCU_PROPERTIES.get(model_type);
+							if (mcu_properties != null) {
+								
+								String[] splitted = mcu_properties.ee_opt == null ? new String[0] : mcu_properties.ee_opt.split(" ");
+								for (String t : splitted) {
+									if (!ee_opts.contains(t)) {
+										ee_opts.add(t);
+									}
 								}
 							}
 						}
-					}
-					
-				} else if (child.length >0 && STELLARIS_MCU.equals(mcu_type)) {
-					{
-						String t = "__STELLARIS__";
-						if (!ee_opts.contains(t)) {
-							ee_opts.add(t);
-						}
-					}
-					
-					// ... and compete it 
-					currentMcuPrefix += VARIANT_ELIST + child[0] + PARAMETER_LIST + "MODEL";
-	
-					String model_type = CommonUtils.getFirstChildEnumType(vt, currentMcuPrefix, child);
-					
-					/* CUSTOM */
-					if (CUSTOM_MCU.equals(model_type)) {
 						
-						// read only MODEL
-						currentMcuPrefix += VARIANT_ELIST + child[0] + PARAMETER_LIST;
-						String model = clean(CommonUtils.getValue(vt, currentMcuPrefix+"MODEL"));
-						if (model != null) {
-							if (!ee_opts.contains("__"+model+"__")) {
-								ee_opts.add("__"+model+"__");
-							}
-							
-							String linkscript = clean(CommonUtils.getValue(vt, currentMcuPrefix+"LINKERSCRIPT"));
-							if (linkscript != null && !ee_opts.contains("__USE_CUSTOM_LINKER_SCRIPT__")) {
-								ee_opts.add("__USE_CUSTOM_LINKER_SCRIPT__");
+					} else if (STELLARIS_MCU.equals(mcu_type)) {
+						{
+							String t = "__STELLARIS__";
+							if (!ee_opts.contains(t)) {
+								ee_opts.add(t);
 							}
 						}
-	
-					} else {
-							/* STANDARD MCU */
-						mcu_properties = STELLARIS_MCU_PROPERTIES.get(model_type);
-						if (mcu_properties != null) {
+		
+						String[] child = new String[1];
+						String model_type = CommonUtils.getFirstChildEnumType(vt, currentMcuPrefix, child);
+						
+						/* CUSTOM */
+						if (CUSTOM_MCU.equals(model_type)) {
 							
-							String[] splitted = mcu_properties.ee_opt == null ? new String[0] : mcu_properties.ee_opt.split(" ");
-							for (String t : splitted) {
-								if (!ee_opts.contains(t)) {
-									ee_opts.add(t);
+							// read only MODEL
+							currentMcuPrefix += VARIANT_ELIST + child[0] + PARAMETER_LIST;
+							String model = clean(CommonUtils.getValue(vt, currentMcuPrefix+"MODEL"));
+							if (model != null) {
+								if (!ee_opts.contains("__"+model+"__")) {
+									ee_opts.add("__"+model+"__");
+								}
+								
+								String linkscript = clean(CommonUtils.getValue(vt, currentMcuPrefix+"LINKERSCRIPT"));
+								if (linkscript != null && !ee_opts.contains("__USE_CUSTOM_LINKER_SCRIPT__")) {
+									ee_opts.add("__USE_CUSTOM_LINKER_SCRIPT__");
+								}
+							}
+		
+						} else {
+								/* STANDARD MCU */
+							mcu_properties = STELLARIS_MCU_PROPERTIES.get(model_type);
+							if (mcu_properties != null) {
+								
+								String[] splitted = mcu_properties.ee_opt == null ? new String[0] : mcu_properties.ee_opt.split(" ");
+								for (String t : splitted) {
+									if (!ee_opts.contains(t)) {
+										ee_opts.add(t);
+									}
 								}
 							}
 						}
 					}
 				}
-
 				
 				
 			}

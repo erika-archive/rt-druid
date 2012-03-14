@@ -133,13 +133,12 @@ public class SectionWriterOsApplication extends SectionWriter implements
 
 	protected void addOsApplications(IOilObjectList ool, IOilWriterBuffer answer) throws OilCodeWriterException {
 		List<ISimpleGenRes> applications = ool.getList(IOilObjectList.OSAPPLICATION);
-		ISimpleGenRes os = (ISimpleGenRes) ool.getList(IOilObjectList.OS).get(0);
 
 		StringBuffer ee_h_buffer = answer.get(FILE_EE_CFG_H);
-		final ICommentWriter commentWriterH = getCommentWriter(os, FileTypes.H);
+		final ICommentWriter commentWriterH = getCommentWriter(ool, FileTypes.H);
 
 		StringBuffer ee_c_buffer = answer.get(FILE_EE_CFG_C);
-		final ICommentWriter commentWriterC = getCommentWriter(os, FileTypes.C);
+		final ICommentWriter commentWriterC = getCommentWriter(ool, FileTypes.C);
 		
 		StringBuffer linker_buffer = answer.get(EE_APPS_CONF);
 

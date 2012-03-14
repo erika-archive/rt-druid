@@ -7,13 +7,10 @@ import java.util.HashMap;
 import java.util.List;
 
 import com.eu.evidence.rtdruid.desk.Messages;
-import com.eu.evidence.rtdruid.internal.modules.oil.keywords.IOilXMLLabels;
 import com.eu.evidence.rtdruid.modules.oil.abstractions.IOilObjectList;
-import com.eu.evidence.rtdruid.modules.oil.abstractions.ISimpleGenRes;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.CommonUtils;
 import com.eu.evidence.rtdruid.modules.oil.erikaenterprise.constants.IEEWriterKeywords;
 import com.eu.evidence.rtdruid.vartree.IVarTree;
-import com.eu.evidence.rtdruid.vartree.data.DataPackage;
 
 public class SectionWriterHalPicBoards implements IEEWriterKeywords {
 	
@@ -216,23 +213,27 @@ public class SectionWriterHalPicBoards implements IEEWriterKeywords {
 		
 		for (int currentRtosId = 0; currentRtosId < oilObjects.length; currentRtosId ++) { 
 			
-			/* COMMON VARIABLES */
-			ISimpleGenRes os = (ISimpleGenRes) oilObjects[currentRtosId].getList(IOilObjectList.OS).get(0);
-	
-			{
-				/***********************************************************************
-				 * get values and store as EE_OPT
-				 **********************************************************************/
-	
-				// prepare the path :
-				// ... the prefix ...
-				String currentMcuPrefix = os.getPath() + S
-						+ DataPackage.eINSTANCE.getRtos_OilVar().getName() + S
-						+ IOilXMLLabels.OBJ_OS + parent.getOilHwRtosPrefix() + "BOARD_DATA";
+			/***********************************************************************
+			 * get values and store as EE_OPT
+			 **********************************************************************/
+
+			ArrayList<String> childPaths = new ArrayList<String>();
+			List<String> childFound = parent.getRtosCommonChildType(oilObjects[currentRtosId], "BOARD_DATA", childPaths);
+
+			String board_type = null;
+			for (int index = 0; index<childFound.size(); index++) {
+				String type_found = childFound.get(index); 
+				if (board_type == null) {
+					board_type = type_found;
+				} else {
+					if (!(board_type.equalsIgnoreCase(type_found))) {
+						Messages.sendWarningNl("Found more than one Board section for the same cpu. (" + board_type + " and " + type_found + ")",
+								null, "ajidasoidjasdiojasdi", null);
+					}
+				}
 				
-				// ... get the node identifier
-				String[] child = new String[1];
-				String board_type = CommonUtils.getFirstChildEnumType(vt, currentMcuPrefix, child);
+				
+			
 				
 					/* STANDARD MCU */
 				BOARD_MODEL board_properties = STANDARD_BOARD_PROPERTIES.get(board_type);
@@ -240,7 +241,7 @@ public class SectionWriterHalPicBoards implements IEEWriterKeywords {
 					if (board_properties.def!= null && !ee_opts.contains(board_properties.def)) {
 						ee_opts.add(board_properties.def);
 					}
-					currentMcuPrefix += VARIANT_ELIST + child[0] + PARAMETER_LIST;
+					String currentMcuPrefix = childPaths.get(index) + PARAMETER_LIST;
 	
 					if (board_properties.board_subtype != null) {
 						checkEE_FlexBoard(ee_opts, currentMcuPrefix, board_properties.board_subtype);

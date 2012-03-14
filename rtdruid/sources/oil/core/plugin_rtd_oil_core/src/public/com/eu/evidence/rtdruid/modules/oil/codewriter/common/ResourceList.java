@@ -616,7 +616,7 @@ public class ResourceList {
 			}
 			
 			for (int i=0; i<tmpList.length; i++) {
-				oilObjects[i].setList(IOilObjectList.RESOURCE, (ArrayList) tmpList[i]);
+				oilObjects[i].setList(IOilObjectList.RESOURCE, tmpList[i]);
 			}
 		}
 		

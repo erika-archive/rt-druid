@@ -46,11 +46,11 @@ import com.eu.evidence.rtdruid.internal.modules.oil.keywords.ISimpleGenResKeywor
 import com.eu.evidence.rtdruid.internal.modules.oil.keywords.IWritersKeywords;
 import com.eu.evidence.rtdruid.modules.oil.abstractions.IOilObjectList;
 import com.eu.evidence.rtdruid.modules.oil.abstractions.IOilWriterBuffer;
-import com.eu.evidence.rtdruid.modules.oil.abstractions.ISimpleGenRes;
 import com.eu.evidence.rtdruid.modules.oil.cdt.ui.Rtd_oil_cdt_Plugin;
 import com.eu.evidence.rtdruid.modules.oil.cdt.ui.cygwin.MyMakeBuilder;
 import com.eu.evidence.rtdruid.modules.oil.cdt.ui.project.EELocationLinkVar;
 import com.eu.evidence.rtdruid.modules.oil.cdt.ui.project.RTDOilProjectNature;
+import com.eu.evidence.rtdruid.modules.oil.codewriter.common.AbstractRtosWriter;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.OilReaderFactory;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.RtosFactory;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.options.OptionsManager;
@@ -1118,11 +1118,8 @@ class ProjectBuilder implements IProjectBuilder {
         try {
 
 	    	final IOilObjectList ool = objects != null && objects.length>0 ? objects[0] : null;
-			final ISimpleGenRes sgrCpu = ool != null ? (ISimpleGenRes) ool.getList(IOilObjectList.OS).get(0) : null ;
 	
-			if (sgrCpu != null 
-					&& IWritersKeywords.CPU_NIOSII.equals(
-							sgrCpu.getString(ISimpleGenResKeywords.OS_CPU_TYPE))) {
+			if (IWritersKeywords.CPU_NIOSII.equals(AbstractRtosWriter.getOsProperty(ool, ISimpleGenResKeywords.OS_CPU_TYPE))) {
 
 				// Returns directly the folder path
 				if (true) {

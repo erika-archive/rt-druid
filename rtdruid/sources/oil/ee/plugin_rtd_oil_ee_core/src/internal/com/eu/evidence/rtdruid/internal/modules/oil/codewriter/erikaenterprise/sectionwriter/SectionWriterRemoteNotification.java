@@ -6,12 +6,10 @@
 package com.eu.evidence.rtdruid.internal.modules.oil.codewriter.erikaenterprise.sectionwriter;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 
 import com.eu.evidence.rtdruid.internal.modules.oil.codewriter.erikaenterprise.ErikaEnterpriseWriter;
@@ -21,6 +19,7 @@ import com.eu.evidence.rtdruid.internal.modules.oil.keywords.IWritersKeywords;
 import com.eu.evidence.rtdruid.modules.oil.abstractions.IOilObjectList;
 import com.eu.evidence.rtdruid.modules.oil.abstractions.IOilWriterBuffer;
 import com.eu.evidence.rtdruid.modules.oil.abstractions.ISimpleGenRes;
+import com.eu.evidence.rtdruid.modules.oil.codewriter.common.AbstractRtosWriter;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.OilWriterBuffer;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.SWCategoryManager;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.SectionWriter;
@@ -131,9 +130,9 @@ public class SectionWriterRemoteNotification extends SectionWriter implements
 		
 		IMacrosForSharedData macros = new EmptyMacrosForSharedData();
 		if (rtosNumber>0) {
-			List<ISimpleGenRes> oslist = oilObjects[0].getList(IOilObjectList.OS);
-			if (oslist.size()>0 && oslist.get(0).containsProperty(ISimpleGenResKeywords.OS_CPU_DESCRIPTOR)) {
-				macros = ((CpuHwDescription) oslist.get(0).getObject(ISimpleGenResKeywords.OS_CPU_DESCRIPTOR)).getShareDataMacros();				
+			CpuHwDescription currentStackDescription = ErikaEnterpriseWriter.getCpuHwDescription(oilObjects[0]);
+			if (currentStackDescription != null) {
+				macros =currentStackDescription.getShareDataMacros();
 			}
 		}
 		if (parent.checkPragma(0)) {
@@ -248,9 +247,9 @@ public class SectionWriterRemoteNotification extends SectionWriter implements
 		 **********************************************************************/
 		for (int rtosId = 0; rtosId < rtosNumber; rtosId++) {
 			StringBuffer sbCfg_h = answer[rtosId].get(FILE_EE_CFG_H);
+			IOilObjectList ool = oilObjects[rtosId];
 			
-        	final ISimpleGenRes sgrOs = oilObjects[rtosId].getList(IOilObjectList.OS).get(0);
-        	final ICommentWriter commentWriter = getCommentWriter(sgrOs, FileTypes.C);
+        	final ICommentWriter commentWriter = getCommentWriter(ool, FileTypes.C);
 			
 			sbCfg_h.append(commentWriter.writerBanner("Remote Notification")
 					+ indent1 + "#define "+MAX_RN+" "+rnNumber+"\n"
@@ -280,10 +279,10 @@ public class SectionWriterRemoteNotification extends SectionWriter implements
 			 * 
 			 **********************************************************************/
 	
-	    	final ISimpleGenRes sgrOs = oilObjects[0].getList(IOilObjectList.OS).get(0);
-			ICommentWriter commentWriter = getCommentWriter(sgrOs, FileTypes.C);
+			ICommentWriter commentWriter = getCommentWriter(oilObjects[0], FileTypes.C);
 
 			{
+		    	final ISimpleGenRes sgrOs = oilObjects[0].getList(IOilObjectList.OS).get(0);
 				CpuUtility.addSources(sgrOs, answer[0].getFileName(FILE_EE_COMMON_C));
 			}
 			
@@ -439,7 +438,8 @@ public class SectionWriterRemoteNotification extends SectionWriter implements
 
 			// all objects for current os
 			IOilObjectList ool = oilObjects[rtosId];
-			ISimpleGenRes os = (ISimpleGenRes) ool.getList(IOilObjectList.OS).get(0);
+			// set values into the first cpu
+			final ISimpleGenRes os = (ISimpleGenRes) ool.getList(IOilObjectList.OS).get(0);
 			
 			os.setObject(DEF__RN_BITS__, rn_set);
 			
@@ -519,8 +519,7 @@ public class SectionWriterRemoteNotification extends SectionWriter implements
 			 ******************************************************************/
 			
 			if (ool != null) {
-			    ISimpleGenRes sgrCpu = (ISimpleGenRes) ool.getList(IOilObjectList.OS).get(0);
-			    BitSet rn_set = (BitSet) sgrCpu.getObject(DEF__RN_BITS__);
+			    BitSet rn_set = (BitSet) AbstractRtosWriter.getOsObject(ool, DEF__RN_BITS__);
 	
 				// set each bit
 			    if (rn_set.cardinality()>0)            { answer.add("__RN__"); }

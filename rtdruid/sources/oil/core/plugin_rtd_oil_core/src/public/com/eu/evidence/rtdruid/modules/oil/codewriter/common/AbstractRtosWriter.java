@@ -11,6 +11,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.eclipse.core.runtime.Assert;
 
@@ -69,6 +71,8 @@ public abstract class AbstractRtosWriter implements IRtosWriter {
 	 * Contains the prefix inside the OilVar (one for all rtos)
 	 */
 	protected String oilHwRtosPrefix;
+
+	private Integer rtosSize;
 
 	/***************************************************************************
 	 * 
@@ -177,21 +181,89 @@ public abstract class AbstractRtosWriter implements IRtosWriter {
 	 */
 	protected IOilObjectList[] extractObjects()
 			throws OilCodeWriterException {
-		IOilObjectList[] answer = new IOilObjectList[rtosPrefix.length];
+		
+		Map<String, IOilObjectList> answer = extractDistinctOs();
+		
+		for (IOilObjectList ool: answer.values()) {
 
-		// cicle all rtos
-		for (int rtosId = 0; rtosId < rtosPrefix.length; rtosId++) {
-			IOilObjectList ool = new OilObjectList();
-			answer[rtosId] = ool;
-
-			// search all objects
-			for (int i = 0; i < IOilObjectList.OBJECT_NUMBER; i++) {
-				ool.setList(i, extractObject(i, rtosPrefix[rtosId]));
+			for (ISimpleGenRes sgros: ool.getList(IOilObjectList.OS)) {
+				String prefix = sgros.getPath();
+				
+				// search all objects
+				for (int id = 0; id < IOilObjectList.OBJECT_NUMBER; id++) {
+					List<ISimpleGenRes> list = ool.getList(id);
+					ool.setList(id, merge(list, extractObject(id, prefix)));
+				}
 			}
 		}
 		
+		return answer.values().toArray(new IOilObjectList[answer.size()]);
+	}
+
+	public Map<String, IOilObjectList> extractDistinctOs() {
+		return extractDistinctOs(vt, rtosPrefix);
+	}
+	public static Map<String, IOilObjectList> extractDistinctOs(IVarTree vt, String[] rtosPrefix) {
+		final DataPackage DPKG = DataPackage.eINSTANCE;
+		Map<String, IOilObjectList> answer = new LinkedHashMap<String, IOilObjectList>();
+		
+		// cicle all rtos
+		for (int rtosId = 0; rtosId < rtosPrefix.length; rtosId++) {
+			ISimpleGenRes oss = new SimpleGenRes(
+					getVarAsString(vt, rtosPrefix[rtosId] + S
+							+ DPKG.getRtos_Name().getName()), rtosPrefix[rtosId]);
+			final String osName = oss.getName();
+			if (answer.containsKey(osName)) {
+				IOilObjectList old_ool = answer.get(osName);  
+				ArrayList<ISimpleGenRes> newList = new ArrayList<ISimpleGenRes>(old_ool.getList(IOilObjectList.OS));
+				
+				newList.add(oss);
+				old_ool.setList(IOilObjectList.OS, newList);
+			} else {
+				IOilObjectList ool = new OilObjectList();
+				ool.setList(IOilObjectList.OS, new ISimpleGenRes[] {oss});
+				answer.put(osName, ool);
+			}
+			
+		}
 		return answer;
 	}
+	
+	
+
+	protected List<? extends ISimpleGenRes> merge(List<ISimpleGenRes> list,
+			ISimpleGenRes[] extractObject) {
+		if (list == null) {
+			list = new ArrayList<ISimpleGenRes>();
+		}
+		if (extractObject == null) {
+			return list;
+		}
+		
+		Map<String, ISimpleGenRes> answer = new LinkedHashMap<String, ISimpleGenRes>();
+		
+		// first add all list elements
+		for (ISimpleGenRes sgr: list) {
+			String path = sgr.getPath();
+			if (answer.containsKey(path)) {
+				answer.get(path).merge(sgr);
+			} else {
+				answer.put(path, sgr);
+			}
+		}
+		// then add all vector elments
+		for (ISimpleGenRes sgr: extractObject) {
+			String path = sgr.getPath();
+			if (answer.containsKey(path)) {
+				answer.get(path).merge(sgr);
+			} else {
+				answer.put(path, sgr);
+			}
+		}
+		return new ArrayList<ISimpleGenRes>(answer.values());
+	}
+	
+	
 
 	/**
 	 * ALARM INCREMENT COUNTER CHECK
@@ -997,6 +1069,9 @@ public abstract class AbstractRtosWriter implements IRtosWriter {
 	 *         was empty or not found
 	 */
 	protected String getVarAsString(String path) {
+		return getVarAsString(vt, path);
+	}
+	protected static String getVarAsString(IVarTree vt, String path) {
 		IVarTreePointer vtp = vt.newVarTreePointer();
 
 		// search ...
@@ -1016,11 +1091,23 @@ public abstract class AbstractRtosWriter implements IRtosWriter {
 		return null;
 	}
 	
+	
+	
 	/**
 	 * Returns the size of Rtos List 
 	 */
 	public int getRtosSize() {
-		return rtosPrefix != null ? rtosPrefix.length : 0;
+		
+		if (rtosSize == null) {
+			
+			if (oilObjects != null) {
+				rtosSize = oilObjects.length;
+			} else {
+				rtosSize = extractDistinctOs().size();
+			}
+		}
+		
+		return rtosSize;
 	}
 	
 
@@ -1120,5 +1207,67 @@ public abstract class AbstractRtosWriter implements IRtosWriter {
 	 * @return the identifier of current rtos
 	 */
 	protected abstract String getHwOilId();
+	
+	public static List<String> getOsProperties(IOilObjectList ool, String key) {
+		ArrayList<String> l = new ArrayList<String>();
+		if (ool != null) {
+			for (ISimpleGenRes sgrOs : ool.getList(IOilObjectList.OS)) {
+				if (sgrOs.containsProperty(key)) {
+					String t = sgrOs.getString(key);
+					if (t != null) {
+						l.add(t);
+					}
+				}
+			}
+		}
+		return l;
+	}
+	
+	public static String getOsProperty(IOilObjectList ool, String key) {
+		if (ool == null) {
+			return null;
+		}
+		for (ISimpleGenRes sgrOs : ool.getList(IOilObjectList.OS)) {
+			if (sgrOs.containsProperty(key)) {
+				String t = sgrOs.getString(key);
+				if (t != null) {
+					return t;
+				}
+			}
+		}
+		return null;
+	}
+	
+	public static List<Object> getOsObjects(IOilObjectList ool, String key) {
+		ArrayList<Object> l = new ArrayList<Object>();
+		if (ool != null) {
+			for (ISimpleGenRes sgrOs : ool.getList(IOilObjectList.OS)) {
+				if (sgrOs.containsProperty(key)) {
+					Object t = sgrOs.getObject(key);
+					if (t != null) {
+						l.add(t);
+					}
+				}
+			}
+
+		}
+		return l;
+	}
+	
+	public static Object getOsObject(IOilObjectList ool, String key) {
+		if (ool == null) {
+			return null;
+		}
+		for (ISimpleGenRes sgrOs : ool.getList(IOilObjectList.OS)) {
+			if (sgrOs.containsProperty(key)) {
+				Object t = sgrOs.getObject(key);
+				if (t != null) {
+					return t;
+				}
+			}
+		}
+		return null;
+	}
+
 }
 

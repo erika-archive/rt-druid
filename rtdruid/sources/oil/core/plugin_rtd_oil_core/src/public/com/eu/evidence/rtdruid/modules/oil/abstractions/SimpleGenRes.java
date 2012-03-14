@@ -6,7 +6,13 @@
 package com.eu.evidence.rtdruid.modules.oil.abstractions;
 
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import com.eu.evidence.rtdruid.desk.RtdruidLog;
 
 
 
@@ -238,5 +244,52 @@ public class SimpleGenRes implements ISimpleGenRes {
 		answer.properties = (HashMap<String, Object>) properties.clone();
 		
 		return answer;
+	}
+	
+	@Override
+	public void merge(ISimpleGenRes source) {
+		Map<String, ? extends Object> map = source.getAllProperties();
+		for (Entry<String, ? extends Object> entry : map.entrySet()) {
+			String key = entry.getKey();
+			
+			if (containsProperty(key)) {
+				Object oldValue = getObject(key);
+				Object newValue = entry.getValue();
+				if (newValue != null) {
+					
+					if (oldValue == null) {
+						setObject(key, entry.getValue());
+					} else {
+						if (oldValue.getClass() != newValue.getClass()) {
+							throw new IllegalArgumentException("Incompatible elements (key="+key+")\n\t"+this+"\n\t"+source);
+						}
+
+						
+						if (oldValue instanceof Map) {
+							((Map) oldValue).putAll((Map) newValue);
+						} else if (oldValue instanceof Collection) {
+							((Collection) oldValue).addAll((Collection) newValue);
+						} else if ((""+oldValue).equals(""+newValue) || oldValue.equals(newValue)) {
+							// the same value, do nothing
+						} else {
+							RtdruidLog.showDebug("Different values of properties (key="+key+")\n\t"+this+"\n\t"+source);
+						}
+						
+						
+						
+					}
+					
+					
+				}
+				
+				
+				
+				
+				
+				
+			} else {
+				setObject(key, entry.getValue());
+			}
+		}
 	}
 }

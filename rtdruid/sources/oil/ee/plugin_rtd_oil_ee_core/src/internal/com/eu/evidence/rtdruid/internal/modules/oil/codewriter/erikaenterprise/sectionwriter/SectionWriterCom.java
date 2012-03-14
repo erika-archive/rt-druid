@@ -551,9 +551,8 @@ public class SectionWriterCom extends SectionWriter
 
 			ICommentWriter commentWriter;
 			{
-				ISimpleGenRes sgrCpu = ool.getList(IOilObjectList.OS).get(0);
-				commentWriter = getCommentWriter(sgrCpu, FileTypes.C);
-				CpuUtility.addSources(sgrCpu, new String[] {answer[currentRtosId].getFileName(FILE_COM_C)});
+				commentWriter = getCommentWriter(ool, FileTypes.C);
+				CpuUtility.addSources(ool, new String[] {answer[currentRtosId].getFileName(FILE_COM_C)});
 			}
 			
 
@@ -789,8 +788,7 @@ public class SectionWriterCom extends SectionWriter
 		for (IOilObjectList ool: oilObjects) {
 			
 			if (commentWriter == null) {
-				ISimpleGenRes sgrCpu = ool.getList(IOilObjectList.OS).get(0);
-				commentWriter = getCommentWriter(sgrCpu, FileTypes.C);
+				commentWriter = getCommentWriter(ool, FileTypes.C);
 			}
 			
 			

@@ -5,6 +5,9 @@
  */
 package com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.hw;
 
+import static com.eu.evidence.rtdruid.modules.oil.codewriter.common.AbstractRtosWriter.getOsProperties;
+import static com.eu.evidence.rtdruid.modules.oil.codewriter.common.AbstractRtosWriter.getOsProperty;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -187,13 +190,10 @@ public final class EEStacks implements IEEWriterKeywords {
 		this.vt = parent.getVt();
 
 		// get current Cpu Type
-		final ISimpleGenRes sgrOs = ((ISimpleGenRes) ool.getList(IOilObjectList.OS).get(0));
-		final String cpuType = sgrOs.getString(ISimpleGenResKeywords.OS_CPU_TYPE);
-		final String cpuName = ErikaEnterpriseWriter.getOSName(sgrOs);
-		final String currentCpuDataPrefix = sgrOs.getString(SGRK_OS_CPU_DATA_PREFIX);
-		if (sgrOs.containsProperty(ISimpleGenResKeywords.OS_CPU_DESCRIPTOR)) {
-			currentStackDescription = (CpuHwDescription) sgrOs.getObject(ISimpleGenResKeywords.OS_CPU_DESCRIPTOR); 
-		}
+		final String cpuType = getOsProperty(ool, ISimpleGenResKeywords.OS_CPU_TYPE);
+		final String cpuName = ErikaEnterpriseWriter.getOSName(ool);
+		List<String> currentCpuDataPrefixes = getOsProperties(ool, SGRK_OS_CPU_DATA_PREFIX);
+		currentStackDescription = ErikaEnterpriseWriter.getCpuHwDescription(ool);
 		
 		if (currentStackDescription == null) {
 			throw new RuntimeException("Unknow stack description for current cpu : " + cpuType);
@@ -211,9 +211,16 @@ public final class EEStacks implements IEEWriterKeywords {
 		ITreeInterface ti = vt.newTreeInterface();
 
 		// check if single or multi stack
-		String defaultMultiStackPrefix = currentCpuDataPrefix + S + "MULTI_STACK"
-				+ VARIANT_ELIST;
-		String[] tmps = ti.getAllName(defaultMultiStackPrefix, null);
+		String[] tmps = new String[0];
+		String defaultMultiStackPrefix = null;
+		for (String cpuPrefix: currentCpuDataPrefixes) {
+			defaultMultiStackPrefix = cpuPrefix + S + "MULTI_STACK"
+					+ VARIANT_ELIST;
+			 tmps = ti.getAllName(defaultMultiStackPrefix, null);
+			if (tmps.length>0) {
+				break;
+			}
+		}
 		
 		// if not one string -> send an exception
 		if (tmps.length != 1)
@@ -230,7 +237,8 @@ public final class EEStacks implements IEEWriterKeywords {
 			for (Iterator<String> iter=currentStackDescription.stackNames.iterator(); iter.hasNext(); pos++) {
 				
 				String what = (String) iter.next();
-				String[] tmp2 = CommonUtils.getValue(vt, currentCpuDataPrefix + S + what);
+				String[] tmp2 = parent.getCpuDataValue(ool, what);
+				 
 
 				if (tmp2 == null || tmp2.length == 0) {
 					
@@ -275,7 +283,7 @@ public final class EEStacks implements IEEWriterKeywords {
 				 * check if user specifies some size
 				 */ 
 				String what = (String) iter.next();
-				String[] tmp2 = CommonUtils.getValue(vt,currentCpuDataPrefix + S + what);
+				String[] tmp2 = parent.getCpuDataValue(ool, what);
 
 				if (tmp2 != null && tmp2.length>0) {
 					try {

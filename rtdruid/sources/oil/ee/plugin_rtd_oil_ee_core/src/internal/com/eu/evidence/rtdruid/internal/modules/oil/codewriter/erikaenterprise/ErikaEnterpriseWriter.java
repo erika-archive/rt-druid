@@ -5,6 +5,9 @@
  */
 package com.eu.evidence.rtdruid.internal.modules.oil.codewriter.erikaenterprise;
 
+
+import static com.eu.evidence.rtdruid.modules.oil.erikaenterprise.constants.IEEWriterKeywords.S;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -12,6 +15,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import com.eu.evidence.rtdruid.desk.Messages;
@@ -22,6 +26,7 @@ import com.eu.evidence.rtdruid.internal.modules.oil.keywords.IWritersKeywords;
 import com.eu.evidence.rtdruid.modules.oil.abstractions.IOilObjectList;
 import com.eu.evidence.rtdruid.modules.oil.abstractions.IOilWriterBuffer;
 import com.eu.evidence.rtdruid.modules.oil.abstractions.ISimpleGenRes;
+import com.eu.evidence.rtdruid.modules.oil.codewriter.common.AbstractRtosWriter;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.CommonUtils;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.DefaultRtosWriter;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.HostOsUtils;
@@ -75,7 +80,7 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 	 **************************************************************************/
 
 	/** Prefix of cpu's data stored in each RT_OS */
-	protected String[] cpuDataPrefix;
+	protected Map<String, String> cpuDataPrefix;
 
 	/** Identifies current Eclipse project or output prefix */
 	public String default_output_prefix = "";
@@ -184,7 +189,7 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 			
 		}
 
-		cpuDataPrefix = new String[rtosPrefix.length];
+		cpuDataPrefix = new HashMap<String, String>();
 		
 		/**
 		 * Use a specific Properties that check if the new value is already
@@ -273,7 +278,7 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 							+ VARIANT_ELIST + child[0] + PARAMETER_LIST;
 				}
 			}
-			cpuDataPrefix[rtodId] = currentCpuDataPrefix;
+			cpuDataPrefix.put(rtosPrefix[rtodId], currentCpuDataPrefix);
 			
 			
 			if (currentCpuDataPrefix != null) {
@@ -381,7 +386,7 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 		/***********************************************************************
          * MULTI_CPU
          **********************************************************************/
-		if (rtosPrefix.length > 1) {
+		if (getRtosSize() > 1) {
 		    answer.add(DEF__MSRP__);
 		}
 		
@@ -461,14 +466,7 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 						getOSName(answer[i]));
 				
 				{
-					String cpuPrefix = null;
-					
-					// search the rtosId
-					for (int rtosId =0; rtosId<rtosPrefix.length && cpuPrefix == null; rtosId++) {
-						if (prefix.equals(rtosPrefix[rtosId])) {
-							cpuPrefix = cpuDataPrefix[rtosId];
-						}
-					}
+					String cpuPrefix = cpuDataPrefix.get(prefix);
 					
 					if (cpuPrefix != null) {
 					    answer[i].setProperty(SGRK_OS_CPU_DATA_PREFIX, cpuPrefix);
@@ -585,7 +583,7 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 		    }
 
 		    // check if is required the default value
-			if (value == null && rtosPrefix.length >1) {
+			if (value == null && getRtosSize() >1) {
 					Messages.sendWarningNl("Not found any value for MASTER_CPU. Using default value.", null, "al;uyshdga;iosdu", null);
 				value = IWritersKeywords.DEFAULT_CPU_NAME;
 			} // else, if we have exactly one cpu, we set the master cpu to this cpu (in the next loop)
@@ -593,9 +591,10 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 			
 			// check if the specified cpu exist
 			int index = -1;
+			String prefix_key = null;
 //			final String dpkgRtosName = S+ DataPackage.eINSTANCE.getRtos_Name().getName();
 		    for (int ri=0; ri<rtosPrefix.length && index==-1 ; ri++) {
-		    	String name = IWritersKeywords.DEFAULT_CPU_NAME;
+		    	String name = null;
 
 				ISimpleGenRes[] osList = super.extractObject(IOilObjectList.OS, rtosPrefix[ri]);
 		    	
@@ -608,30 +607,33 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 		    		value = name; // note: name cannot be null !!		    		
 		    	}
 		    	
-		    	if (value.equals(name)) {
+		    	if (value != null && value.equals(name)) {
 		    		index = ri;
+		    		prefix_key = rtosPrefix[ri];
 		    	}
-		    }		    		
+		    }
+		    
+		    if (value == null)  {
+		    	// not found -> set index to 0
+		    	index = 0;
+		    	value = IWritersKeywords.DEFAULT_CPU_NAME;
+		    }
 
 		    // set current rtos as first
 		    if (index == 0) {
 		    	// do nothing
 		    	
 		    } else if (index!=-1) {
-		    	// move prefixs
-	    		ArrayList<String> newCpuDataPrefix = new ArrayList<String>();
-	    		newCpuDataPrefix.add(cpuDataPrefix[index]);
+		    	// change the order of prefixs
 
 	    		ArrayList<String> newRtosPrefix = new ArrayList<String>();
-	    		newRtosPrefix.add(rtosPrefix[index]);
+	    		newRtosPrefix.add(prefix_key);
 	    		for (int i=0; i<rtosPrefix.length; i++) {
 	    			if (index != i) {
 			    		newRtosPrefix.add(rtosPrefix[i]);
-			    		newCpuDataPrefix.add(cpuDataPrefix[i]);
 	    			}
 	    		}
 	    		rtosPrefix = (String[]) newRtosPrefix.toArray(new String[newRtosPrefix.size()]);
-	    		cpuDataPrefix = (String[]) newCpuDataPrefix.toArray(new String[newCpuDataPrefix.size()]);
 	    		
 		    } else {
 		    	throw new OilCodeWriterException("Not found master cpu : " + value);
@@ -653,10 +655,9 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 		 * Mapping between Cpu and Alarm (using alarm's counter's map).
 		 *  
 		 **********************************************************************/
-		for (int rtosId =0; rtosId<answer.length; rtosId++) {
+		for (IOilObjectList ool: answer) {
 			
-			ISimpleGenRes rtos = (ISimpleGenRes) answer[rtosId].getList(IOilObjectList.OS).get(0);
-			String cpuName = getOSName(rtos);
+			String cpuName = getOSName(ool);
 			if (cpuName == null) {
 				cpuName = DEFAULT_CPU_NAME;
 			}
@@ -664,7 +665,7 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 			/*
 			 * Remove counters not mapped to current cpu 
 			 */
-			List<ISimpleGenRes> counters = new ArrayList<ISimpleGenRes>(answer[rtosId].getList(IOilObjectList.COUNTER));
+			List<ISimpleGenRes> counters = new ArrayList<ISimpleGenRes>(ool.getList(IOilObjectList.COUNTER));
 			
 			for (Iterator<ISimpleGenRes> iter = counters.iterator(); iter.hasNext(); ) {
 				ISimpleGenRes curr = (ISimpleGenRes) iter.next();
@@ -683,14 +684,14 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 				}
 			}
 			
-			answer[rtosId].setList(IOilObjectList.COUNTER,
+			ool.setList(IOilObjectList.COUNTER,
 					(ISimpleGenRes[]) counters.toArray(new ISimpleGenRes[counters
 							.size()]));
 			
 			/*
 			 * Remove alarms that uses counters not mapped to current cpu 
 			 */
-			List<ISimpleGenRes> alarms = new ArrayList<ISimpleGenRes>(answer[rtosId].getList(IOilObjectList.ALARM));
+			List<ISimpleGenRes> alarms = new ArrayList<ISimpleGenRes>(ool.getList(IOilObjectList.ALARM));
 			
 			for (Iterator<ISimpleGenRes> iter = alarms.iterator(); iter.hasNext(); ) {
 				ISimpleGenRes curr = (ISimpleGenRes) iter.next();
@@ -710,7 +711,7 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 				
 			}
 			
-			answer[rtosId].setList(IOilObjectList.ALARM,
+			ool.setList(IOilObjectList.ALARM,
 					(ISimpleGenRes[]) alarms.toArray(new ISimpleGenRes[alarms
 							.size()]));
 			
@@ -722,30 +723,31 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 		 *  
 		 **********************************************************************/
 		 { 
-			for (int rtosId =0; rtosId<answer.length; rtosId++) {
-				ISimpleGenRes rtos = (ISimpleGenRes) answer[rtosId].getList(IOilObjectList.OS).get(0);
-	
-				List<Integer> arrays;
-				// NOTE : All cpus should work as this one
-				if (false && // disabled  
-						!checkKeyword(IWritersKeywords.CPU_S12)) { 
-					arrays = Collections.unmodifiableList(
-						Arrays.asList(new Integer[] {
-								new Integer(IOilObjectList.ALARM),
-								new Integer(IOilObjectList.APPMODE),
-								new Integer(IOilObjectList.COUNTER),
-								new Integer(IOilObjectList.RESOURCE),
-								new Integer(IOilObjectList.TASK)
-								})
-						);
-				
-				} else {
-					arrays = Collections.unmodifiableList(
-							Arrays.asList(new Integer[0])
+			 for (IOilObjectList ool: answer) {
+				 for (ISimpleGenRes rtos:ool.getList(IOilObjectList.OS)) {
+		
+					List<Integer> arrays;
+					// NOTE : All cpus should work as this one
+					if (false && // disabled  
+							!checkKeyword(IWritersKeywords.CPU_S12)) { 
+						arrays = Collections.unmodifiableList(
+							Arrays.asList(new Integer[] {
+									new Integer(IOilObjectList.ALARM),
+									new Integer(IOilObjectList.APPMODE),
+									new Integer(IOilObjectList.COUNTER),
+									new Integer(IOilObjectList.RESOURCE),
+									new Integer(IOilObjectList.TASK)
+									})
 							);
-					}
-				
-				rtos.setObject(SGRK__FORCE_ARRAYS_LIST__, arrays);
+					
+					} else {
+						arrays = Collections.unmodifiableList(
+								Arrays.asList(new Integer[0])
+								);
+						}
+					
+					rtos.setObject(SGRK__FORCE_ARRAYS_LIST__, arrays);
+				 }
 			}
 		}
 	
@@ -860,8 +862,7 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 			answer[rtosId] = new OilWriterBuffer();
 			final StringBuffer buffer = answer[rtosId].get(FILE_EE_CFG_H);
 
-        	final ISimpleGenRes sgrOs = oilObjects[rtosId].getList(IOilObjectList.OS).get(0);
-        	final ICommentWriter commentWriter = SectionWriter.getCommentWriter(sgrOs, FileTypes.C);
+        	final ICommentWriter commentWriter = SectionWriter.getCommentWriter(oilObjects[rtosId], FileTypes.C);
 
 			/*******************************************************************
 			 * USER OPTIONS
@@ -990,9 +991,9 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 			 * AUTOMATIC OPTIONS (not CPU DEPENDENT)
 			 ******************************************************************/
 			if (ool != null) {
-			    ISimpleGenRes sgrCpu = (ISimpleGenRes) ool.getList(IOilObjectList.OS).get(0);
-				if (sgrCpu.containsProperty(ISimpleGenResKeywords.OS_CPU_COMMON_EE_OPTS)) {
-				    String[] splitted = (String[]) sgrCpu.getObject(ISimpleGenResKeywords.OS_CPU_COMMON_EE_OPTS);
+				List<Object> all = getOsObjects(ool, ISimpleGenResKeywords.OS_CPU_COMMON_EE_OPTS);
+				for (Object o : all) {
+				    String[] splitted = (String[]) o;
 				    for (int l=0; l<splitted.length; l++) {
 				        if (!answer.contains(splitted[l])) {
 				            answer.add(splitted[l]);
@@ -1001,9 +1002,9 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 				}
 			} else {
 				for (int i=0; i<oilObjects.length; i++) {
-				    ISimpleGenRes sgrCpu = (ISimpleGenRes) oilObjects[i].getList(IOilObjectList.OS).get(0);
-					if (sgrCpu.containsProperty(ISimpleGenResKeywords.OS_CPU_COMMON_EE_OPTS)) {
-					    String[] splitted = (String[]) sgrCpu.getObject(ISimpleGenResKeywords.OS_CPU_COMMON_EE_OPTS);
+					List<Object> all = getOsObjects(oilObjects[i], ISimpleGenResKeywords.OS_CPU_COMMON_EE_OPTS);
+					for (Object o : all) {
+					    String[] splitted = (String[]) o;
 					    for (int l=0; l<splitted.length; l++) {
 					        if (!answer.contains(splitted[l])) {
 					            answer.add(splitted[l]);
@@ -1019,17 +1020,14 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 			/*******************************************************************
 			 * AUTOMATIC OPTIONS (not CPU DEPENDENT)
 			 ******************************************************************/
-		    ISimpleGenRes sgrCpu = (ISimpleGenRes) ool.getList(IOilObjectList.OS).get(0);
-			{ // CPU
-				if (sgrCpu.containsProperty(ISimpleGenResKeywords.OS_CPU_EE_OPTS)) {
-				    String[] splitted = (String[]) sgrCpu.getObject(ISimpleGenResKeywords.OS_CPU_EE_OPTS);
-				    for (int l=0; l<splitted.length; l++) {
-				        if (!answer.contains(splitted[l])) {
-				            answer.add(splitted[l]);
-				        }
-				    }
-				}
-
+			List<Object> all = getOsObjects(ool, ISimpleGenResKeywords.OS_CPU_EE_OPTS);
+			for (Object o : all) {
+				String[] splitted = (String[]) o;
+			    for (int l=0; l<splitted.length; l++) {
+			        if (!answer.contains(splitted[l])) {
+			            answer.add(splitted[l]);
+			        }
+			    }
 			}
 		}
 		
@@ -1154,6 +1152,99 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 
 	}
 	
+	/**
+	 * This method searchs specified attribute inside (direct) children of all
+	 * oil OS objects; the attribute must be an ENUM or a BOOLEAN.
+	 * 
+	 * @param key
+	 *            identifies the attribute
+	 * 
+	 * @return an String[] with all (distinct) values or an empty array if the attribute was not found (or doesn't have values)  
+	 *  
+	 */
+	public List<String> getRtosCommonChildType(IOilObjectList ool, String key) {
+		return getRtosCommonChildType(ool, key, null);
+	}
+
+	/**
+	 * 
+	 * @param ool
+	 * @param key
+	 * @param child if not null, it will contain the full path of each child
+	 * @return
+	 */
+	public List<String> getRtosCommonChildType(IOilObjectList ool, String key, List<String> child) {
+	    ArrayList<String> answer = new ArrayList<String>();
+	    if (child != null) {
+	    	child.clear();
+		}
+	    
+	    // check all availables rtos
+	    for (ISimpleGenRes os: ool.getList(IOilObjectList.OS)) {
+			String currentRtosPrefix = os.getPath() + S
+					+ DataPackage.eINSTANCE.getRtos_OilVar().getName() + S
+					+ IOilXMLLabels.OBJ_OS + oilHwRtosPrefix;
+			
+			// search attribute inside current rtos
+			String basePath = currentRtosPrefix + S + key;
+			ArrayList<String> tmpC = new ArrayList<String>();
+	        ArrayList<String> tmp = CommonUtils.getAllChildrenEnumType(vt, basePath, tmpC);
+	        if (tmp != null) {
+	            // add only new values
+	            for (int j=0; j<tmp.size(); j++) {
+	            	final String nValue = tmp.get(j);
+	            	if (child != null) {
+		            	final String cpath = basePath+ VARIANT_ELIST+tmpC.get(j);
+	            		if (!child.contains(cpath)) {
+	            			answer.add( nValue );
+		            		child.add(cpath);
+		            	}
+		            } else {
+		            	if (!answer.contains(nValue)) {
+	            			answer.add( nValue );
+		            	}
+		            }
+		        }
+	        }
+			
+	    }
+	    
+	    return answer;
+
+	}
+	/**
+     * This method searchs all specified attributes inside (direct) children of all oil OS objects.
+     * 
+     * @param keys
+     *            a list that contains all names of all attributes
+     * 
+     * @return an HashMap with all found properties, stored as
+     *         ArrayList(Strings)
+     *  
+     */
+	public ArrayList<String> getRtosCommonAttributes(IOilObjectList ool, String keys) {
+		ArrayList<String> values = new ArrayList<String>();
+	    
+	    // check all availables rtos
+	    for (ISimpleGenRes os: ool.getList(IOilObjectList.OS)) {
+			String currentRtosPrefix = os.getPath() + S
+					+ DataPackage.eINSTANCE.getRtos_OilVar().getName() + S
+					+ IOilXMLLabels.OBJ_OS + oilHwRtosPrefix;
+				
+	        String[] tmp = CommonUtils.getValue(vt, currentRtosPrefix
+				                              						+ S + keys);
+	        if (tmp != null && tmp.length>0) {
+	            // add only new values
+	            for (int j=0; j<tmp.length; j++) {
+		            if (!values.contains(tmp[j]) && tmp[j] != null) {
+		                values.add( tmp[j] );
+		            }
+		        }
+	        }
+	    }
+	    return values;
+	}
+
 	/***************************************************************************
 	 * Utilities
 	 **************************************************************************/
@@ -1259,58 +1350,59 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 		// check all rtos
 		for (int cpuId = 0; cpuId < oilObjects.length; cpuId++) {
 
-			ISimpleGenRes os = (ISimpleGenRes) oilObjects[cpuId].getList(
-					IOilObjectList.OS).get(0);
+			// work on every os
+			for (ISimpleGenRes os : oilObjects[cpuId].getList(
+					IOilObjectList.OS)) {
 
-			if (os.containsProperty(ISimpleGenResKeywords.OSEK_AUTOSTART)) {
-				continue;
-			}
-			
-			boolean autostart = false;
-			if (!os.containsProperty(ISimpleGenResKeywords.OSEK_TASK_AUTOSTART)) {
-
-				// --------- TASK -----------
-				boolean taskAutostart = force_alarm_autostart;
-				for (Iterator iter = oilObjects[cpuId].getList(
-						IOilObjectList.TASK).iterator(); iter.hasNext()
-						&& !taskAutostart;) {
-
-					if (((ISimpleGenRes) iter.next())
-							.containsProperty(ISimpleGenResKeywords.TASK_APPMODES_LIST)) {
-						taskAutostart = true;
-					}
+				if (os.containsProperty(ISimpleGenResKeywords.OSEK_AUTOSTART)) {
+					continue;
 				}
-				autostart |= taskAutostart;
-
-				os.setProperty(ISimpleGenResKeywords.OSEK_TASK_AUTOSTART, ""
-						+ taskAutostart);
 				
-				// --------- ALARM -----------
-				boolean forceAlarm = os.containsProperty(SGRK__FORCE_ARRAYS_LIST__) 
-						&& ((List<Integer>) os.getObject(SGRK__FORCE_ARRAYS_LIST__)).contains(new Integer(IOilObjectList.ALARM));
-					
-				boolean alarmAutostart = force_alarm_autostart && (
-						oilObjects[cpuId].getList(IOilObjectList.ALARM).size()>0
-						|| forceAlarm
-					);
-				for (Iterator iter = oilObjects[cpuId].getList(
-						IOilObjectList.ALARM).iterator(); iter.hasNext()
-						&& !alarmAutostart;) {
-
-					if (((ISimpleGenRes) iter.next())
-							.containsProperty(ISimpleGenResKeywords.ALARM_AUTOSTART)) {
-						alarmAutostart = true;
+				boolean autostart = false;
+				if (!os.containsProperty(ISimpleGenResKeywords.OSEK_TASK_AUTOSTART)) {
+	
+					// --------- TASK -----------
+					boolean taskAutostart = force_alarm_autostart;
+					for (Iterator iter = oilObjects[cpuId].getList(
+							IOilObjectList.TASK).iterator(); iter.hasNext()
+							&& !taskAutostart;) {
+	
+						if (((ISimpleGenRes) iter.next())
+								.containsProperty(ISimpleGenResKeywords.TASK_APPMODES_LIST)) {
+							taskAutostart = true;
+						}
 					}
+					autostart |= taskAutostart;
+	
+					os.setProperty(ISimpleGenResKeywords.OSEK_TASK_AUTOSTART, ""
+							+ taskAutostart);
+					
+					// --------- ALARM -----------
+					boolean forceAlarm = os.containsProperty(SGRK__FORCE_ARRAYS_LIST__) 
+							&& ((List<Integer>) os.getObject(SGRK__FORCE_ARRAYS_LIST__)).contains(new Integer(IOilObjectList.ALARM));
+						
+					boolean alarmAutostart = force_alarm_autostart && (
+							oilObjects[cpuId].getList(IOilObjectList.ALARM).size()>0
+							|| forceAlarm
+						);
+					for (Iterator iter = oilObjects[cpuId].getList(
+							IOilObjectList.ALARM).iterator(); iter.hasNext()
+							&& !alarmAutostart;) {
+	
+						if (((ISimpleGenRes) iter.next())
+								.containsProperty(ISimpleGenResKeywords.ALARM_AUTOSTART)) {
+							alarmAutostart = true;
+						}
+					}
+					autostart |= alarmAutostart;
+	
+					os.setProperty(ISimpleGenResKeywords.OSEK_ALARM_AUTOSTART, ""
+							+ alarmAutostart);
 				}
-				autostart |= alarmAutostart;
-
-				os.setProperty(ISimpleGenResKeywords.OSEK_ALARM_AUTOSTART, ""
-						+ alarmAutostart);
+				
+				os.setProperty(ISimpleGenResKeywords.OSEK_AUTOSTART, ""
+						+ autostart);
 			}
-			
-			os.setProperty(ISimpleGenResKeywords.OSEK_AUTOSTART, ""
-					+ autostart);
-
 		}
 	}
 
@@ -1656,6 +1748,10 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 				cpu.getString(ISimpleGenResKeywords.OS_CPU_NAME)
 				: DataPath.resolveId(DataPath.removeSlash(cpu.getName()))[0];
 	}
+	public static String getOSName(IOilObjectList cpus) {
+		return getOSName(cpus.getList(IOilObjectList.OS).get(0));
+	}
+
 	
 	/**
 	 * Extract from list of resources, only STANDARD and LINKED RESOURCES that
@@ -1722,12 +1818,20 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 		/** A property */
 		final String COMMON_MACRO_DEFINED_LIST = "common_macro_defined_file_list";
 		
-		Properties defined = null;
-		ISimpleGenRes sgr = ((ISimpleGenRes) oilObjects[0].getList(IOilObjectList.OS).get(0));
-		if (sgr.containsProperty(COMMON_MACRO_DEFINED_LIST)) {
-			defined = (Properties) sgr.getObject(COMMON_MACRO_DEFINED_LIST);
-			if (defined.containsKey(fileID)) {
-				return "";
+		final Properties defined;
+		
+		{
+			List<Object> all = getOsObjects(oilObjects[0], COMMON_MACRO_DEFINED_LIST);
+			if (all.size()>0) {
+				for (Object o: all) {
+					if (((Properties) o).containsKey(fileID)) {
+						return "";
+					}
+					
+				}
+				defined = (Properties) all.get(0);
+			} else {
+				defined = null;
 			}
 		}
 		// else
@@ -1765,9 +1869,9 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 		if (defined != null) {
 			defined.setProperty(fileID, answer);
 		} else {
-			defined = new Properties();
-			defined.setProperty(fileID, answer);
-			sgr.setObject(COMMON_MACRO_DEFINED_LIST, defined);
+			Properties newDefined = new Properties();
+			newDefined.setProperty(fileID, answer);
+			oilObjects[0].getList(IOilObjectList.OS).get(0).setObject(COMMON_MACRO_DEFINED_LIST, newDefined);
 		}
 		
 
@@ -1848,8 +1952,7 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 		if (buffers.length >1) {
 			for (int i = 0; i<buffers.length; i++) {
 
-	            ISimpleGenRes sgrCpu = (ISimpleGenRes) oilObjects[i].getList(IOilObjectList.OS).get(0);
-	            String cpuName = ErikaEnterpriseWriter.getOSName(sgrCpu);
+	            String cpuName = ErikaEnterpriseWriter.getOSName(oilObjects[i]);
 				
 				IOilWriterBuffer buf = buffers[i];
 				String[] buffIds = buf.getKeys();
@@ -1946,6 +2049,57 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 		
 		return false;
 	}
- 
+
+	
+	public static CpuHwDescription getCpuHwDescription(IOilObjectList ool) {
+		CpuHwDescription currentStackDescription = (CpuHwDescription) getOsObject(ool, ISimpleGenResKeywords.OS_CPU_DESCRIPTOR);
+		if (currentStackDescription == null) {
+			String cpuType = AbstractRtosWriter.getOsProperty(ool, ISimpleGenResKeywords.OS_CPU_TYPE);
+			currentStackDescription = EECpuDescriptionManager.getHWDescription(cpuType); 
+		}
+		return currentStackDescription;
+	}
+	public static int getStackUnit(IOilObjectList ool) {
+		CpuHwDescription currentStackDescription = getCpuHwDescription(ool);
+		
+		if (currentStackDescription != null) {
+			return currentStackDescription.stackSize;
+		} else {
+			return 4;
+		}
+	}
+	
+	public static <T> T checkOrDefault(T value, T defaultValue) {
+		return value == null ? defaultValue : value;
+	}
+	
+	public static <T> T first(List<T> value) {
+		return value == null  || value.isEmpty()? null: value.get(0);
+	}
+	
+	public String[] getCpuDataValue(IOilObjectList ool, String key) {
+		String[] tmp = null;
+		for (String currentCpuPrefix: AbstractRtosWriter.getOsProperties(ool, SGRK_OS_CPU_DATA_PREFIX)) {
+			if (tmp != null) {
+				break;
+			}
+			tmp = CommonUtils.getValue(vt, currentCpuPrefix + S + key);
+			if (tmp != null && (tmp.length == 0 || tmp[0] == null)) {
+				tmp = null;
+			}
+		}
+		return tmp;
+	}
+	
+	public List<String> getCpuDataEnum(IOilObjectList ool, String key) {
+		ArrayList<String> answer = new ArrayList<String>();
+		for (String currentCpuPrefix: AbstractRtosWriter.getOsProperties(ool, SGRK_OS_CPU_DATA_PREFIX)) {
+			String tmp = CommonUtils.getFirstChildEnumType(vt, currentCpuPrefix + S + key);
+			if (tmp != null) {
+				answer.add(tmp);
+			}
+		}
+		return answer;
+	}
 }
 
