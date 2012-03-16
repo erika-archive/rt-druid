@@ -6,8 +6,10 @@
 package com.eu.evidence.rtdruid.modules.oil.abstractions;
 
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -261,14 +263,32 @@ public class SimpleGenRes implements ISimpleGenRes {
 						setObject(key, entry.getValue());
 					} else {
 						if (oldValue.getClass() != newValue.getClass()) {
-							throw new IllegalArgumentException("Incompatible elements (key="+key+")\n\t"+this+"\n\t"+source);
+							boolean both_collections = (oldValue instanceof Collection) && (newValue instanceof Collection); 
+							boolean both_map = (oldValue instanceof Map) && (newValue instanceof Map); 
+							if (!both_collections && !both_map) {
+								throw new IllegalArgumentException("Incompatible elements (key="+key+")\n\t"+this+"\n\t"+source);
+							}
 						}
 
 						
 						if (oldValue instanceof Map) {
-							((Map) oldValue).putAll((Map) newValue);
+							try {
+								((Map) oldValue).putAll((Map) newValue);
+							} catch (UnsupportedOperationException e) {
+								LinkedHashMap nmap = new LinkedHashMap();
+								nmap.putAll((Map)oldValue);
+								nmap.putAll((Map)newValue);
+								setObject(key, nmap);
+							}
 						} else if (oldValue instanceof Collection) {
-							((Collection) oldValue).addAll((Collection) newValue);
+							try {
+								((Collection) oldValue).addAll((Collection) newValue);
+							} catch (UnsupportedOperationException e) {
+								ArrayList nlist = new ArrayList();
+								nlist.addAll((Collection)oldValue);
+								nlist.addAll((Collection)newValue);
+								setObject(key, nlist);
+							} 
 						} else if ((""+oldValue).equals(""+newValue) || oldValue.equals(newValue)) {
 							// the same value, do nothing
 						} else {
