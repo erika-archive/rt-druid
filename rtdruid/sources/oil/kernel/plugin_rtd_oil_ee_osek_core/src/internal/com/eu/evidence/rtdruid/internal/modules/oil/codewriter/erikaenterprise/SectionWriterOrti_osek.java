@@ -442,7 +442,7 @@ public class SectionWriterOrti_osek extends SectionWriter implements
 								"EE_ORTI_th_priority[EE_stkfirst]" : "0") + "\";\n" + 
 
 					((EE_ORTI_current & OrtiConstants.EE_ORTI_ISR2) != 0 ?
-								"    RUNNINGISR2 = \"EE_ORTI_ISR2_magic\";\n" : "") +
+								"    RUNNINGISR2 = \"EE_ORTI_runningisr2\";\n" : "") +
 
 					"    SERVICETRACE = \"EE_ORTI_servicetrace\";\n" + 
 					"    LASTERROR = \"EE_ORTI_lasterror\";\n" + 
@@ -767,7 +767,7 @@ public class SectionWriterOrti_osek extends SectionWriter implements
 					array.add("__OO_ORTI_ALARMTIME__");
 				}
 				if ((EE_ORTI_current & OrtiConstants.EE_ORTI_ISR2) != 0) {
-					array.add("__OO_ORTI_ISR2__");
+					array.add("__OO_ORTI_RUNNINGISR2__");
 				}
 
 				
