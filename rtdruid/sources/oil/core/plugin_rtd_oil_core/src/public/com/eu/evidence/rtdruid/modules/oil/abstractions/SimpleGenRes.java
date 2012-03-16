@@ -103,7 +103,8 @@ public class SimpleGenRes implements ISimpleGenRes {
 	 *             if the property doesn't exist
 	 */
 	public String getString(String pName) {
-		return (String) properties.get(check(pName));
+		Object o = properties.get(check(pName));
+		return o == null ? null : o.toString() ;
 	}
 
 	/**

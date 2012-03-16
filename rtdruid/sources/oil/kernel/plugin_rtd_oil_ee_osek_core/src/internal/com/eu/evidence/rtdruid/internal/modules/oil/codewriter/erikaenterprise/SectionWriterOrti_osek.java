@@ -266,7 +266,10 @@ public class SectionWriterOrti_osek extends SectionWriter implements
 				
 				for (ISimpleGenRes isr: ool.getList(IOilObjectList.ISR)) {
 					if (isr.containsProperty(ISimpleGenResKeywords.ISR_CATEGORY) && "2".equals(isr.getString(ISimpleGenResKeywords.ISR_CATEGORY))) {
-						all_isr2.append(",\n            \""+isr.getName()+"\" = \""+isr.getName()+"\"");
+						String handler = isr.getString(ISimpleGenResKeywords.ISR_GENERATED_HANDLER);
+						if (handler != null) {
+							all_isr2.append(",\n            \""+isr.getName()+"\" = \""+handler+"\"");
+						}
 					}
 				}
 				for (ISimpleGenRes counter: ool.getList(IOilObjectList.COUNTER)) {

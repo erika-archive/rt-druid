@@ -18,8 +18,9 @@ import com.eu.evidence.rtdruid.modules.oil.codewriter.common.SectionWriter;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.comments.FileTypes;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.comments.ICommentWriter;
 import com.eu.evidence.rtdruid.modules.oil.erikaenterprise.constants.IEEWriterKeywords;
+import com.eu.evidence.rtdruid.modules.oil.erikaenterprise.interfaces.IExtractObjectsExtentions;
 
-public class SectionWriterIsr implements IEEWriterKeywords {
+public class SectionWriterIsr implements IEEWriterKeywords, IExtractObjectsExtentions {
 	
 	protected Set<String> entries;
 	protected final String hw_id;
@@ -62,7 +63,7 @@ public class SectionWriterIsr implements IEEWriterKeywords {
 	}
 	public static boolean checkStaticIsrTable(ErikaEnterpriseWriter parent, int currentRtosId) {
 		boolean answer = true;
-		String[] existing = parent.extractEE_Opts(EE_OPT_USER_ONLY, currentRtosId);
+		String[] existing = parent.extractUserOptions(currentRtosId);
 		for (String s: existing) {
 			if ("EE_ISR_DYNAMIC_TABLE".equals(s)) {
 				answer = Boolean.FALSE;
@@ -95,11 +96,9 @@ public class SectionWriterIsr implements IEEWriterKeywords {
 						// HW
 						buffer.append(commentWriterH.writerSingleLineComment("Category 1: " + curr.getName()));
 					} else if ("2".equals(category)) {
-						String entry = curr.containsProperty(ISimpleGenResKeywords.ISR_ENTRY) ? curr.getString(ISimpleGenResKeywords.ISR_ENTRY) : "";
-						String entry_id = "EE_"+hw_id+"_"+entry+"_ISR";
-						String handler = curr.containsProperty(ISimpleGenResKeywords.ISR_HANDLER) ? curr.getString(ISimpleGenResKeywords.ISR_HANDLER) : curr.getName();
-						String prio = curr.containsProperty(ISimpleGenResKeywords.ISR_PRIORITY) ? curr.getString(ISimpleGenResKeywords.ISR_PRIORITY) : "";
-	
+						String handler = curr.getString(ISimpleGenResKeywords.ISR_GENERATED_HANDLER);
+						String entry_id = curr.getString(ISimpleGenResKeywords.ISR_GENERATED_ENTRY);
+						
 						if (entries != null) {
 							if (!entries.contains(entry_id)) {
 								throw new OilCodeWriterException("Found a not valid isr entry: " + entry_id + " (ISR " + curr.getName() + ")");
@@ -109,11 +108,12 @@ public class SectionWriterIsr implements IEEWriterKeywords {
 
 						ArrayList<String> tempStrings = new ArrayList<String>();
 						tempStrings.add("#define " + entry_id + " " + handler+"\n");
-						if (prio.length()>0) {
-							tempStrings.add("#define " + entry_id+"_PRI" + " " + prio+"\n");
+						if (curr.containsProperty(ISimpleGenResKeywords.ISR_GENERATED_PRIOID)) {
+							String prio = curr.containsProperty(ISimpleGenResKeywords.ISR_PRIORITY) ? curr.getString(ISimpleGenResKeywords.ISR_PRIORITY) : "";
+							tempStrings.add("#define " + curr.getString(ISimpleGenResKeywords.ISR_GENERATED_PRIOID) + " " + prio+"\n");
 						}
 
-						if (entry==null || entry.length()==0){
+						if (entry_id==null || entry_id.length()==0){
 							Messages.sendWarningNl("Disabling static ISR define for " + curr.getName() +": missing the entry value.");
 							for (int i=0; i<tempStrings.size(); i++) {
 								tempStrings.set(i, 
@@ -135,4 +135,66 @@ public class SectionWriterIsr implements IEEWriterKeywords {
 			}
 		}
 	}
+	
+	@Override
+	public void updateObjects() {
+		
+		for (IOilObjectList ool : parent.getOilObjects()) {
+
+			int size = 0;
+			int max_level = 0;
+			
+			for (ISimpleGenRes sgr: ool.getList(IOilObjectList.ISR)) {
+				String category = sgr.containsProperty(ISimpleGenResKeywords.ISR_CATEGORY) ? sgr.getString(ISimpleGenResKeywords.ISR_CATEGORY) : "";
+				
+				if ("2".equals(category)) {
+					
+					String entry = sgr.containsProperty(ISimpleGenResKeywords.ISR_ENTRY) ? sgr.getString(ISimpleGenResKeywords.ISR_ENTRY) : "";
+					String entry_id = "EE_"+hw_id+"_"+entry+"_ISR";
+					sgr.setProperty(ISimpleGenResKeywords.ISR_GENERATED_ENTRY, entry_id);
+
+					
+					{ // handler
+						String handler = sgr.containsProperty(ISimpleGenResKeywords.ISR_HANDLER) ? sgr.getString(ISimpleGenResKeywords.ISR_HANDLER) : sgr.getName();
+						sgr.setProperty(ISimpleGenResKeywords.ISR_GENERATED_HANDLER, handler);
+					}
+					
+					{ // priority
+						if (sgr.containsProperty(ISimpleGenResKeywords.ISR_PRIORITY)) {
+							
+							int prio = sgr.getInt(ISimpleGenResKeywords.ISR_PRIORITY);
+							if (prio>max_level) {
+								max_level = prio;
+							}
+							
+							String prioId = entry_id+"_PRI";
+							sgr.setProperty(ISimpleGenResKeywords.ISR_GENERATED_PRIOID, prioId);
+						}
+					}
+					
+					{
+						String[] tRes;
+						if (sgr.containsProperty(ISimpleGenResKeywords.ISR_RESOURCE_LIST)) {
+							tRes = (String[]) ((List) sgr.getObject(ISimpleGenResKeywords.ISR_RESOURCE_LIST)).toArray(new String[0]);
+						} else {
+							tRes = new String[0];
+						}
+						if (tRes.length != 0) {
+							size ++;
+							sgr.setProperty(ISimpleGenResKeywords.ISR_REQUIRES_RESOURCES, "true");
+						}
+					}
+				}
+			}
+			
+			if (size> 0) {
+				ISimpleGenRes os = ool.getList(IOilObjectList.OS).get(0);
+				os.setProperty(ISimpleGenResKeywords.OS_CPU__ISR_REQUIRES_RESOURCES, "true");
+				os.setObject(ISimpleGenResKeywords.OS_CPU__ISR_REQUIRES_RESOURCES_MAX_PRIO, new Integer(max_level));
+				os.setObject(ISimpleGenResKeywords.OS_CPU__ISR_REQUIRES_RESOURCES_SIZE, new Integer(size));
+			}
+			
+		}
+	}
+	
 }

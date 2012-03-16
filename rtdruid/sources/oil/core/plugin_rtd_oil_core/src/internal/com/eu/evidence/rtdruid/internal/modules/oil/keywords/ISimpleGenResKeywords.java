@@ -62,9 +62,15 @@ public interface ISimpleGenResKeywords {
 	public final static String ISR_CATEGORY = "category";
 	public final static String ISR_ENTRY = "entry";
 	public final static String ISR_PRIORITY = "priority";
+	public final static String ISR_READY_PRIORITY = "isr_ready_priority";
 	public final static String ISR_HANDLER = "handler";
+	public final static String ISR_GENERATED_HANDLER = "isr___generated_handler";
+	public final static String ISR_GENERATED_ENTRY = "isr___generated_entry";
+	public final static String ISR_GENERATED_PRIOID = "isr___generated_priority_id";
 	public final static String ISR_ID = "isr_index";
 	public final static String ISR_OS_APPLICATION_NAME = "isr_mapped_to_an_os_application";
+	public final static String ISR_RESOURCE_LIST = TASK_RESOURCE_LIST;
+	public final static String ISR_REQUIRES_RESOURCES = "isr_requires_resources";
 	
 	/***************************************************************************
 	 * Autostart
@@ -128,6 +134,7 @@ public interface ISimpleGenResKeywords {
 	 **************************************************************************/
 	public final static String RESOURCE_GLOBAL = "resource_global";
 	public final static String RESOURCE_CEILING = "resource_ceiling";
+	public final static String RESOURCE_ISR_CEILING = "resource_isr_ceiling";
 	public final static String RESOURCE_SYS_ID = "resource_id";
 	public final static String RESOURCE_PROPERTY = "RESOURCEPROPERTY";
 	/** All Src files required by a resource (String[]) */
@@ -200,6 +207,12 @@ public interface ISimpleGenResKeywords {
 	public final static String OS_CPU_NIOS2_APP_CONFIG = "_cpu_type_specifics_nios2_app_config_";
 //	public final static String OS_CPU_ORTI_SECTIONS = "_cpu_type_specifics_orti_sections_";
 //	
+	
+	public final static String OS_CPU__ISR_REQUIRES_RESOURCES = "an_isr_requires_resources";
+	public final static String OS_CPU__ISR_REQUIRES_RESOURCES_MAX_PRIO = "an_isr_requires_resources_max_priority";
+	public final static String OS_CPU__ISR_REQUIRES_RESOURCES_SIZE = "an_isr_requires_resources_size";
+
+	
 	public final static String OS_CPU_STATUS = "_cpu_type_specifics_status_";
 	public final static String OS_CPU_STARTUPHOOK = "_cpu_type_specifics_startuphook_";
 	public final static String OS_CPU_ERRORHOOK = "_cpu_type_specifics_errorhook_";

@@ -197,7 +197,7 @@ public class SectionWriterHalS12 extends SectionWriter
 			//List requiredOilObjects = (List) sgrCpu.getObject(SGRK__FORCE_ARRAYS_LIST__);
 			boolean found_codewarrior = false; 
 			{
-				String[] existing = parent.extractEE_Opts(EE_OPT_USER_ONLY, currentRtosId);
+				String[] existing = parent.extractUserOptions(currentRtosId);
 				
 				for (String s: existing) {
 					if (_EE_OPT_CODEWARRIOR_COMPILER.equals(s)) {

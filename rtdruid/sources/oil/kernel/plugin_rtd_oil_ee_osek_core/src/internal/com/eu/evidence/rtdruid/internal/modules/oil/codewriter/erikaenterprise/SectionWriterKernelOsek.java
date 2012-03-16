@@ -45,6 +45,8 @@ import com.eu.evidence.rtdruid.vartree.IVarTree;
 public class SectionWriterKernelOsek extends SectionWriter implements
 		IEEWriterKeywords, IExtractKeywordsExtentions, IGetEEOPTExtentions {
 	
+	private static final String EE_MAX_ISR2_WITH_RESOURCES = "EE_MAX_ISR2_WITH_RESOURCES";
+	
 	/** The Erika Enterprise Writer that call this section writer */
 	protected final ErikaEnterpriseWriter parent;
 
@@ -773,10 +775,20 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 		
 					buffer.append(commentWriterC.writerBanner("Mutex"));
 		
+					final int isr_size = ErikaEnterpriseWriter.checkOrDefault(
+							(Integer) AbstractRtosWriter.getOsObject(ool, ISimpleGenResKeywords.OS_CPU__ISR_REQUIRES_RESOURCES_SIZE),
+							new Integer(0));
+
 					/*
 					 * OSEK_EXTENDED
 					 */
-					if (parent.checkKeyword(OsekConstants.DEF__OSEKOS_EXTENDED_STATUS__)) {
+					if (parent.checkKeyword(OsekConstants.DEF__OSEKOS_EXTENDED_STATUS__) || isr_size>0) {
+						
+						String add_isr_size = "";
+						if (isr_size > 0) {
+							add_isr_size = " + " + EE_MAX_ISR2_WITH_RESOURCES;
+						}
+						
 						/*
 						 * EE_th_resource_last
 						 */
@@ -786,10 +798,10 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 										+"   contains one entry for each task. Initvalue= all -1. at runtime,\n"
 										+"   it points to the first item in the EE_resource_stack data structure.")
 										+ indent1
-										+ "EE_UREG EE_th_resource_last["+MAX_TASK+"] =\n"
+										+ "EE_UREG EE_th_resource_last["+MAX_TASK+add_isr_size+"] =\n"
 										+ indent2 + "{ ");
 						pre2 = "";
-						for (int i = 0; i < numTask; i++) {
+						for (int i = 0; i < numTask+isr_size; i++) {
 							buffer.append(pre2 + "(EE_UREG) -1");
 							pre2 = ", ";
 						}
@@ -846,67 +858,141 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 						
 					}
 			
-					/*
-					 * EE_resource_ceiling
-					 */
-					buffer
-							.append(indent1
-									+ "const EE_TYPEPRIO EE_resource_ceiling["+MAX_RESOURCE+"]= {\n");
-					
-		
-					// search all ceilings and order them
-					String[] names = new String[maxMutex];
-					String[] ceilings = new String[maxMutex];
-					for (Iterator<ISimpleGenRes> iter = mutexList.iterator(); iter
-							.hasNext();) {
-		
-						ISimpleGenRes curr = iter.next();
-		
-						int id = curr.getInt(ISimpleGenResKeywords.RESOURCE_SYS_ID);
+					{
+						/*
+						 * EE_resource_ceiling
+						 */
+						buffer
+								.append(indent1
+										+ "const EE_TYPEPRIO EE_resource_ceiling["+MAX_RESOURCE+"]= {\n");
 						
-						ceilings[id] = "0x"
-								+ (Integer
-										.toHexString(curr
-												.getInt(ISimpleGenResKeywords.RESOURCE_CEILING)))
-										.toUpperCase()+"U";
-						names[id]  = curr.getName();
-					}
-					
-					
-					
-					
-					/*
-					 * RES_SCHEDULER
-					 */
-					// buffer.append(indent2 + res_sched_prio +"\t\t" + 
-					// commentWriterC.writerSingleLineComment("RES_SCHEDULER"));
-					pre2 = "";
-					post = "";
-					for (int j = 0; j < maxMutex; j++) {
-		
-						final String name;
-						final String ceiling;
-						if (ceilings[j] != null) {
-							name = names[j];
-							ceiling = ceilings[j];
-						} else {
-							name = "UNUSED";
-							ceiling = "0U";
+			
+						// search all ceilings and order them
+						String[] names = new String[maxMutex];
+						String[] ceilings = new String[maxMutex];
+						for (Iterator<ISimpleGenRes> iter = mutexList.iterator(); iter
+								.hasNext();) {
+			
+							ISimpleGenRes curr = iter.next();
+			
+							int id = curr.getInt(ISimpleGenResKeywords.RESOURCE_SYS_ID);
+							
+							ceilings[id] = "0x"
+									+ (Integer
+											.toHexString(curr
+													.getInt(ISimpleGenResKeywords.RESOURCE_CEILING)))
+											.toUpperCase()+"U";
+							names[id]  = curr.getName();
 						}
 						
-						buffer.append(pre2 + post + indent2 + ceiling);
-						post = "\t\t" + commentWriterC.writerSingleLineComment("resource " + name); // Ends with  " \n";
-						pre2 = ",";
+						
+						
+						
+						/*
+						 * RES_SCHEDULER
+						 */
+						// buffer.append(indent2 + res_sched_prio +"\t\t" + 
+						// commentWriterC.writerSingleLineComment("RES_SCHEDULER"));
+						pre2 = "";
+						post = "";
+						for (int j = 0; j < maxMutex; j++) {
+			
+							final String name;
+							final String ceiling;
+							if (ceilings[j] != null) {
+								name = names[j];
+								ceiling = ceilings[j];
+							} else {
+								name = "UNUSED";
+								ceiling = "0U";
+							}
+							
+							buffer.append(pre2 + post + indent2 + ceiling);
+							post = "\t\t" + commentWriterC.writerSingleLineComment("resource " + name); // Ends with  " \n";
+							pre2 = ",";
+						}
+						buffer.append(" " + post + indent1 + "};\n\n");
 					}
-					buffer.append(" " + post + indent1 + "};\n\n");
-		
 					buffer
 							.append(indent1
 									+ "EE_TYPEPRIO EE_resource_oldceiling["+MAX_RESOURCE+"];\n\n");
 		
+					
+					
+					
+					 // ISR RESOURCES
+					if ("true".equalsIgnoreCase(AbstractRtosWriter.getOsProperty(ool, ISimpleGenResKeywords.OS_CPU__ISR_REQUIRES_RESOURCES))) {
+						
+						/*
+						 * EE_resource_ceiling
+						 */
+						buffer.append(indent1
+										+ "const EE_TYPEISR2PRIO EE_resource_isr2_priority["+MAX_RESOURCE+"]= {\n");
+						
+			
+						// search all ceilings and order them
+						String[] names = new String[maxMutex];
+						String[] ceilings = new String[maxMutex];
+						for (Iterator<ISimpleGenRes> iter = mutexList.iterator(); iter
+								.hasNext();) {
+			
+							ISimpleGenRes curr = iter.next();
+			
+							int id = curr.getInt(ISimpleGenResKeywords.RESOURCE_SYS_ID);
+							
+							ceilings[id] = "0x"
+									+ (Integer
+											.toHexString(curr
+													.getInt(ISimpleGenResKeywords.RESOURCE_ISR_CEILING)))
+											.toUpperCase()+"U";
+							names[id]  = curr.getName();
+						}
+						pre2 = "";
+						post = "";
+						for (int j = 0; j < maxMutex; j++) {
+			
+							final String name;
+							final String ceiling;
+							if (ceilings[j] != null) {
+								name = names[j];
+								ceiling = ceilings[j];
+							} else {
+								name = "UNUSED";
+								ceiling = "0U";
+							}
+							
+							buffer.append(pre2 + post + indent2 + ceiling);
+							post = "\t\t" + commentWriterC.writerSingleLineComment("resource " + name); // Ends with  " \n";
+							pre2 = ",";
+						}
+						buffer.append(" " + post + indent1 + "};\n\n");
+			
+						buffer.append(indent1
+										+ "EE_TYPEISR2PRIO EE_isr2_oldpriority["+MAX_RESOURCE+"];\n\n");
+			
+						
+						/*
+						 * EE_th_resource_last
+						 */
+						buffer
+								.append(commentWriterC.writerMultiLineComment(indent1,
+											"array to hold corresponding isr2 nesting levels.")
+										+ indent1
+										+ "EE_UREG EE_isr2_nesting_level["+EE_MAX_ISR2_WITH_RESOURCES+"] =\n"
+										+ indent2 + "{ ");
+						pre2 = "";
+						for (int i = 0; i < isr_size; i++) {
+							buffer.append(pre2 + "(EE_UREG) -1");
+							pre2 = ", ";
+						}
+						buffer.append("};\n\n");
+
+					}
+					
 				} // end "if (mutexList.size()>0)"
 			}
 		
+			
 			
 			{
 				/***************************************************************
@@ -1587,6 +1673,10 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 			if (ool.getList(IOilObjectList.RESOURCE).size() == 0
 					&& !requiredOilObjects.contains(new Integer(IOilObjectList.RESOURCE))) {
 				answer.add("__OO_NO_RESOURCES__");
+			} else {
+				if ("true".equalsIgnoreCase(AbstractRtosWriter.getOsProperty(ool, ISimpleGenResKeywords.OS_CPU__ISR_REQUIRES_RESOURCES))) {
+					answer.add("__OO_ISR2_RESOURCES__");
+				}
 			}
 			
 			if (parent.checkKeyword(IWritersKeywords.OSEK_ECC1) 

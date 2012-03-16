@@ -85,11 +85,14 @@ public class SectionWriterHalCortexMx extends SectionWriter
 	/** All data */
 	protected final IVarTree vt;
 	
+	private final SectionWriterIsr isrWriter; 
+	
 	/**
 	 * 
 	 */
 	public SectionWriterHalCortexMx() {
 		this(null);
+
 	}
 	
 	/**
@@ -108,6 +111,9 @@ public class SectionWriterHalCortexMx extends SectionWriter
 		
 		this.parent = parent;
 		this.vt = parent == null ? null : parent.getVt();
+		
+		isrWriter = new SectionWriterIsr(parent, IWritersKeywords.CPU_CORTEX_MX);
+		isrWriter.setValidEntries(ISR_LIST);
 	}
 
 	/**
@@ -141,6 +147,8 @@ public class SectionWriterHalCortexMx extends SectionWriter
 	 * This method makes some changes to computed Oil Object
 	 */
 	public void updateObjects() {
+		
+		isrWriter.updateObjects();
 
 		final IOilObjectList[] oilObjects = parent.getOilObjects();		
 
@@ -264,8 +272,6 @@ public class SectionWriterHalCortexMx extends SectionWriter
 		final String MAX_TASK = (binaryDistr ? "RTD_" : "EE_") + "MAX_TASK";
 		
 
-		SectionWriterIsr isrWriter = new SectionWriterIsr(parent, IWritersKeywords.CPU_CORTEX_MX);
-		isrWriter.setValidEntries(ISR_LIST);
 
 		for ( int currentRtosId = 0; currentRtosId <oilObjects.length; currentRtosId ++) {
 			IOilWriterBuffer answer = new OilWriterBuffer();

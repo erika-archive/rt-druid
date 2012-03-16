@@ -111,7 +111,6 @@ public class CodeWriterMultiAutosar extends AbstractCodeWriterTest {
 		System.out.println(OIL);
 		System.out.println("\t------------FINE ALTRO OIL------------\n\n");
 
-	fail();	
 		// -------------- search rtos ----------------
 		ITreeInterface ti = vt.newTreeInterface();
 

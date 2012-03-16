@@ -79,6 +79,10 @@ public class SectionWriterHalMpc567 extends SectionWriter
 
 	static final String STACK_BASE_NAME = "EE_stack_";
 	private static final long DEFAULT_SYS_STACK_SIZE = 4096;
+	
+	private final SectionWriterIsr isrWriter;
+	private final SectionWriterKernelCounterHw counterHwWriter;
+	
 	/**
 	 * 
 	 */
@@ -104,6 +108,9 @@ public class SectionWriterHalMpc567 extends SectionWriter
 		
 		this.parent = parent;
 		this.vt = parent == null ? null : parent.getVt();
+		
+		isrWriter = new SectionWriterIsr(parent, IWritersKeywords.CPU_PPCE200ZX);
+		counterHwWriter = new SectionWriterKernelCounterHw(parent, IWritersKeywords.CPU_PPCE200ZX, EE_E200ZX_SYSTEM_TIMER_HANDLER);
 	}
 
 	/**
@@ -139,6 +146,11 @@ public class SectionWriterHalMpc567 extends SectionWriter
 	 * @throws OilCodeWriterException if some ISR's attribute is missing 
 	 */
 	public void updateObjects() throws OilCodeWriterException {
+		
+		{
+			isrWriter.updateObjects();
+			counterHwWriter.updateObjects();
+		}
 
 		final IOilObjectList[] oilObjects = parent.getOilObjects();
 		
@@ -291,11 +303,6 @@ public class SectionWriterHalMpc567 extends SectionWriter
 			handleStacks(currentRtosId, ool);
 		}
 
-		{
-			SectionWriterKernelCounterHw counterHwWriter = new SectionWriterKernelCounterHw(parent, IWritersKeywords.CPU_PPCE200ZX, EE_E200ZX_SYSTEM_TIMER_HANDLER);
-			counterHwWriter.updateObjects();
-		}
-	
 	}
 	
 	/**
@@ -313,8 +320,6 @@ public class SectionWriterHalMpc567 extends SectionWriter
 		IOilWriterBuffer[] answer = new IOilWriterBuffer[oilObjects.length];
 
 		final int rtosNumber = oilObjects.length;
-		SectionWriterIsr isrWriter = new SectionWriterIsr(parent, IWritersKeywords.CPU_PPCE200ZX);
-		SectionWriterKernelCounterHw counterHwWriter = new SectionWriterKernelCounterHw(parent, IWritersKeywords.CPU_PPCE200ZX, EE_E200ZX_SYSTEM_TIMER_HANDLER);
 
 
 		/***********************************************************************

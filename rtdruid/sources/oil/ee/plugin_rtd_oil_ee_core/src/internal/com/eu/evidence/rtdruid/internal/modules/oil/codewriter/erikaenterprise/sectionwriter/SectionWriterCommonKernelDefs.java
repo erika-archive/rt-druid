@@ -42,6 +42,8 @@ import com.eu.evidence.rtdruid.vartree.IVarTree;
 public class SectionWriterCommonKernelDefs extends SectionWriter 
 		implements IEEWriterKeywords, IEEoptConstant {
 	
+	private static final String EE_MAX_ISR2_WITH_RESOURCES = "EE_MAX_ISR2_WITH_RESOURCES";
+	
 	public final static boolean includeEE_opt_application = true;
 	
 	/** The Erika Enterprise Writer that call this section writer */
@@ -243,6 +245,18 @@ public class SectionWriterCommonKernelDefs extends SectionWriter
 					}
 				}
 
+				
+				if ("true".equalsIgnoreCase(AbstractRtosWriter.getOsProperty(ool, ISimpleGenResKeywords.OS_CPU__ISR_REQUIRES_RESOURCES))) {
+					
+					String max_level = AbstractRtosWriter.getOsProperty(ool, ISimpleGenResKeywords.OS_CPU__ISR_REQUIRES_RESOURCES_MAX_PRIO);
+					String size = AbstractRtosWriter.getOsProperty(ool, ISimpleGenResKeywords.OS_CPU__ISR_REQUIRES_RESOURCES_SIZE);
+					
+					buffer.append("\n"+indent + "#define " +EE_MAX_ISR2_WITH_RESOURCES+" "
+							+ size + "U\n");
+					buffer.append(indent + "#define EE_ISR2_MAX_LEVEL          "
+							+ max_level + "U\n");
+					
+				}
 			}
 
 			{

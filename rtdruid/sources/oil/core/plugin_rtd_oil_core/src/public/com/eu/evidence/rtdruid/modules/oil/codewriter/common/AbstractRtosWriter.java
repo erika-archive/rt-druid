@@ -648,24 +648,24 @@ public abstract class AbstractRtosWriter implements IRtosWriter {
 					values = CommonUtils.getValue(vt, path+"CATEGORY");
 					if (values!= null && values.length >0) {
 						answer[i].setProperty(ISimpleGenResKeywords.ISR_CATEGORY, values[0]);
-					} else {
-						answer[i].setProperty(ISimpleGenResKeywords.ISR_CATEGORY, "");
+//					} else {
+//						answer[i].setProperty(ISimpleGenResKeywords.ISR_CATEGORY, "");
 					}
 				}
 				{	// ----------- ENTRY ------------
 					values = CommonUtils.getValue(vt, path+"ENTRY");
 					if (values!= null && values.length >0) {
 						answer[i].setProperty(ISimpleGenResKeywords.ISR_ENTRY, values[0]);
-					} else {
-						answer[i].setProperty(ISimpleGenResKeywords.ISR_ENTRY, "");
+//					} else {
+//						answer[i].setProperty(ISimpleGenResKeywords.ISR_ENTRY, "");
 					}
 				}
 				{	// ----------- PRIORITY ------------
 					values = CommonUtils.getValue(vt, path+"PRIORITY");
 					if (values!= null && values.length >0) {
 						answer[i].setProperty(ISimpleGenResKeywords.ISR_PRIORITY, values[0]);
-					} else {
-						answer[i].setProperty(ISimpleGenResKeywords.ISR_PRIORITY, "");
+//					} else {
+//						answer[i].setProperty(ISimpleGenResKeywords.ISR_PRIORITY, "");
 					}
 				}
 				{	// ----------- HANDLER ------------

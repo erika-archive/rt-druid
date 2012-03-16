@@ -57,6 +57,9 @@ import com.eu.evidence.rtdruid.vartree.data.init.DataPath;
  */
 public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWriterKeywords {
 
+	
+	private final static boolean useMultiplePriorities = false;
+	
 	/**
 	 * UPDRTD rendere legata al plugin
 	 * */
@@ -1162,6 +1165,11 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 	    return (String[]) answer.toArray(new String[answer.size()]);
 	}
 
+	public String[] extractUserOptions(int currentRtosId) {
+		return extractEE_Opts(EE_OPT_USER_ONLY, currentRtosId);
+	}
+
+	
 	private void check_valid_eeopt(String tmp) {
 		boolean valid = tmp != null && tmp.length()>0 && tmp.length()<63;
 		
@@ -1559,13 +1567,17 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 		/***********************************************************************
 		 * Compute values
 		 **********************************************************************/
-
-		/* 
-		 * Search all defined priorities on each CPU (sorted)
+		/*
+		 * look on each task and set
+		 * TASK_READY_PRIORITY and TASK_REMOTE
 		 */
-		ArrayList<Integer>[] prioPres = new ArrayList[oilObjects.length];
 		for (int i = 0; i < oilObjects.length; i++) {
-			prioPres[i] = new ArrayList<Integer>();
+			
+
+			/* 
+			 * Search all defined priorities on each CPU (sorted)
+			 */
+			ArrayList<Integer> prioPres = new ArrayList<Integer>();
 			for (Iterator<ISimpleGenRes> iter = oilObjects[i].getList(IOilObjectList.TASK)
 					.iterator(); iter.hasNext();) {
 				ISimpleGenRes curr = (ISimpleGenRes) iter.next();
@@ -1574,20 +1586,14 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 				int tmp_priority = curr
 						.getInt(ISimpleGenResKeywords.TASK_PRIORITY);
 				{// store the priority (if not already stored)
-					int pos = Collections.binarySearch(prioPres[i],
+					int pos = Collections.binarySearch(prioPres,
 							new Integer(tmp_priority));
 					if (pos < 0) { // not found
-						prioPres[i].add(-pos - 1, new Integer(tmp_priority));
+						prioPres.add(-pos - 1, new Integer(tmp_priority));
 					}
 				}
 			}
-		}
 
-		/*
-		 * look on each task and set
-		 * TASK_READY_PRIORITY and TASK_REMOTE
-		 */
-		for (int i = 0; i < oilObjects.length; i++) {
 
 			int max_ready_priority = 0;
 
@@ -1599,7 +1605,7 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 				{// set the right bit as priority of this task
 					Integer integer_priority = new Integer(curr
 							.getInt(ISimpleGenResKeywords.TASK_PRIORITY));
-					int prioVal = Collections.binarySearch(prioPres[i],
+					int prioVal = Collections.binarySearch(prioPres,
 							integer_priority);
 					if (prioVal < 0) { // not found
 						throw new Error("Why ???");
@@ -1680,6 +1686,76 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 						}
 					} // end LINKED
 	
+				}
+			}
+			
+			// ISR
+			{
+				if (useMultiplePriorities) {
+					/* 
+					 * Search all defined priorities on each CPU (sorted)
+					 */
+					ArrayList<Integer> isrPrioPres = new ArrayList<Integer>();
+					for (ISimpleGenRes curr : oilObjects[i].getList(IOilObjectList.ISR)) {
+	
+						if (curr.containsProperty(ISimpleGenResKeywords.ISR_PRIORITY)) {
+							
+							// check priority only for those isr that have resources
+							String[] tRes;
+							if (curr.containsProperty(ISimpleGenResKeywords.ISR_RESOURCE_LIST)) {
+								tRes = (String[]) ((List) curr.getObject(ISimpleGenResKeywords.ISR_RESOURCE_LIST)).toArray(new String[0]);
+							} else {
+								tRes = new String[0];
+							}
+							if (tRes.length != 0) {
+							
+							
+								// search max ready priority
+								int tmp_priority = curr
+										.getInt(ISimpleGenResKeywords.ISR_PRIORITY);
+								{// store the priority (if not already stored)
+									int pos = Collections.binarySearch(isrPrioPres,
+											new Integer(tmp_priority));
+									if (pos < 0) { // not found
+										isrPrioPres.add(-pos - 1, new Integer(tmp_priority));
+									}
+								}
+							}
+						}
+					}
+	
+		
+					for (ISimpleGenRes curr : oilObjects[i].getList(IOilObjectList.ISR)) {
+		
+						if (curr.containsProperty(ISimpleGenResKeywords.ISR_PRIORITY)) {
+							
+							int tmp_priority;
+							{// set the right bit as priority of this task
+								Integer integer_priority = new Integer(curr
+										.getInt(ISimpleGenResKeywords.ISR_PRIORITY));
+								int prioVal = Collections.binarySearch(isrPrioPres,
+										integer_priority);
+								if (prioVal >= 0) {
+									tmp_priority = 1 << (prioPres.size() + prioVal);
+									curr.setProperty(ISimpleGenResKeywords.ISR_READY_PRIORITY,
+											"" + tmp_priority);
+								}
+							}
+	
+						}
+					}
+				} else {
+					// set all ready priority to 2^(max_priority + 1)
+					for (ISimpleGenRes curr : oilObjects[i].getList(IOilObjectList.ISR)) {
+						
+						if (curr.containsProperty(ISimpleGenResKeywords.ISR_PRIORITY)) {
+							
+							int tmp_priority = 1 << (prioPres.size());
+							curr.setProperty(ISimpleGenResKeywords.ISR_READY_PRIORITY,
+									"" + tmp_priority);
+	
+						}
+					}
 				}
 			}
 
@@ -2011,8 +2087,7 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 	public int computeMaxResource(List<ISimpleGenRes> resourceList) {
 		int answer = -1;
 		
-		for (Iterator<ISimpleGenRes> iter = resourceList.iterator(); iter.hasNext(); ) {
-			ISimpleGenRes res = (ISimpleGenRes) iter.next();
+		for (ISimpleGenRes res : resourceList) {
 
 			int currentId = res.getInt(ISimpleGenResKeywords.RESOURCE_SYS_ID);
 			
@@ -2124,7 +2199,7 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 	}
 
 	public boolean checkPragma(int currentRtosId) {
-		String[] existing = parent.extractEE_Opts(EE_OPT_USER_ONLY, currentRtosId);
+		String[] existing = parent.extractUserOptions(currentRtosId);
 		
 		for (String s: existing) {
 			if ("USE_PRAGMAS".equals(s)) {
