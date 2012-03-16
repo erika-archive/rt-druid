@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Stack;
 
 import org.eclipse.core.runtime.Assert;
@@ -71,6 +72,8 @@ public class SimpleTransform implements IOilTransform {
 
 	protected static final String TASK_MAPPING = "sgrk_task_mapping";
 	protected static final String TASK_FORCE_MAPPING = "sgrk_task_add_mapping";
+	
+	public static final String SGR_ADDITIONAL = "sgr__map_additional_text";
 
 	protected IVarTree vt;
 
@@ -2851,11 +2854,16 @@ public class SimpleTransform implements IOilTransform {
 		writeApplicationObjectProperties(buffer, INDENT + INDENT,
 				object, objType, rtosPath);
 		
+		Map<String, String> additional = new HashMap<String, String>();
+		if (object.containsProperty(SGR_ADDITIONAL)) {
+			additional = (Map) object.getObject(SGR_ADDITIONAL);
+		}
+		
 		// children
 		if (vtp.go(path)) {
 			for (boolean ok = vtp.goFirstChild(); ok; ok = vtp.goNextSibling()) {
 				writeApplicationObject(buffer, INDENT + INDENT,
-						(IVarTreePointer) vtp.clone());
+						(IVarTreePointer) vtp.clone(), additional, "");
 			}
 		}
 
@@ -2933,10 +2941,10 @@ public class SimpleTransform implements IOilTransform {
 	 *            identifies the Application
 	 */
 	protected void writeApplicationObject(StringBuffer buffer, String indent,
-			IVarTreePointer vtp) {
+			IVarTreePointer vtp, Map<String, String> additional, String path) {
 
 		String name = vtp.getName();
-
+		
 		if (vtp.exist(OAPKG.getValue_Values().getName())) {
 			// ------------- A VARIABLE -----------------
 			String type = null;
@@ -2977,7 +2985,7 @@ public class SimpleTransform implements IOilTransform {
 			for (boolean ok = vtp.goFirstChild(); ok; ok = vtp.goNextSibling()) {
 				buffer.append(indent + name + " = ");
 				writeApplicationObject(buffer, indent, (IVarTreePointer) vtp
-						.clone());
+						.clone(), additional, path+"/"+name);
 				buffer.append(";\n");
 			}
 
@@ -2987,27 +2995,42 @@ public class SimpleTransform implements IOilTransform {
 		if (vtp.exist((OAPKG.getEnumerator_Value().getName()))) {
 			// ------------- A SINGLE ENUM -----------------
 
+			String tmpPath;
 			{
 				IVarTreePointer tvtp = (IVarTreePointer) vtp.clone();
 				tvtp.go(OAPKG.getEnumerator_Value().getName());
 				IVariable var = tvtp.getVar();
 
 				buffer.append("" + var);
+				tmpPath = path+"/"+var;
 			}
+
+			String init = " {\n";
+			String end = "";
+			if (additional.containsKey(tmpPath)) {
+				buffer.append(init);
+				init = "";
+				end = indent + "}";
+				
+				buffer.append(additional.get(tmpPath));
+				additional.remove(tmpPath);
+			}
+
 
 			boolean ok = vtp.go(OAPKG.getEnumerator_ParameterList().getName());
 			ok &= vtp.goFirstChild();
 			if (ok) {
-				buffer.append(" {\n");
+				buffer.append(init);
 
 				for (; ok; ok = vtp.goNextSibling()) {
 					writeApplicationObject(buffer, indent + INDENT,
-							(IVarTreePointer) vtp.clone());
+							(IVarTreePointer) vtp.clone(), additional, tmpPath);
 				}
-				buffer.append(indent + "}");
+				end = indent + "}";
 			} else {
 				//buffer.append(";\n");
 			}
+			buffer.append(end);
 
 			return;
 		}

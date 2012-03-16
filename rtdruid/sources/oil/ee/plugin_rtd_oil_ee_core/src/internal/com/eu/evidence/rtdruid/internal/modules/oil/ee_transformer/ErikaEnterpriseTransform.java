@@ -275,7 +275,7 @@ public class ErikaEnterpriseTransform extends SimpleTransform {
 					path = tmpPath.toString()+PARAMETER_ELIST;
 				}
 				
-				{ // ----------- PRIORITY ------------
+				{ // ----------- CPU_CLOCK ------------
 					
 					for (String s: getEnums(oilVtp, path+"CPU_DATA")) {
 					
@@ -556,6 +556,7 @@ public class ErikaEnterpriseTransform extends SimpleTransform {
 		
 		switch (objType) {
 		case IOilObjectList.OS: {
+			HashMap<String, String> add = new HashMap<String, String>(); 
 
 			ISimpleGenRes tmp = new SimpleGenRes(object.getName().contains("" + DataPath.SEPARATOR) ? extractRtosName(object.getName()) : "EE",
 						object.getPath());
@@ -568,6 +569,53 @@ public class ErikaEnterpriseTransform extends SimpleTransform {
 			}
 			
 			object = tmp;
+			
+			{ // add CPU_SPEED
+				IVarTreePointer vtp = vt.newVarTreePointer();
+				boolean ok = vtp.goAbsolute(object.getPath());
+				ok &= vtp.goParent();
+				ok &= vtp.go(DPKG.getCpu_Speed().getName());
+				if (ok) {
+					IVariable v = vtp.getVar();
+					if (v != null && v.get() != null) {
+						String speedt = v.toString();
+						if (!speedt.isEmpty() && !(""+null).equals(speedt)) {
+							double factor = 1;
+							if (speedt.toLowerCase().contains("ghz")) {
+								factor = 1000;
+								speedt = speedt.toLowerCase().replace("ghz", "").trim();
+							} else if (speedt.toLowerCase().contains("mhz")) {
+								speedt = speedt.toLowerCase().replace("mhz", "").trim();
+							} else if (speedt.toLowerCase().contains("khz")) {
+								factor = 0.001;
+								speedt = speedt.toLowerCase().replace("khz", "").trim();
+							} else if (speedt.toLowerCase().contains("hz")) {
+								factor = 0.000001;
+								speedt = speedt.toLowerCase().replace("hz", "").trim();
+							}
+							double speed = 0;
+							try {
+								speed = Double.parseDouble(speedt);
+							} catch (NumberFormatException e) {
+								speed = 0;
+							}
+							
+							if (speed != 0) {
+								
+								String oilPath = object.getPath() +S+ DPKG.getRtos_OilVar().getName() + S
+										+ object.getString(IOilXMLLabels.ATTR_TYPE) + S
+										+ oilVarPrefix + "CPU_DATA";
+
+								for (String s: CommonUtils.getAllChildrenEnumType(vt, oilPath, null)) {
+									add.put("/CPU_DATA/"+s, INDENT+INDENT+INDENT+"CPU_CLOCK = " + (speed*factor) + ";\n");
+								}
+							}
+						}
+					}
+				}
+			}
+			object.setObject(SGR_ADDITIONAL, add);
+			
 		}
 			break;		
 			

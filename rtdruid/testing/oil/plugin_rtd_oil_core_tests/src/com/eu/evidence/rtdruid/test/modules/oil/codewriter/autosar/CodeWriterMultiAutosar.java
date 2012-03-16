@@ -43,6 +43,7 @@ public class CodeWriterMultiAutosar extends AbstractCodeWriterTest {
 				"		ASFLAGS = \"\";\n" +
 				"		CPU_DATA = PPCE200ZX {\n" +
 				"			MODEL = E200Z7;\n" +
+				"			CPU_CLOCK = 60.0;\n" +
 				"			APP_SRC = \"./Autosar_Stubs.c\";\n" +
 				"			APP_SRC = \"./bsw_init.c\";\n" +
 				"			APP_SRC = \"./main.c\";\n" +
@@ -110,7 +111,7 @@ public class CodeWriterMultiAutosar extends AbstractCodeWriterTest {
 		System.out.println(OIL);
 		System.out.println("\t------------FINE ALTRO OIL------------\n\n");
 
-		
+	fail();	
 		// -------------- search rtos ----------------
 		ITreeInterface ti = vt.newTreeInterface();
 
@@ -151,7 +152,7 @@ public class CodeWriterMultiAutosar extends AbstractCodeWriterTest {
 		};
 		
 		
-		File dir = new File("D:\\work\\autosar_test");
+		File dir = new File("D:\\work\\autosar_test\\sd");
 		File[] files = dir.listFiles();
 		for (File f: files) {
 			if (f.getName().endsWith(".arxml") || f.getName().endsWith(".oil") ) {
@@ -163,5 +164,52 @@ public class CodeWriterMultiAutosar extends AbstractCodeWriterTest {
 		worker.execute();
 	}
 
+	@Test
+	public void testMixedMulti() throws IOException, OilWorkerException {
+		
+		WorkerOilConfWriter worker = new WorkerOilConfWriter(new StdOutLogger()) {
+			// override worker's save method
+			@Override
+			protected void save(IOilWriterBuffer[] buffers) {
+				for (IOilWriterBuffer buff : buffers) {
+					System.out.println(buff.toString());
+				}
+			}
+		};
+		
+//		{
+//			File dir = new File("D:\\work\\autosar_test\\e");
+//			File[] files = dir.listFiles();
+//			for (File f: files) {
+//				if (f.getName().endsWith(".oil") ) {
+//					worker.addInputfile(f.getAbsolutePath());
+//				}
+//			}
+//		}
+
+		{
+			File dir = new File("D:\\work\\autosar_test\\all");
+			File[] files = dir.listFiles();
+			for (File f: files) {
+				if (f.getName().endsWith(".arxml") || f.getName().endsWith(".oil") ) {
+					worker.addInputfile(f.getAbsolutePath());
+				}
+			}
+		}
+		
+		{
+			File dir = new File("D:\\work\\autosar_test\\sd");
+			File[] files = dir.listFiles();
+			for (File f: files) {
+				if (f.getName().endsWith(".arxml") || f.getName().endsWith(".oil") ) {
+					worker.addInputfile(f.getAbsolutePath());
+				}
+			}
+		}
+
+
+		worker.setOutputdir("e:/");
+		worker.execute();
+	}
 	
 }
