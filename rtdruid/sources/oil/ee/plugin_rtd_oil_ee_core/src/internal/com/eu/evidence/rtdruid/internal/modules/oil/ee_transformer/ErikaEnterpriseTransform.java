@@ -24,10 +24,12 @@ import com.eu.evidence.rtdruid.internal.modules.oil.keywords.IWritersKeywords;
 import com.eu.evidence.rtdruid.modules.oil.abstractions.IOilObjectList;
 import com.eu.evidence.rtdruid.modules.oil.abstractions.ISimpleGenRes;
 import com.eu.evidence.rtdruid.modules.oil.abstractions.SimpleGenRes;
+import com.eu.evidence.rtdruid.modules.oil.codewriter.common.CommonUtils;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.OilImplID;
 import com.eu.evidence.rtdruid.modules.oil.transform.SimpleTransform;
 import com.eu.evidence.rtdruid.vartree.IVarTree;
 import com.eu.evidence.rtdruid.vartree.IVarTreePointer;
+import com.eu.evidence.rtdruid.vartree.IVariable;
 import com.eu.evidence.rtdruid.vartree.data.DataPackage;
 import com.eu.evidence.rtdruid.vartree.data.init.DataPath;
 import com.eu.evidence.rtdruid.vartree.data.oil.OilApplPackage;
@@ -39,6 +41,13 @@ import com.eu.evidence.rtdruid.vartree.data.oil.OilApplPackage;
  * @author Nicola Serreli
  */
 public class ErikaEnterpriseTransform extends SimpleTransform {
+	private static final String PARAMETER_ELIST = S+ OilApplPackage.eINSTANCE.getRTOS_ParameterList().getName() +S;
+
+
+	final static private String VARIANT_ELIST = S
+			+ OilApplPackage.eINSTANCE.getVariant_EnumeratorList().getName()
+			+ S;
+
 
 	final static String DEFAULT_CPU_NAME = IWritersKeywords.DEFAULT_CPU_NAME;
 	
@@ -247,9 +256,66 @@ public class ErikaEnterpriseTransform extends SimpleTransform {
 
 
 			storeInsideAOilVar(curr, current.os, id);
+			
+			{ // move vars outside OilVar
+				IVarTreePointer oilVtp =  (IVarTreePointer) curr.clone();
+				IVarTreePointer osVtp = (IVarTreePointer) curr.clone();
+				osVtp.goParent();
+				
+				final String path;
+				{	// prepare path
+					StringBuffer tmpPath = new StringBuffer();
+					String[] el = makeOilVarPrefix(false, null, IOilXMLLabels.OBJ_OS, id);
+					
+					
+					for (int i=0; i<el.length; i++) {
+						tmpPath.append(el[i]+S);
+					}
+					
+					path = tmpPath.toString()+PARAMETER_ELIST;
+				}
+				
+				{ // ----------- PRIORITY ------------
+					
+					for (String s: getEnums(oilVtp, path+"CPU_DATA")) {
+					
+						IVarTreePointer lvtp = extract(oilVtp, path +"CPU_DATA"+VARIANT_ELIST+s+ PARAMETER_ELIST +"CPU_CLOCK"+S+OilApplPackage.eINSTANCE.getValue_Values().getName());
+						if (lvtp!= null) {
+							String[] pNames = {
+									DPKG.getCpu_Speed().getName()
+							};
+							String[] pTypes = {
+									DPKG.getCpu_Speed().getName()
+							};
+							
+							IVariable var = lvtp.getVar();
+							// remove data
+							lvtp.goParent();
+							lvtp.destroy();
+							
+							IVarTreePointer cVtp = osVtp.clone();
+							cVtp.goParent();
+							
+							lvtp = makePath(cVtp, pNames, pTypes);
+							lvtp.setVar(var);
+						}
+					}
+				}
+			}
 		}
 
 		return makeRtosId(cpuName, rtosName);
+	}
+	
+	private List<String> getEnums(IVarTreePointer vtp, String path) {
+		
+		vtp = vtp.clone();
+		boolean ok = vtp.go(path + VARIANT_ELIST);
+		ArrayList<String> answer = new ArrayList<String>();
+		for (ok &= vtp.goFirstChild(); ok; ok&=vtp.goNextSibling()) {
+			answer.add(vtp.getName());
+		}
+		return answer;
 	}
 	
 	/* (non-Javadoc)
@@ -397,7 +463,7 @@ public class ErikaEnterpriseTransform extends SimpleTransform {
 				+ DataPath.makeSlashedId(id.getHW()) + S
 				+ OilApplPackage.eINSTANCE.getHW_RtosList().getName() + S
 				+ DataPath.makeSlashedId(id.getRtos()) + S
-				+ OilApplPackage.eINSTANCE.getRTOS_ParameterList().getName()
+				+ PARAMETER_ELIST
 				+ S;
 
 		//header

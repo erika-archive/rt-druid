@@ -264,13 +264,20 @@ public class SectionWriterOrti_osek extends SectionWriter implements
 				all_isr2.append("        ENUM \"void *\" [\n" +
 						"            \"NO_ISR2\" = 0");
 				
-				List<ISimpleGenRes> isrList = ool.getList(IOilObjectList.ISR);
-				for (ISimpleGenRes isr: isrList) {
+				for (ISimpleGenRes isr: ool.getList(IOilObjectList.ISR)) {
 					if (isr.containsProperty(ISimpleGenResKeywords.ISR_CATEGORY) && "2".equals(isr.getString(ISimpleGenResKeywords.ISR_CATEGORY))) {
 						all_isr2.append(",\n            \""+isr.getName()+"\" = \""+isr.getName()+"\"");
 					}
 				}
-				
+				for (ISimpleGenRes counter: ool.getList(IOilObjectList.COUNTER)) {
+					if (counter.containsProperty(ISimpleGenResKeywords.COUNTER_GENERATED_HANDLER)) {
+						String handler = counter.getString(ISimpleGenResKeywords.COUNTER_GENERATED_HANDLER);
+						if (handler != null) {
+							all_isr2.append(",\n            \""+counter.getName()+"\" = \""+handler+"\"");
+						}
+					}
+				}
+
 				all_isr2.append("\n        ] RUNNINGISR2, \"Running ISR2\";\n\n");
 			}
 			

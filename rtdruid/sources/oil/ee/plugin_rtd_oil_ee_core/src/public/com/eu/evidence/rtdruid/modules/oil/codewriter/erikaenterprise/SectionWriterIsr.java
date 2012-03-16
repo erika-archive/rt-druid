@@ -56,17 +56,20 @@ public class SectionWriterIsr implements IEEWriterKeywords {
 	
 	protected boolean checkStaticIsrTable(int currentRtosId) {
 		if (checked == null) {
-			String[] existing = parent.extractEE_Opts(EE_OPT_USER_ONLY, currentRtosId);
-			checked = Boolean.TRUE;
-			for (String s: existing) {
-				if ("EE_ISR_DYNAMIC_TABLE".equals(s)) {
-					checked = Boolean.FALSE;
-					break;
-				}
+			checked = checkStaticIsrTable(parent, currentRtosId);
+		}
+		return checked.booleanValue();
+	}
+	public static boolean checkStaticIsrTable(ErikaEnterpriseWriter parent, int currentRtosId) {
+		boolean answer = true;
+		String[] existing = parent.extractEE_Opts(EE_OPT_USER_ONLY, currentRtosId);
+		for (String s: existing) {
+			if ("EE_ISR_DYNAMIC_TABLE".equals(s)) {
+				answer = Boolean.FALSE;
+				break;
 			}
 		}
-		
-		return checked.booleanValue();
+		return answer;
 	}
 
 

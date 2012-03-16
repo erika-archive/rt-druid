@@ -82,6 +82,17 @@ public interface ISimpleGenResKeywords {
 	public final static String COUNTER_MAX_ALLOWED = "counter_maxAllowed";
 	public final static String COUNTER_TICKS = "counter_ticks";
 	public final static String COUNTER_MIN_CYCLE = "counter_minCycle";
+	public final static String COUNTER_SECONDPERTICK = "counter_second_per_ticks";
+	
+	public final static String COUNTER_TYPE = "counter_type";
+	public final static String COUNTER_TYPE_HW = "HARDWARE";
+	public final static String COUNTER_DEVICE = "counter__hw_device";
+	/** Handler defined by the user (if one)*/
+	public final static String COUNTER_USER_HANDLER = "counter__hw_user_handler";
+	/** Handler used by the code (it may be the one proposed by the user or one computed by the code generator */
+	public final static String COUNTER_GENERATED_HANDLER = "counter__hw_generated_handler";
+	public final static String COUNTER_SYSTIMER = "counter__hw_system_timer";
+	public final static String COUNTER_TYPE_SW = "SOFTWARE";
 	
 	public final static String COUNTER_OS_APPLICATION_NAME = "counter_mapped_to_an_os_application";
 

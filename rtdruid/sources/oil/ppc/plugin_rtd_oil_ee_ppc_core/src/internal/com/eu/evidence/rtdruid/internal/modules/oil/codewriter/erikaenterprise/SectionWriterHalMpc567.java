@@ -36,6 +36,7 @@ import com.eu.evidence.rtdruid.modules.oil.codewriter.common.SectionWriter;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.comments.FileTypes;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.comments.ICommentWriter;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.SectionWriterIsr;
+import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.SectionWriterKernelCounterHw;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.hw.CpuHwDescription;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.hw.EECpuDescriptionManager;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.hw.EEStackData;
@@ -57,6 +58,7 @@ public class SectionWriterHalMpc567 extends SectionWriter
 			IExtractObjectsExtentions,
 			IExtractKeywordsExtentions {
 
+	private static final String EE_E200ZX_SYSTEM_TIMER_HANDLER = "EE_e200zx_system_timer_handler";
 	final String indent1 = IWritersKeywords.INDENT;
 	final String indent2 = indent1 + IWritersKeywords.INDENT;
 
@@ -289,6 +291,10 @@ public class SectionWriterHalMpc567 extends SectionWriter
 			handleStacks(currentRtosId, ool);
 		}
 
+		{
+			SectionWriterKernelCounterHw counterHwWriter = new SectionWriterKernelCounterHw(parent, IWritersKeywords.CPU_PPCE200ZX, EE_E200ZX_SYSTEM_TIMER_HANDLER);
+			counterHwWriter.updateObjects();
+		}
 	
 	}
 	
@@ -308,6 +314,7 @@ public class SectionWriterHalMpc567 extends SectionWriter
 
 		final int rtosNumber = oilObjects.length;
 		SectionWriterIsr isrWriter = new SectionWriterIsr(parent, IWritersKeywords.CPU_PPCE200ZX);
+		SectionWriterKernelCounterHw counterHwWriter = new SectionWriterKernelCounterHw(parent, IWritersKeywords.CPU_PPCE200ZX, EE_E200ZX_SYSTEM_TIMER_HANDLER);
 
 
 		/***********************************************************************
@@ -352,6 +359,7 @@ public class SectionWriterHalMpc567 extends SectionWriter
 			
 			// isr
 			isrWriter.writeIsr(currentRtosId, ool, cpuBuffs);
+			counterHwWriter.writeCounterHw(currentRtosId, ool, cpuBuffs);
 			
 			// makefile
 			prepareMakeFile(ool);

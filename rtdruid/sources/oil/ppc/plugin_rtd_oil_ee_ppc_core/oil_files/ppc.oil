@@ -69,6 +69,7 @@ IMPLEMENTATION ee {
                 ] MULTI_STACK = FALSE;
                 
                 UINT32 SYS_STACK_SIZE;
+                FLOAT CPU_CLOCK;
                 
                 ENUM [
                 	E200Z0,

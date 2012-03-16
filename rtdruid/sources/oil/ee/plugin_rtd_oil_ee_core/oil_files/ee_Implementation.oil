@@ -722,7 +722,14 @@ edf
         UINT32 TICKSPERBASE;
         
         
-        ENUM [HARDWARE, SOFTWARE] TYPE;
+        ENUM [
+        	HARDWARE {
+        		BOOLEAN SYSTEM_TIMER = FALSE;
+        		STRING DEVICE;
+        		STRING HANDLER;
+        	},
+        	SOFTWARE
+        ] TYPE;
         FLOAT SECONDSPERTICK;
         
         STRING CPU_ID = "default_cpu";

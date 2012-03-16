@@ -45,6 +45,8 @@ import com.eu.evidence.rtdruid.modules.oil.erikaenterprise.interfaces.IGetEEOPTE
 import com.eu.evidence.rtdruid.modules.oil.erikaenterprise.location.EEPaths;
 import com.eu.evidence.rtdruid.modules.oil.interfaces.ISectionWriter;
 import com.eu.evidence.rtdruid.vartree.IVarTree;
+import com.eu.evidence.rtdruid.vartree.IVarTreePointer;
+import com.eu.evidence.rtdruid.vartree.IVariable;
 import com.eu.evidence.rtdruid.vartree.data.DataPackage;
 import com.eu.evidence.rtdruid.vartree.data.init.DataPath;
 
@@ -471,7 +473,42 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 					if (cpuPrefix != null) {
 					    answer[i].setProperty(SGRK_OS_CPU_DATA_PREFIX, cpuPrefix);
 					}
-					
+				}
+				{
+					// cpu speed
+					IVarTreePointer vtp = vt.newVarTreePointer();
+					boolean ok = vtp.goAbsolute(answer[i].getPath());
+					ok &= vtp.goParent();
+					ok &= vtp.go(DPKG.getCpu_Speed().getName());
+					if (ok) {
+						IVariable v = vtp.getVar();
+						if (v != null && v.get() != null) {
+							String speedt = v.toString();
+							if (!speedt.isEmpty() && !(""+null).equals(speedt)) {
+								double factor = 1000000;
+								if (speedt.toLowerCase().contains("ghz")) {
+									factor = 1000000000;
+									speedt = speedt.toLowerCase().replace("ghz", "").trim();
+								} else if (speedt.toLowerCase().contains("mhz")) {
+									speedt = speedt.toLowerCase().replace("mhz", "").trim();
+								} else if (speedt.toLowerCase().contains("khz")) {
+									factor = 1000;
+									speedt = speedt.toLowerCase().replace("khz", "").trim();
+								} else if (speedt.toLowerCase().contains("hz")) {
+									factor = 1;
+									speedt = speedt.toLowerCase().replace("hz", "").trim();
+								}
+								double speed = 0;
+								try {
+									speed = Double.parseDouble(speedt);
+								} catch (NumberFormatException e) {
+									throw new OilCodeWriterException("Expected a real number as cpu speed", e);
+								}
+								
+								answer[i].setProperty(SGRK_OS_CPU_SPEED_HZ, "" + Math.round(speed*factor));
+							}
+						}
+					}
 				}
 			}
 
@@ -507,11 +544,71 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 				 * Set, for each counter an id that is stored as a property : COUNTER_SYS_ID.
 				 */
 			{
+				// reorder: first HW counters
+				boolean foundSysTimer = false;
+				ArrayList<ISimpleGenRes> hw = new ArrayList<ISimpleGenRes>();
+				ArrayList<ISimpleGenRes> sw = new ArrayList<ISimpleGenRes>();
+				for (ISimpleGenRes sgr : answer) {
+					final String path = sgr.getPath()
+							+S+ DPKG.getTask_OilVar().getName()
+							+S+IOilXMLLabels.OBJ_COUNTER+oilHwRtosPrefix;
+
+					{ // get mapping between counter and CPU
+						String[] child = new String[1];
+						String counter_type = CommonUtils.getFirstChildEnumType(vt, path+"TYPE", child);
+						
+						if (ISimpleGenResKeywords.COUNTER_TYPE_HW.equals(counter_type)) {
+							sgr.setObject(ISimpleGenResKeywords.COUNTER_TYPE, ISimpleGenResKeywords.COUNTER_TYPE_HW);
+
+							String[] device = CommonUtils.getValue(vt, path+"TYPE"+VARIANT_ELIST+child[0] + PARAMETER_LIST + "DEVICE");
+							
+							if (device!= null && device.length > 0) {
+								sgr.setObject(ISimpleGenResKeywords.COUNTER_DEVICE, device[0]);
+							}
+							
+							String[] handler = CommonUtils.getValue(vt, path+"TYPE"+VARIANT_ELIST+child[0] + PARAMETER_LIST + "HANDLER");
+							
+							if (handler!= null && handler.length > 0) {
+								sgr.setObject(ISimpleGenResKeywords.COUNTER_USER_HANDLER, handler[0]);
+							}
+							
+							
+							String systimer = CommonUtils.getFirstChildEnumType(vt, path+"TYPE"+VARIANT_ELIST+child[0] + PARAMETER_LIST + "SYSTEM_TIMER");
+							
+							boolean first = false;
+							if (systimer!= null && "true".equalsIgnoreCase(systimer)) {
+								sgr.setObject(ISimpleGenResKeywords.COUNTER_SYSTIMER, Boolean.TRUE);
+								first = true;
+								
+								if (foundSysTimer) {
+									Messages.sendWarningNl("Found more than one System Time for a single cpu");
+								}
+								
+								foundSysTimer = true;
+							}
+
+							if (first) {
+								hw.add(0, sgr);
+							} else {
+								hw.add(sgr);
+							}
+						} else {
+							sgr.setObject(ISimpleGenResKeywords.COUNTER_TYPE, ISimpleGenResKeywords.COUNTER_TYPE_SW);
+							sw.add(sgr);
+						}
+					}
+				}
+				
+				if (hw.size()>0) {
+					hw.addAll(sw);
+					answer = (ISimpleGenRes[]) hw.toArray(new ISimpleGenRes[hw.size()]);
+				}
+				
+				
 				for (int i=0; i<answer.length; i++) {
 					final String path = answer[i].getPath()
 							+S+ DPKG.getTask_OilVar().getName()
 							+S+IOilXMLLabels.OBJ_COUNTER+oilHwRtosPrefix;
-
 					
 					answer[i].setProperty(ISimpleGenResKeywords.COUNTER_SYS_ID, "" + i);
 
@@ -524,7 +621,20 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 							answer[i].setObject(ISimpleGenResKeywords.COUNTER_CPU_MAPPED_ID, DEFAULT_CPU_NAME);
 						}
 					}
-
+					{ // get mapping between counter and CPU
+						String[] spt = CommonUtils.getValue(vt, path+"SECONDSPERTICK");
+						
+						if (spt!= null && spt.length > 0) {
+							
+							double speed = 0;
+							try {
+								speed = Double.parseDouble(spt[0]);
+							} catch (NumberFormatException e) {
+								throw new OilCodeWriterException("Expected a real number as second per tick of counter "+answer[i].getName(), e);
+							}
+							answer[i].setObject(ISimpleGenResKeywords.COUNTER_SECONDPERTICK, Math.round(speed*1000000));
+						}
+					}
 				}
 			}
 	
