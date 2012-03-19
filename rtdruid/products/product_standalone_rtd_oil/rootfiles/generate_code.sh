@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e
 
@@ -23,4 +23,16 @@ case "`uname -s`" in
 #    
 	;;
 esac
-exec java -jar "$LAUNCHER_JAR" -data "$3/workspace" -application com.eu.evidence.rtdruid.oil.standalone.writer --inputFile "$2" --outputDir "$3"
+
+# compact multiple inputs
+shift
+INPUTS=( )
+OUTPUT="$1"
+shift
+while (( "$#" )); do
+INPUTS[${#INPUTS[*]}]="$OUTPUT"
+OUTPUT="$1"
+shift
+done
+	
+exec java -jar "$LAUNCHER_JAR" -data "$OUTPUT/workspace" -application com.eu.evidence.rtdruid.oil.standalone.writer --inputFile "${INPUTS[@]}" --outputDir "$OUTPUT"

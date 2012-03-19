@@ -12,7 +12,24 @@ goto end
 
 :run
 for /f "delims= tokens=1" %%c in ('dir /B /S /OD %1\plugins\org.eclipse.equinox.launcher_*.jar') do set jar_launcher=%%c
-java -jar "%jar_launcher%" -data %3/workspace -application com.eu.evidence.rtdruid.oil.standalone.writer --inputFile %2 --outputDir %3 
+
+
+shift
+	
+set inputs=
+set outputDir=
+
+@ECHO OFF
+:Loop
+IF [%1]==[] GOTO Continue
+set inputs=%inputs% %outputDir%
+set outputDir=%1
+SHIFT
+GOTO Loop
+:Continue
+
+
+java -jar "%jar_launcher%" -data %outputDir%/workspace -application com.eu.evidence.rtdruid.oil.standalone.writer --inputFile %inputs% --outputDir %outputDir% 
 
 
 :end
