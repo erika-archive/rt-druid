@@ -337,7 +337,7 @@ public class ResourceList {
 	 *            contains all objects (only tasks are required)
 	 */
 	public ResourceList(IVarTree vt, String prefix, String oilPrefix,
-			IOilObjectList[] oilObjects, boolean useResScheduler) {
+			IOilObjectList[] oilObjects, final boolean useResScheduler) {
 
 		final LinkedList rTt;
 		{

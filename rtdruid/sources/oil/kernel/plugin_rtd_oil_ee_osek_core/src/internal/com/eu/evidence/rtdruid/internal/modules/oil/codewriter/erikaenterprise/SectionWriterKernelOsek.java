@@ -1534,11 +1534,20 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 		
 		final IVarTree vt = parent.getVt();
 
+		ArrayList<String> autokeywords = new ArrayList<String>(); 
+		
+		String[][] enabledByDefault = new String[][] {
+			new String[] {"USERESSCHEDULER", "TRUE", "FALSE", OsekConstants.DEF__OSEKOS_HAS_USERESSCHEDULER__},
+			new String[] { "STARTUPSYNC", "TRUE", "FALSE", OsekConstants.DEF__OSEKOS_HAS_STARTUPSYNC__},
+		};
+		
+
 		for (int rtodId=0; rtodId<rtosPrefix.length; rtodId++) {
 
 			final String currentRtosPrefix = parent.computeOilRtosPrefix(rtosPrefix[rtodId]);
 	
 			List<AutoOptions> options = new ArrayList<AutoOptions>();
+			List<AutoOptions> autoOptions = new ArrayList<AutoOptions>();
 
 			
 			options.add(new AutoOptions(currentRtosPrefix, "STATUS", "EXTENDED", OsekConstants.DEF__OSEKOS_EXTENDED_STATUS__, false));
@@ -1549,11 +1558,21 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 			options.add(new AutoOptions(currentRtosPrefix, "POSTTASKHOOK", "TRUE", OsekConstants.DEF__OSEKOS_HAS_POSTTASKHOOK__, false));
 			options.add(new AutoOptions(currentRtosPrefix, "USEGETSERVICEID", "TRUE", OsekConstants.DEF__OSEKOS_HAS_USEGETSERVICEID__, false));
 			options.add(new AutoOptions(currentRtosPrefix, "USEPARAMETERACCESS", "TRUE", OsekConstants.DEF__OSEKOS_HAS_USEPARAMETERACCESS__, false));
-			options.add(new AutoOptions(currentRtosPrefix, "USERESSCHEDULER", "TRUE", OsekConstants.DEF__OSEKOS_HAS_USERESSCHEDULER__, true));
-			options.add(new AutoOptions(currentRtosPrefix, "STARTUPSYNC", "TRUE", OsekConstants.DEF__OSEKOS_HAS_STARTUPSYNC__, true));
+
+			// this two should be enabled if not specified FALSE
+			for (String[] s: enabledByDefault) {
+				options.add(    new AutoOptions(currentRtosPrefix, s[0], s[1], s[3], false));
+				autoOptions.add(new AutoOptions(currentRtosPrefix, s[0], s[2], s[3], false));
+			}
 
 			AutoOptions.updateKeywords(options, keywords, vt);
-
+			AutoOptions.updateKeywords(autoOptions, autokeywords, vt);
+		}
+		
+		for (String[] s: enabledByDefault) {
+			if (!(autokeywords.contains(s[3]))) {
+				keywords.add(s[3]);
+			}
 		}
 		
 	}
