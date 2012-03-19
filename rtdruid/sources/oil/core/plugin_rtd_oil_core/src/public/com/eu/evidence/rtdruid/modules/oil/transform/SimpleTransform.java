@@ -2400,7 +2400,7 @@ public class SimpleTransform implements IOilTransform {
 			List olist = ool.getList(order[oolId]);
 			for (Iterator iter = olist.iterator(); iter.hasNext();) {
 				writeApplicationObject(buffer, oilVarPrefix,
-						(ISimpleGenRes) iter.next(), order[oolId], rtosPath);
+						(ISimpleGenRes) iter.next(), order[oolId], new String[] {rtosPath});
 			}
 
 		}
@@ -2435,8 +2435,8 @@ public class SimpleTransform implements IOilTransform {
 					objects[i].setProperty(IOilXMLLabels.ATTR_TYPE,
 							IOilXMLLabels.OBJ_OS);
 					
-					objects[i].setProperty(ISimpleGenResKeywords.RTOS_PATH,
-							rtos[i]);
+					objects[i].setObject(ISimpleGenResKeywords.RTOS_PATH,
+							new String[] {rtos[i]});
 				}
 			}
 				break;
@@ -2468,8 +2468,10 @@ public class SimpleTransform implements IOilTransform {
 						SimpleGenRes s = new SimpleGenRes(name, path+S+ name);
 						s.setProperty(IOilXMLLabels.ATTR_TYPE,
 								IOilXMLLabels.OBJ_OSAPPLICATION);
-						s.setProperty(ISimpleGenResKeywords.RTOS_PATH,
-								rtosPath);
+						s.setObject(ISimpleGenResKeywords.RTOS_PATH,
+								new String[] {rtosPath});
+						s.setObject(ISimpleGenResKeywords.OS_APPL_PATH,
+								new String[] {s.getPath()});
 						tempList.add(s);
 					}
 				}
@@ -2494,10 +2496,10 @@ public class SimpleTransform implements IOilTransform {
 				ArrayList<ISimpleGenRes> objList = new ArrayList<ISimpleGenRes>();
 	
 				for (int i = 0; i < ts.getPrefixNumber(); i++) {
-					for (int ri=0; ri<rtos.length; ri++) {
+					for (String rtos_path: rtos) {
 						String rtosName = ""
 							+ vt.newTreeInterface().getValue(
-									rtos[ri] + S + DPKG.getRtos_Name().getName());
+									rtos_path + S + DPKG.getRtos_Name().getName());
 						
 						if (rtosName != null && rtosName.equals(ts.getPrefix(i))) {
 	
@@ -2546,8 +2548,8 @@ public class SimpleTransform implements IOilTransform {
 									}
 								}
 								
-								object.setProperty(ISimpleGenResKeywords.RTOS_PATH,
-										rtos[ri]);
+								object.setObject(ISimpleGenResKeywords.RTOS_PATH,
+										new String[] {rtos_path});
 							}
 							break;
 						}
@@ -2621,8 +2623,8 @@ public class SimpleTransform implements IOilTransform {
 									}
 								}
 								
-								object.setProperty(ISimpleGenResKeywords.RTOS_PATH,
-										rtos[ri]);
+								object.setObject(ISimpleGenResKeywords.RTOS_PATH,
+										new String[] {rtos[ri]});
 							}
 							break;
 						}
@@ -2681,8 +2683,8 @@ public class SimpleTransform implements IOilTransform {
 						ISimpleGenRes tmp = new SimpleGenRes(names[i], prefix
 								+ names[i]);
 						tmp.setProperty(IOilXMLLabels.ATTR_TYPE, type);
-						tmp.setProperty(ISimpleGenResKeywords.RTOS_PATH,
-								rtos[0]);
+						tmp.setObject(ISimpleGenResKeywords.RTOS_PATH,
+								new String[] {rtos[0]});
 						objList.add(tmp);
 					}
 
@@ -2702,8 +2704,8 @@ public class SimpleTransform implements IOilTransform {
 					objects[i] = new SimpleGenRes(names[i], prefix + names[i]);
 					objects[i].setProperty(IOilXMLLabels.ATTR_TYPE,
 							IOilXMLLabels.OBJ_RESOURCE);
-					objects[i].setProperty(ISimpleGenResKeywords.RTOS_PATH,
-							rtos[0]);
+					objects[i].setObject(ISimpleGenResKeywords.RTOS_PATH,
+							new String[] {rtos[0]});
 				}
 			}
 				break;
@@ -2718,8 +2720,8 @@ public class SimpleTransform implements IOilTransform {
 					objects[i] = new SimpleGenRes(names[i], prefix + names[i]);
 					objects[i].setProperty(IOilXMLLabels.ATTR_TYPE,
 							IOilXMLLabels.OBJ_APPMODE);
-					objects[i].setProperty(ISimpleGenResKeywords.RTOS_PATH,
-							rtos[0]);
+					objects[i].setObject(ISimpleGenResKeywords.RTOS_PATH,
+							new String[] {rtos[0]});
 				}
 			}
 				break;
@@ -2737,8 +2739,8 @@ public class SimpleTransform implements IOilTransform {
 					objects[i] = new SimpleGenRes(names[i], prefix + names[i]);
 					objects[i].setProperty(IOilXMLLabels.ATTR_TYPE,
 							IOilXMLLabels.OBJ_NETWORKMESSAGE);
-					objects[i].setProperty(ISimpleGenResKeywords.RTOS_PATH,
-							rtos[0]);
+					objects[i].setObject(ISimpleGenResKeywords.RTOS_PATH,
+							new String[] {rtos[0]});
 					
 					
 					try {
@@ -2779,77 +2781,12 @@ public class SimpleTransform implements IOilTransform {
 	 *            identifies the Application
 	 */
 	protected void writeApplicationObject(StringBuffer buffer,
-			String oilVarPrefix, ISimpleGenRes object, int objType, String rtosPath) {
+			String oilVarPrefix, ISimpleGenRes object, int objType, String[] rtosPath) {
 
 		// header
 		buffer.append(INDENT + object.getString(IOilXMLLabels.ATTR_TYPE) + " "
 				+ object.getName() + " {\n");
-
-		IVarTreePointer vtp = vt.newVarTreePointer();
-		vtp.goAbsolute(object.getPath());
-		String path = null;
-
-		// choose path
-		switch (objType) {
-		case IOilObjectList.OS: {
-
-			path = DPKG.getRtos_OilVar().getName() + S
-					+ object.getString(IOilXMLLabels.ATTR_TYPE) + S
-					+ oilVarPrefix;
-		}
-			break;
-		case IOilObjectList.OSAPPLICATION: {
-			path = DPKG.getOsApplication_OilVar().getName() + S
-					+ object.getString(IOilXMLLabels.ATTR_TYPE) + S
-					+ oilVarPrefix;
-		}
-		case IOilObjectList.ISR:
-		case IOilObjectList.TASK: {
-			path = DPKG.getTask_OilVar().getName() + S
-					+ object.getString(IOilXMLLabels.ATTR_TYPE) + S
-					+ oilVarPrefix;
-		}
-			break;
-		case IOilObjectList.ALARM:
-		case IOilObjectList.COUNTER:
-		case IOilObjectList.EVENT: {
-			path = DPKG.getRtos_OilVar().getName() + S
-				+ object.getString(IOilXMLLabels.ATTR_TYPE) + S
-				+ oilVarPrefix;
-		}
-			break;
-		case IOilObjectList.RESOURCE: {
-			path = DPKG.getMutex_OilVar().getName() + S
-				+ IOilXMLLabels.OBJ_RESOURCE+ S
-				+ oilVarPrefix;
-		}
-			break;
-		case IOilObjectList.APPMODE: {
-			path = DPKG.getRtos_OilVar().getName() + S
-				+ IOilXMLLabels.OBJ_APPMODE + S
-				+ oilVarPrefix;
-		}
-			break;
-		case IOilObjectList.NETWORKMESSAGE: {
-			
-			// NOTE: This path doesn't exist
-			path = DPKG.getMutex_OilVar().getName() + S
-				+ IOilXMLLabels.OBJ_RESOURCE+ S
-				+ oilVarPrefix;
-		}
-			break;
-		case IOilObjectList.MESSAGE:
-		case IOilObjectList.COM:
-		case IOilObjectList.NM:
-		case IOilObjectList.IPDU:
-		default:
-			vtp.goAbsolute(rtosPath);
-			path = DPKG.getRtos_OilVar().getName() + S
-				+ object.getString(IOilXMLLabels.ATTR_TYPE) + S
-				+ oilVarPrefix;
-			break;
-		}
-
+		
 		// add properties
 		writeApplicationObjectProperties(buffer, INDENT + INDENT,
 				object, objType, rtosPath);
@@ -2858,12 +2795,96 @@ public class SimpleTransform implements IOilTransform {
 		if (object.containsProperty(SGR_ADDITIONAL)) {
 			additional = (Map) object.getObject(SGR_ADDITIONAL);
 		}
+
+		// default value
+		String[] objePath = new String[] {object.getPath()};
+		switch (objType) {
+			case IOilObjectList.OSAPPLICATION: {
+				if (object.containsProperty(ISimpleGenResKeywords.OS_APPL_PATH)) {
+					objePath = (String[]) object.getObject(ISimpleGenResKeywords.OS_APPL_PATH);
+				}
+				break;
+			}
+			case IOilObjectList.MESSAGE:
+			case IOilObjectList.COM:
+			case IOilObjectList.NM:
+			case IOilObjectList.IPDU:
+				objePath = rtosPath;
+		}
 		
-		// children
-		if (vtp.go(path)) {
-			for (boolean ok = vtp.goFirstChild(); ok; ok = vtp.goNextSibling()) {
-				writeApplicationObject(buffer, INDENT + INDENT,
-						(IVarTreePointer) vtp.clone(), additional, "");
+		for (String singlePath: objePath) {
+			IVarTreePointer vtp = vt.newVarTreePointer();
+			vtp.goAbsolute(singlePath);
+			String path = null;
+	
+			// choose path
+			switch (objType) {
+			case IOilObjectList.OS: {
+	
+				path = DPKG.getRtos_OilVar().getName() + S
+						+ object.getString(IOilXMLLabels.ATTR_TYPE) + S
+						+ oilVarPrefix;
+			}
+				break;
+			case IOilObjectList.OSAPPLICATION: {
+				path = DPKG.getOsApplication_OilVar().getName() + S
+						+ object.getString(IOilXMLLabels.ATTR_TYPE) + S
+						+ oilVarPrefix;
+				break;
+			}
+			case IOilObjectList.ISR:
+			case IOilObjectList.TASK: {
+				path = DPKG.getTask_OilVar().getName() + S
+						+ object.getString(IOilXMLLabels.ATTR_TYPE) + S
+						+ oilVarPrefix;
+			}
+				break;
+			case IOilObjectList.ALARM:
+			case IOilObjectList.COUNTER:
+			case IOilObjectList.EVENT: {
+				path = DPKG.getRtos_OilVar().getName() + S
+					+ object.getString(IOilXMLLabels.ATTR_TYPE) + S
+					+ oilVarPrefix;
+			}
+				break;
+			case IOilObjectList.RESOURCE: {
+				path = DPKG.getMutex_OilVar().getName() + S
+					+ IOilXMLLabels.OBJ_RESOURCE+ S
+					+ oilVarPrefix;
+			}
+				break;
+			case IOilObjectList.APPMODE: {
+				path = DPKG.getRtos_OilVar().getName() + S
+					+ IOilXMLLabels.OBJ_APPMODE + S
+					+ oilVarPrefix;
+			}
+				break;
+			case IOilObjectList.NETWORKMESSAGE: {
+				
+				// NOTE: This path doesn't exist
+				path = DPKG.getMutex_OilVar().getName() + S
+					+ IOilXMLLabels.OBJ_RESOURCE+ S
+					+ oilVarPrefix;
+			}
+				break;
+			case IOilObjectList.MESSAGE:
+			case IOilObjectList.COM:
+			case IOilObjectList.NM:
+			case IOilObjectList.IPDU:
+			default:
+				path = DPKG.getRtos_OilVar().getName() + S
+					+ object.getString(IOilXMLLabels.ATTR_TYPE) + S
+					+ oilVarPrefix;
+				break;
+			}
+	
+			
+			// children
+			if (vtp.go(path)) {
+				for (boolean ok = vtp.goFirstChild(); ok; ok = vtp.goNextSibling()) {
+					writeApplicationObject(buffer, INDENT + INDENT,
+							(IVarTreePointer) vtp.clone(), additional, "");
+				}
 			}
 		}
 
@@ -2872,7 +2893,7 @@ public class SimpleTransform implements IOilTransform {
 	}
 	
 	protected void writeApplicationObjectProperties(StringBuffer buffer, String indent,
-			ISimpleGenRes object, int objType, String rtosPath) {
+			ISimpleGenRes object, int objType, String[] rtosPath) {
 		
 		switch (objType) {
 			case IOilObjectList.TASK: {

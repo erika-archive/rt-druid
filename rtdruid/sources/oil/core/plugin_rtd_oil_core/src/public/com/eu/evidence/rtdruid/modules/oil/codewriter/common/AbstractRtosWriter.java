@@ -192,7 +192,7 @@ public abstract class AbstractRtosWriter implements IRtosWriter {
 				// search all objects
 				for (int id = 0; id < IOilObjectList.OBJECT_NUMBER; id++) {
 					List<ISimpleGenRes> list = ool.getList(id);
-					ool.setList(id, merge(list, extractObject(id, prefix)));
+					ool.setList(id, merge(id, list, extractObject(id, prefix)));
 				}
 			}
 		}
@@ -231,7 +231,7 @@ public abstract class AbstractRtosWriter implements IRtosWriter {
 	
 	
 
-	protected List<? extends ISimpleGenRes> merge(List<ISimpleGenRes> list,
+	protected List<? extends ISimpleGenRes> merge(int objType, List<ISimpleGenRes> list,
 			ISimpleGenRes[] extractObject) {
 		if (list == null) {
 			list = new ArrayList<ISimpleGenRes>();
@@ -244,23 +244,40 @@ public abstract class AbstractRtosWriter implements IRtosWriter {
 		
 		// first add all list elements
 		for (ISimpleGenRes sgr: list) {
-			String path = sgr.getPath();
-			if (answer.containsKey(path)) {
-				answer.get(path).merge(sgr);
+			String id = getId(objType, sgr);
+			if (answer.containsKey(id)) {
+				answer.get(id).merge(sgr);
 			} else {
-				answer.put(path, sgr);
+				answer.put(id, sgr);
 			}
 		}
 		// then add all vector elments
 		for (ISimpleGenRes sgr: extractObject) {
-			String path = sgr.getPath();
-			if (answer.containsKey(path)) {
-				answer.get(path).merge(sgr);
+			String id = getId(objType, sgr);
+			if (answer.containsKey(id)) {
+				answer.get(id).merge(sgr);
 			} else {
-				answer.put(path, sgr);
+				answer.put(id, sgr);
 			}
 		}
 		return new ArrayList<ISimpleGenRes>(answer.values());
+	}
+	
+	protected String getId(int objType, ISimpleGenRes sgr) {
+		String answer;
+		switch (objType) {
+		case IOilObjectList.OSAPPLICATION:
+//		case IOilObjectList.MESSAGE:
+//		case IOilObjectList.COM:
+//		case IOilObjectList.NM:
+//		case IOilObjectList.IPDU:
+			answer = sgr.getName();
+			break;
+		default:
+			answer = sgr.getPath();
+		};
+		
+		return answer;
 	}
 	
 	
@@ -423,8 +440,11 @@ public abstract class AbstractRtosWriter implements IRtosWriter {
 					SimpleGenRes s = new SimpleGenRes(name, path+S+ name);
 					s.setProperty(IOilXMLLabels.ATTR_TYPE,
 							IOilXMLLabels.OBJ_OSAPPLICATION);
-					s.setProperty(ISimpleGenResKeywords.RTOS_PATH,
-							rtosPrefix);
+					
+					s.setObject(ISimpleGenResKeywords.RTOS_PATH,
+							new String[] {rtosPrefix});
+					s.setObject(ISimpleGenResKeywords.OS_APPL_PATH,
+							new String[] { s.getPath()});
 					tempList.add(s);
 				}
 			}

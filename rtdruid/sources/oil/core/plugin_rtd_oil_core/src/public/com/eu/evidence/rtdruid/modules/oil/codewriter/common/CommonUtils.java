@@ -9,7 +9,9 @@ package com.eu.evidence.rtdruid.modules.oil.codewriter.common;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Set;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
@@ -19,6 +21,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 
+import com.eu.evidence.rtdruid.internal.modules.oil.keywords.ISimpleGenResKeywords;
 import com.eu.evidence.rtdruid.modules.oil.abstractions.ISimpleGenRes;
 import com.eu.evidence.rtdruid.vartree.IMultiValues;
 import com.eu.evidence.rtdruid.vartree.ITreeInterface;
@@ -27,6 +30,7 @@ import com.eu.evidence.rtdruid.vartree.IVarTreePointer;
 import com.eu.evidence.rtdruid.vartree.IVariable;
 import com.eu.evidence.rtdruid.vartree.data.init.DataPath;
 import com.eu.evidence.rtdruid.vartree.data.init.RTD_XMI_Factory;
+import com.eu.evidence.rtdruid.vartree.data.init.Vt2StringUtilities;
 import com.eu.evidence.rtdruid.vartree.data.oil.OilApplPackage;
 import com.eu.evidence.rtdruid.vartree.tools.Search;
 
@@ -132,6 +136,71 @@ public final class CommonUtils {
 
 		return answer;
 	}
+	
+	/**
+	 * This method searchs the first child of the VARIANT node indentifies by
+	 * path, and returns its Type. If the path is wrong or there isn't any
+	 * child, this method returns null. <br>
+	 * If chidName isn't null and it has one or more elements, it will contain
+	 * the name/identifier of the first child.
+	 * 
+	 * @param vt
+	 *            contains all data
+	 * @param path
+	 *            identifies the Variant node
+	 * @param childName
+	 *            if it isn't null and it has one or more elements, it will
+	 *            contain the name/identifier of the first child
+	 * 
+	 * @return the type of first child of specified node. Returns null if that
+	 *         node is not found or doesn't contain any child
+	 */
+	public static String getFirstChildEnumType(IVarTree vt, String[] paths,
+			String[] fullPath) {
+		IVarTreePointer vtp = vt.newVarTreePointer();
+		
+		for (String path: paths) {
+			boolean ok = true;
+			String answer = null;
+			String firstChildName = null;
+	
+			
+			// search the node ....
+			ok &= vtp.goAbsolute(path + VARIANT_ELIST);
+			
+			ok &= vtp.goFirstChild();
+			// ... remember the name of First child
+			firstChildName = vtp.getName();
+			ok &= vtp.go(ENUM_TYPE);
+			if (ok && !vtp.isContainer()) {
+				// ok. Node found
+	
+				IVariable var = vtp.getVar();
+				if (var != null && var.get() != null) {
+					// there is a not null Type. Store it
+	
+					answer = var.toString();
+				}
+	
+				// if is required the name of First child ...
+				if (fullPath != null && fullPath.length > 0) {
+					fullPath[0] = path + VARIANT_ELIST+firstChildName;
+				}
+				
+				return answer;
+			}
+		}
+
+		return null;
+	}
+	
+	public static String[] addToAllStrings(String[] base, String addition) {
+		String[] copy = Arrays.copyOf(base, base.length);
+		for (int i=0; i<copy.length; i++) {
+			copy[i] += addition;
+		}
+		return copy;
+	}
 
 	/**
 	 * This method searches all children of the VARIANT node indentifies by
@@ -233,6 +302,52 @@ public final class CommonUtils {
 		return answer;
 	}
 
+	/**
+	 * This method searchs a Value node and returns all Values stored inside it.
+	 * 
+	 * @param vt
+	 *            contains all data
+	 * @param path
+	 *            identifies the Value node
+	 * 
+	 * @return the all values of specified node. Returns null if that node is not
+	 *         found or is unset
+	 */
+	public static String[] getValues(IVarTree vt, String[] paths) {
+		IVarTreePointer vtp = vt.newVarTreePointer();
+	
+		Set<String> checkedPaths = new HashSet<String>();
+		ArrayList<String> answer = new ArrayList<String>();
+		
+		for (String path: paths) {
+			
+			if (!checkedPaths.contains(path)) {
+				checkedPaths.add(path);
+			
+				boolean ok = true;
+				// search the node
+				ok &= vtp.goAbsolute(path + VALUE_VALUE);
+				if(!ok){
+					ok = true;
+					ok &= vtp.goAbsolute(path + ENUM_TYPE);
+				}
+				if (ok && !vtp.isContainer()) {
+					IVariable var = vtp.getVar(); // take the variable
+		
+					if (var != null && var.get() != null) {
+						// store all values
+						if (var instanceof IMultiValues) {
+							answer.addAll(Arrays.asList(((IMultiValues) var).getValues()));
+						} else {
+							answer.add(var.toString());
+						}
+					}
+				}
+			}
+		}
+
+		return (String[]) answer.toArray(new String[answer.size()]);
+	}
 	
 	/**
 	 * This method searchs if <b>all</b> contains a collection with all end only

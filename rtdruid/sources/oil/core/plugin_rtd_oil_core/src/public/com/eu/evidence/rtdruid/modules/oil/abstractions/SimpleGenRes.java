@@ -7,10 +7,10 @@ package com.eu.evidence.rtdruid.modules.oil.abstractions;
 
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -282,18 +282,39 @@ public class SimpleGenRes implements ISimpleGenRes {
 								setObject(key, nmap);
 							}
 						} else if (oldValue instanceof Collection) {
+							ArrayList nlist = new ArrayList();
+							nlist.addAll((Collection)oldValue);
+							
+							boolean failed = true;
 							try {
-								((Collection) oldValue).addAll((Collection) newValue);
+								for (Object o: (Collection) newValue) {
+									if (!((Collection) oldValue).contains(o)) {
+										((Collection) oldValue).add(o);
+									}
+								}
+								failed = false;
 							} catch (UnsupportedOperationException e) {
-								ArrayList nlist = new ArrayList();
-								nlist.addAll((Collection)oldValue);
-								nlist.addAll((Collection)newValue);
+							}
+							if (failed) {
+								for (Object o: (Collection) newValue) {
+									if (!(nlist.contains(o))) {
+										nlist.add(o);
+									}
+								}
 								setObject(key, nlist);
-							} 
+							}
+						} else if (oldValue instanceof String[]) {
+							setObject(key, merge((String[])oldValue, (String[])newValue));
+						} else if (oldValue instanceof int[]) {
+							setObject(key, merge((String[])oldValue, (String[])newValue));
+						} else if (oldValue instanceof double[]) {
+							setObject(key, merge((String[])oldValue, (String[])newValue));
+						} else if (oldValue instanceof Object[]) {
+							setObject(key, merge((String[])oldValue, (String[])newValue));
 						} else if ((""+oldValue).equals(""+newValue) || oldValue.equals(newValue)) {
 							// the same value, do nothing
 						} else {
-							RtdruidLog.showDebug("Different values of properties (key="+key+")\n\t"+this+"\n\t"+source);
+							RtdruidLog.showDebug("Different values of properties (key="+key+", v1 = "+newValue+", v2 = "+newValue+")\n\t"+this+"\n\t"+source);
 						}
 						
 						
@@ -312,5 +333,49 @@ public class SimpleGenRes implements ISimpleGenRes {
 				setObject(key, entry.getValue());
 			}
 		}
+	}
+	
+	private <T> T[] merge(T[] v1, T[] v2) {
+		if (v1.length == 0) {
+			return Arrays.copyOf(v2, v2.length);
+		}
+		if (v2.length == 0) {
+			return Arrays.copyOf(v1, v1.length);
+		}
+		
+		// v1>0 && v2>0
+		
+		int finalSize = v1.length;
+		T[] temp = Arrays.copyOf(v1, v1.length + v2.length);
+		
+		for (T newElem: v2) {
+			
+			if (newElem != null) {
+				
+				boolean add = true;
+				for (T oldElem: temp) {
+					if (add && oldElem != null && (
+							(oldElem == newElem) || oldElem.equals(newElem))
+							) {
+						add = false;
+					}
+				}
+				
+				if (add) {
+					temp[finalSize] = newElem;
+					finalSize ++;
+				}
+			}
+		}
+		
+		T[] answer;
+		if (finalSize == temp.length) {
+			answer = temp;
+		} else {
+			answer = Arrays.copyOf(temp, finalSize);
+		}
+		
+		
+		return answer;
 	}
 }

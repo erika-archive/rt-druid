@@ -7,6 +7,7 @@ package com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.hw;
 
 import static com.eu.evidence.rtdruid.modules.oil.codewriter.common.AbstractRtosWriter.getOsProperties;
 import static com.eu.evidence.rtdruid.modules.oil.codewriter.common.AbstractRtosWriter.getOsProperty;
+import static com.eu.evidence.rtdruid.modules.oil.codewriter.common.CommonUtils.addToAllStrings;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -412,12 +413,12 @@ public final class EEStacks implements IEEWriterKeywords {
 			for (ISimpleGenRes currAppl : appls) {
 	
 	
-	
-				String sharedStack = currAppl.getPath() + S + oilVarPrefix + S
+				String[] appl_paths = (String[]) currAppl.getObject(ISimpleGenResKeywords.OS_APPL_PATH);
+				String sharedStack = S + oilVarPrefix + S
 						+ APP_SHARED_STACK ;
 				int shared = -1;
 				{
-					String[] val = CommonUtils.getValue(vt, sharedStack);
+					String[] val = CommonUtils.getValues(vt, addToAllStrings(appl_paths, sharedStack));
 					
 					if (val != null && val.length>0 && val[0] != null) {
 						try {

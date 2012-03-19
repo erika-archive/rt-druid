@@ -484,7 +484,7 @@ public class ErikaEnterpriseTransform extends SimpleTransform {
 			for (Iterator<ISimpleGenRes> iter = olist.iterator(); iter.hasNext();) {
 				ISimpleGenRes curr = (ISimpleGenRes) iter.next(); 
 				writeApplicationObject(buffer, oilVarPrefix,
-						curr, order[oolId], curr.getString(ISimpleGenResKeywords.RTOS_PATH));
+						curr, order[oolId], (String[]) curr.getObject(ISimpleGenResKeywords.RTOS_PATH));
 			}
 
 		}
@@ -551,8 +551,9 @@ public class ErikaEnterpriseTransform extends SimpleTransform {
 	 *            identifies the Application
 	 */
 	@SuppressWarnings("unchecked")
+	@Override
 	protected void writeApplicationObject(StringBuffer buffer,
-			String oilVarPrefix, ISimpleGenRes object, int objType, String rtosPath) {
+			String oilVarPrefix, ISimpleGenRes object, int objType, String[] rtosPath) {
 		
 		switch (objType) {
 		case IOilObjectList.OS: {
@@ -639,8 +640,9 @@ public class ErikaEnterpriseTransform extends SimpleTransform {
 		super.writeApplicationObject(buffer, oilVarPrefix, object, objType, rtosPath);
 	}
 
+	@Override
 	protected void writeApplicationObjectProperties(StringBuffer buffer, String indent,
-			ISimpleGenRes object, int objType, String rtosPath) {
+			ISimpleGenRes object, int objType, String[] rtosPath) {
 		super.writeApplicationObjectProperties(buffer, indent,
 				object, objType, rtosPath);
 		

@@ -282,6 +282,7 @@ public interface ISimpleGenResKeywords {
 	 * OS Application
 	 **************************************************************************/
 	public final static String OS_APPL_ID = "os_application_id";
+	public final static String OS_APPL_PATH = "os_application_paths";
 	public final static String OS_APPL_STACK = "os_application_stack";
 
 	public final static String OS_APPL_LIST_REF_ALARM = "os_application_list_ref_alarm";
