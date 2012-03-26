@@ -54,14 +54,14 @@
    </extension>
 
 
-   <!-- Tasks - ->
+   <!-- Tasks -->
    <extension
          point="org.eclipse.ant.core.antTasks">
       <antTask
-            library="ant_tasks/rtdruid_ant_task.jar"
+            library="rtdruid_core_ant.jar"
             name="rtdruid.Convert"
-            class="com.eu.evidence.rtdruid.vartree.data.ant.Convert"/>
-   </extension>-->
+            class="com.eu.evidence.rtdruid.ant.vartree.Convert"/>
+   </extension>
    <!-- Extra Classpath -->
    <extension
          point="org.eclipse.ant.core.extraClasspathEntries">

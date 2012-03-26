@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.eu.evidence.rtdruid.desk.Logger;
 import com.eu.evidence.rtdruid.internal.modules.project.templates.ExampleTemplate;
 import com.eu.evidence.rtdruid.internal.modules.project.templates.SearchTemplates;
 

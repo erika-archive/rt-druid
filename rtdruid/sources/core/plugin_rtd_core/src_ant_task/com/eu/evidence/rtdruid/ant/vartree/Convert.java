@@ -7,22 +7,23 @@ package com.eu.evidence.rtdruid.ant.vartree;
 
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileList;
 import org.apache.tools.ant.types.FileSet;
+import org.apache.tools.ant.types.resources.FileResource;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 
 import com.eu.evidence.rtdruid.ant.common.AntMessages;
-import com.eu.evidence.rtdruid.ant.common.Util;
+import com.eu.evidence.rtdruid.desk.Logger;
 import com.eu.evidence.rtdruid.desk.Messages;
-import com.eu.evidence.rtdruid.desk.RTDFactory;
+import com.eu.evidence.rtdruid.desk.WorkerConfReader;
+import com.eu.evidence.rtdruid.desk.WorkerConfReader.VtReaderException;
 import com.eu.evidence.rtdruid.vartree.IVarTree;
-import com.eu.evidence.rtdruid.vartree.data.ObjectWithID;
 
 /**
  * @author Nicola Serreli
@@ -31,7 +32,13 @@ import com.eu.evidence.rtdruid.vartree.data.ObjectWithID;
  */
 public class Convert extends Task {
 	
-	protected ArrayList allFiles = new ArrayList();
+	protected WorkerConfReader worker = new WorkerConfReader(new Logger() {
+		
+		public void log(String txt) {
+			Convert.this.log(txt);
+		}
+	});
+
 	protected String store = null;
 	
 	
@@ -45,22 +52,17 @@ public class Convert extends Task {
 		
 		String[] elFiles = files.getFiles(getProject());
 		for(int i=0; i<elFiles.length; i++) {
-			allFiles.add(dir + elFiles[i]);
+			worker.addInputfile(dir + elFiles[i]);
 		}
 	}
 	
-	public void addConfigured(FileSet files) {
-	    String dir = files.getDir(getProject()).getPath();
-		if (dir == null) {
-			dir = "";
-		} else if (!dir.endsWith(System.getProperty("file.separator"))) {
-			dir += System.getProperty("file.separator");
-		}
-
-		String[] elFiles = files.getDirectoryScanner(getProject()).getIncludedFiles();
-		for(int i=0; i<elFiles.length; i++) {
-			allFiles.add(dir + elFiles[i]);
-//        	myLog("FILE SET ", elFiles[i]);
+	public void addConfigured(FileSet fileSet) {
+		for (Iterator iter= fileSet.iterator(); iter.hasNext(); ) {
+			Object o = iter.next();
+			if (o instanceof FileResource) {
+				FileResource fres = (FileResource) o;
+				worker.addInputfile(fres.getFile().getAbsolutePath());
+			}
 		}
 	}
 	
@@ -68,55 +70,8 @@ public class Convert extends Task {
 		store = fileName;
 	}
 	
-	protected IVarTree loadFiles() {
-        if (allFiles.size() == 0) {
-        	throw new BuildException("At least one input file is required");
-        }
-        
-        IVarTree vt = (IVarTree) RTDFactory.get(IVarTree.class);
-        
-        // load files
-        ObjectWithID[] roots = new ObjectWithID[allFiles.size()];
-        for (int i=0; i<allFiles.size(); i++) {
-        	String fname = (String) allFiles.get(i);
-        	myLog("Loading", fname);
-        	Resource res = null;
-            try {
-            	res = Util.loadData(fname);
-            } catch (RuntimeException e) {
-            	throw new BuildException(e.getMessage());
-            }
-	        if (res.getContents().size() == 0) {
-	        	throw new BuildException(fname + " doesn't have data");
-	        }
-	        roots[i] = (ObjectWithID) res.getContents().get(0);
-        }
-        
-        
-/*		if (Messages.getErrorNumber() > 0
-				|| (Messages.getWarningNumber() > 0 && stopOnWarning)) {
-			
-			throw new BuildException("Some problems with input files");
-		}*/
-		Messages.clearNumbers();
-
-        
-        // merge loaded files (throw exceptions if they aren't compatible,
-        // like different System name) 
-        ObjectWithID root = (ObjectWithID) roots[0].clone();
-        { // store all in VarTree (to enable merge is required that a resource contains the "root" object)
-	        vt.setRoot(root);
-        }
-        for (int i=1; i<roots.length; i++) {
-        	myLog("Merging",(String) allFiles.get(i));
-        	try {
-        		root.merge(roots[i], "", false);
-        	} catch (RuntimeException e) {
-        		throw new BuildException(e.getMessage());
-        	}
-        }
-        
-        return vt;
+	protected IVarTree loadFiles() throws VtReaderException {
+		return worker.load();
 	}
 
 	protected void saveFile(IVarTree vt) {
@@ -143,6 +98,8 @@ public class Convert extends Task {
 		Messages.setCurrent(new AntMessages(this));
 		try {
 			saveFile(loadFiles());
+        } catch (VtReaderException e) {
+        	throw new BuildException(e.getMessage());
 		} finally {
 			Messages.setPrevious();
 		}

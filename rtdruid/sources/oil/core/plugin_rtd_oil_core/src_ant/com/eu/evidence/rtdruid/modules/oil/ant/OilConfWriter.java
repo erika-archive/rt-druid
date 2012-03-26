@@ -14,7 +14,7 @@ import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.types.resources.FileResource;
 
-import com.eu.evidence.rtdruid.internal.modules.oil.workers.Logger;
+import com.eu.evidence.rtdruid.desk.Logger;
 import com.eu.evidence.rtdruid.internal.modules.oil.workers.OilWorkerException;
 import com.eu.evidence.rtdruid.internal.modules.oil.workers.WorkerOilConfWriter;
 import com.eu.evidence.rtdruid.io.IRTDImporter;

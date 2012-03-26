@@ -7,6 +7,7 @@ package com.eu.evidence.rtdruid.internal.modules.oil.workers;
 
 import java.util.HashMap;
 
+import com.eu.evidence.rtdruid.desk.Logger;
 import com.eu.evidence.rtdruid.internal.modules.project.templates.ExampleTemplate;
 import com.eu.evidence.rtdruid.internal.modules.project.templates.SearchTemplates;
 

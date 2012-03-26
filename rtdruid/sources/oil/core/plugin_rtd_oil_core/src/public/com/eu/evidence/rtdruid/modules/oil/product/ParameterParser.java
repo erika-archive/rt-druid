@@ -6,9 +6,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import com.eu.evidence.rtdruid.desk.Logger;
 import com.eu.evidence.rtdruid.desk.ReadVersion;
 import com.eu.evidence.rtdruid.internal.modules.oil.workers.IWorkerExampleWriter;
-import com.eu.evidence.rtdruid.internal.modules.oil.workers.Logger;
 import com.eu.evidence.rtdruid.internal.modules.oil.workers.StdOutLogger;
 import com.eu.evidence.rtdruid.internal.modules.oil.workers.WorkerAllExampleWriter;
 import com.eu.evidence.rtdruid.internal.modules.oil.workers.WorkerExampleList;

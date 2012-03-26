@@ -4,9 +4,9 @@ import java.io.File;
 
 
 import com.eu.evidence.rtdruid.desk.CommonPaths;
+import com.eu.evidence.rtdruid.desk.Logger;
 import com.eu.evidence.rtdruid.desk.ReadVersion;
 import com.eu.evidence.rtdruid.desk.RtdruidLog;
-import com.eu.evidence.rtdruid.internal.modules.oil.workers.Logger;
 import com.eu.evidence.rtdruid.internal.modules.oil.workers.OilWorkerException;
 import com.eu.evidence.rtdruid.internal.modules.oil.workers.WorkerExampleWriter;
 import com.eu.evidence.rtdruid.internal.modules.oil.workers.WorkerOilConfWriter;
