@@ -13,16 +13,17 @@ package com.eu.evidence.rtdruid.modules.oil.cdt.ui.project;
  */
 
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IAdaptable;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
@@ -30,16 +31,17 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.List;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.ui.dialogs.ElementTreeSelectionDialog;
 import org.eclipse.ui.dialogs.PropertyPage;
 
-import com.eu.evidence.rtdruid.desk.RtdruidLog;
 import com.eu.evidence.rtdruid.modules.oil.cdt.ui.Rtd_oil_cdt_Plugin;
 import com.eu.evidence.rtdruid.modules.oil.cdt.ui.builder.OilBuilder;
-import com.eu.evidence.rtdruid.modules.oil.codewriter.common.CommonUtils;
+import com.eu.evidence.rtdruid.ui.common.MultipleResourceSelectionDialog;
 import com.eu.evidence.rtdruid.ui.common.OneResourceSelectionDialog;
 import com.eu.evidence.rtdruid.vartree.data.init.RTD_XMI_Factory;
 
@@ -52,8 +54,10 @@ public class OilProjectProperties extends PropertyPage {
     /**
      * Contains the Config File Name
      */
-    private String configFile = "";;
-    private Text text;
+    //private String configFile = "";
+    // private Text text;
+    private final ArrayList<String> configFiles;
+    private List fileList;
     /** 
      * Contains a string that describes an error inside the Config File name, 
      * or null if it's all ok.
@@ -63,6 +67,7 @@ public class OilProjectProperties extends PropertyPage {
     
 	public OilProjectProperties() {
 		super();
+		configFiles = new ArrayList<String>();
 	}
 	
 	protected void init() {
@@ -72,11 +77,13 @@ public class OilProjectProperties extends PropertyPage {
 	    }
 	    
 	    // init Config File
-	    Map attributes = OilBuilder.getParameters(project);
-	    if (attributes != null && attributes.containsKey(OilBuilder.ATTR_CONFIG_FILE)) {
-	        configFile = (String) attributes.get(OilBuilder.ATTR_CONFIG_FILE);
+	    Map<String, String> attributes = OilBuilder.getParameters(project);
+	    if (attributes != null && attributes.containsKey(OilBuilder.ATTR_CONFIG_FILES)) {
+	        configFiles.clear();
+	        configFiles.addAll(Arrays.asList(splitFiles(attributes.get(OilBuilder.ATTR_CONFIG_FILES))));
 	    }
 	}
+	
 	
 		
 	protected Control createContents(Composite parent) {
@@ -115,7 +122,7 @@ public class OilProjectProperties extends PropertyPage {
     		layout.horizontalSpacing = 5;
     		layout.verticalSpacing = 5;
     		current.setLayout(layout);
-    		current.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+    		current.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.FILL_VERTICAL | GridData.GRAB_VERTICAL));
 		}
 		
 
@@ -129,80 +136,120 @@ public class OilProjectProperties extends PropertyPage {
     		label.setLayoutData(data);
 		}
 
-		// Text
-		text = new Text(current, SWT.SINGLE | SWT.BORDER);
+		// LIST
+		fileList = new List(current, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
 		{
-		    text.setText(configFile);
-    		text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.GRAB_HORIZONTAL));
-    		
-    		text.addModifyListener(new ModifyListener() {
-                public void modifyText(ModifyEvent e) {
-                    if (e.getSource() == text) {
-                    	
-                    	final String newName = text.getText();
-                    	
-                    	problemType = OilProjectProperties.super.NONE;
-                        /*
-                         * Check if config file is valid
-                         */
-                    	configFileError = CommonUtils.checkConfigFileName(newName);
-                    	
-                    	if (configFileError != null) {
-                    		problemType = OilProjectProperties.super.ERROR;
-                    	} else {
-                    	
-	                    	/*
-	                    	 * Check if exist 
-	                    	 */
-	                    	IResource res = getProject().findMember(new Path(newName));
-	                    	if (res == null) {
-	                    		
-	                    		configFileError = "Specified file doesn't exist";
-	                    		problemType = OilProjectProperties.super.WARNING;
-	                    		
-	                    	} else if (res.getType() != IResource.FILE){
-	                    		configFileError = "Specified configuration file identifies a folder";
-	                    		problemType = OilProjectProperties.super.ERROR;
-	                    		
-	                    	} else {
-	                    		configFile = newName;
-	                    	}
-                    	}
-	                        
-                        // update the status of this page 
-                        enableOk();
-                    }
-                }
-            });
+			GridData gd = new GridData(GridData.FILL_HORIZONTAL | GridData.FILL_VERTICAL | GridData.GRAB_HORIZONTAL | GridData.GRAB_VERTICAL);
+			gd.verticalSpan = 3;
+			fileList.setLayoutData(gd);
+	        if (fileList != null) {
+	        	for (String s: configFiles)
+	        		fileList.add(s);
+	        }
+	
 		}
+//		// Text
+//		text = new Text(current, SWT.SINGLE | SWT.BORDER);
+//		{
+//		    text.setText(configFile);
+//    		text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.GRAB_HORIZONTAL));
+//    		
+//    		text.addModifyListener(new ModifyListener() {
+//                public void modifyText(ModifyEvent e) {
+//                    if (e.getSource() == text) {
+//                    	
+//                    	final String newName = text.getText();
+//                    	
+//                    	problemType = OilProjectProperties.super.NONE;
+//                        /*
+//                         * Check if config file is valid
+//                         */
+//                    	configFileError = CommonUtils.checkConfigFileName(newName);
+//                    	
+//                    	if (configFileError != null) {
+//                    		problemType = OilProjectProperties.super.ERROR;
+//                    	} else {
+//                    	
+//	                    	/*
+//	                    	 * Check if exist 
+//	                    	 */
+//	                    	IResource res = getProject().findMember(new Path(newName));
+//	                    	if (res == null) {
+//	                    		
+//	                    		configFileError = "Specified file doesn't exist";
+//	                    		problemType = OilProjectProperties.super.WARNING;
+//	                    		
+//	                    	} else if (res.getType() != IResource.FILE){
+//	                    		configFileError = "Specified configuration file identifies a folder";
+//	                    		problemType = OilProjectProperties.super.ERROR;
+//	                    		
+//	                    	} else {
+//	                    		configFile = newName;
+//	                    	}
+//                    	}
+//	                        
+//                        // update the status of this page 
+//                        enableOk();
+//                    }
+//                }
+//            });
+//		}
 		
 		Button browseForConfFileButton;
-		browseForConfFileButton = new Button(current,SWT.PUSH);
-		browseForConfFileButton.setText(
-				"Browse" /*IDEWorkbenchMessages.getString("WizardImportPage.browse2")*/);
-				//Rtdruid_module_oil_niosPlugin.getString("OilProjectProperties.common.Browse"));
-		browseForConfFileButton.setLayoutData(new GridData());
-		browseForConfFileButton.addSelectionListener(new SelectionListener() {
-			/* (non-Javadoc)
-			 * @see org.eclipse.swt.events.SelectionListener#widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent)
-			 */
-			public void widgetDefaultSelected(SelectionEvent e) {
-				handleBinaryBrowseButtonSelected();
-			}
-			
-			public void widgetSelected(SelectionEvent evt) {
-				handleBinaryBrowseButtonSelected();
-			}
-		});
+		{
+			browseForConfFileButton = new Button(current,SWT.PUSH);
+			browseForConfFileButton.setText(
+					"Browse" /*IDEWorkbenchMessages.getString("WizardImportPage.browse2")*/);
+					//Rtdruid_module_oil_niosPlugin.getString("OilProjectProperties.common.Browse"));
+			browseForConfFileButton.setLayoutData(new GridData());
+			browseForConfFileButton.addSelectionListener(new SelectionListener() {
+				/* (non-Javadoc)
+				 * @see org.eclipse.swt.events.SelectionListener#widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent)
+				 */
+				public void widgetDefaultSelected(SelectionEvent e) {
+					handleBinaryBrowseButtonSelected();
+				}
+				
+				public void widgetSelected(SelectionEvent evt) {
+					handleBinaryBrowseButtonSelected();
+				}
+			});
+		}
+
+		Button remove;
+		{
+			remove = new Button(current,SWT.PUSH);
+			remove.setText("Remove");
+			remove.setLayoutData(new GridData());
+			remove.addSelectionListener(new SelectionListener() {
+				/* (non-Javadoc)
+				 * @see org.eclipse.swt.events.SelectionListener#widgetDefaultSelected(org.eclipse.swt.events.SelectionEvent)
+				 */
+				public void widgetDefaultSelected(SelectionEvent e) {
+					handle();
+				}
+				
+				public void widgetSelected(SelectionEvent evt) {
+					handle();
+				}
+				
+				protected void handle() {
+					for (String s: fileList.getSelection()) {
+						fileList.remove(s);
+						configFiles.remove(s);
+					}
+				}
+			});
+		}
 
 
 		
-		// Label
-		label = new Label(parent, SWT.LEFT);
-		{
-    		label.setText("");
-    		label.setLayoutData(new GridData(GridData.FILL_BOTH | GridData.GRAB_VERTICAL | GridData.GRAB_HORIZONTAL));
-		}
+//		// Label
+//		label = new Label(parent, SWT.LEFT);
+//		{
+//    		label.setText("");
+//    		label.setLayoutData(new GridData(GridData.FILL_BOTH | GridData.GRAB_VERTICAL | GridData.GRAB_HORIZONTAL));
+//		}
 	}
 
 	/**
@@ -210,7 +257,8 @@ public class OilProjectProperties extends PropertyPage {
 	 */
 	protected void handleBinaryBrowseButtonSelected() {
 		
-		ElementTreeSelectionDialog dialog = new OneResourceSelectionDialog(
+		ElementTreeSelectionDialog dialog = new MultipleResourceSelectionDialog (
+
 				getShell(),
 				Rtd_oil_cdt_Plugin.getString("OilProjectProperties.ConfFile_Selection"),
 				Rtd_oil_cdt_Plugin.getFormattedString(
@@ -225,13 +273,15 @@ public class OilProjectProperties extends PropertyPage {
 
 		Object[] results = dialog.getResult();
 
-		try {
-			text.setText(((IResource) results[0]).getProjectRelativePath().toString());
-		} catch (Exception ex) {
-			/* Why ?? */
-			RtdruidLog.log(ex);
+		for (Object res: results) {
+			if (res instanceof IResource) {
+				String path = ((IResource) res).getProjectRelativePath().toString();
+				if (!(configFiles.contains(path))) {
+					fileList.add(path);
+					configFiles.add(path);
+				}
+			}
 		}
-
 	}
 
 	
@@ -279,8 +329,8 @@ public class OilProjectProperties extends PropertyPage {
 	public boolean performOk() {
 
 	    Map<String, String> attributes = OilBuilder.getParameters(project);
-	    if (attributes != null && attributes.containsKey(OilBuilder.ATTR_CONFIG_FILE)) {
-	        attributes.put(OilBuilder.ATTR_CONFIG_FILE, configFile);
+	    if (attributes != null && attributes.containsKey(OilBuilder.ATTR_CONFIG_FILES)) {
+	        attributes.put(OilBuilder.ATTR_CONFIG_FILES, composeFiles(configFiles));
 	        OilBuilder.setParameters(project, attributes);
 	    }
 	    
@@ -294,8 +344,9 @@ public class OilProjectProperties extends PropertyPage {
         super.performDefaults();
         
         init();
-        if (text != null) {
-            text.setText(configFile);
+        if (fileList != null) {
+        	for (String s: configFiles)
+        		fileList.add(s);
         }
     }
 
@@ -320,4 +371,43 @@ public class OilProjectProperties extends PropertyPage {
         init();
     }
 
+    
+    public static String[] splitFiles(String fileNames) {
+		String[] answer;
+		if (fileNames == null || fileNames.length()==0) {
+			answer = new String[0];
+		} else {
+			answer = fileNames.split(File.pathSeparator);
+		}
+		
+		
+		return answer;
+	}
+    
+    public static String composeFiles(Collection<String> fileNames) {
+    	StringBuffer answer = new StringBuffer();
+    	for (String s: fileNames) {
+    		if (answer.length()>0) {
+    			answer.append(File.pathSeparator);
+    		}
+    		answer.append(s);
+    	}
+		return answer.toString();
+	}
+	
+    
+    /** Returns the config file of specified project.
+	 *  Doesn't uses caches and always check project's properties. 
+	 */
+    public static String[] getConfigFile(IProject project) {
+        
+        // Check if this project is valid and contains the required attribute 
+        String[] tmp = null;
+	    Map<String, String> attributes = OilBuilder.getParameters(project);
+	    if (attributes != null && attributes.containsKey(OilBuilder.ATTR_CONFIG_FILES)) {
+	        tmp = splitFiles((String) attributes.get(OilBuilder.ATTR_CONFIG_FILES));
+	    } 
+	    
+	    return tmp;
+    }
 }

@@ -5,10 +5,16 @@
  */
 package com.eu.evidence.rtdruid.modules.oil.cdt.ui.builder;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -28,14 +34,10 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.URI;
-import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.part.FileEditorInput;
+import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.resource.Resource;
 
 import com.eu.evidence.rtdruid.desk.Messages;
 import com.eu.evidence.rtdruid.desk.RTDFactory;
@@ -44,14 +46,15 @@ import com.eu.evidence.rtdruid.desk.RtdruidLog;
 import com.eu.evidence.rtdruid.internal.modules.oil.exceptions.OilCodeWriterException;
 import com.eu.evidence.rtdruid.internal.modules.oil.keywords.ISimpleGenResKeywords;
 import com.eu.evidence.rtdruid.internal.modules.oil.keywords.IWritersKeywords;
+import com.eu.evidence.rtdruid.io.MultiSourceImporterFactory;
 import com.eu.evidence.rtdruid.modules.oil.abstractions.IOilObjectList;
 import com.eu.evidence.rtdruid.modules.oil.abstractions.IOilWriterBuffer;
 import com.eu.evidence.rtdruid.modules.oil.cdt.ui.Rtd_oil_cdt_Plugin;
 import com.eu.evidence.rtdruid.modules.oil.cdt.ui.cygwin.MyMakeBuilder;
 import com.eu.evidence.rtdruid.modules.oil.cdt.ui.project.EELocationLinkVar;
+import com.eu.evidence.rtdruid.modules.oil.cdt.ui.project.OilProjectProperties;
 import com.eu.evidence.rtdruid.modules.oil.cdt.ui.project.RTDOilProjectNature;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.AbstractRtosWriter;
-import com.eu.evidence.rtdruid.modules.oil.codewriter.common.OilReaderFactory;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.RtosFactory;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.options.OptionsManager;
 import com.eu.evidence.rtdruid.modules.oil.ee.ui.location.ErikaEnterpriseLocationProjectHandler;
@@ -59,6 +62,7 @@ import com.eu.evidence.rtdruid.ui.common.RTDConsole;
 import com.eu.evidence.rtdruid.vartree.ITreeInterface;
 import com.eu.evidence.rtdruid.vartree.IVarTree;
 import com.eu.evidence.rtdruid.vartree.data.DataPackage;
+import com.eu.evidence.rtdruid.vartree.data.ObjectWithID;
 import com.eu.evidence.rtdruid.vartree.data.init.DataPath;
 import com.eu.evidence.rtdruid.vartree.data.init.IVTResource;
 import com.eu.evidence.rtdruid.vartree.data.init.RTD_XMI_Factory;
@@ -74,7 +78,8 @@ import com.eu.evidence.rtdruid.vartree.tools.Search;
  */
 public class OilBuilder extends IncrementalProjectBuilder {
     
-    final public static String ATTR_CONFIG_FILE = "ConfigFileName";
+//    final public static String ATTR_CONFIG_FILE = "ConfigFileName";
+	final public static String ATTR_CONFIG_FILES = "ConfigFileName";
     
     final public static String BUILDER_ID =Rtd_oil_cdt_Plugin.PLUGIN_ID + ".oil_builder";
     
@@ -202,19 +207,17 @@ public class OilBuilder extends IncrementalProjectBuilder {
     		
     		
 	        /* ------------ get the config file ------------ */
-	        String configFile = (String) getConfigFile(project);
+	        String[] configFiles = OilProjectProperties.getConfigFile(project);
 	        
-	        if (configFile == null) {
+	        if (configFiles == null || configFiles.length == 0) {
 	        	return;
 	        }
 	        
-	        IFile file = project.getFile(configFile);
-	        if (!file.exists()) {
-	            
-	            Messages.sendErrorNl("The project " + project.getName() + " doesn't contains the RT-Druid config file " + configFile,
-	            		null, "asidjas;lkdjas;d", null);
-	            return;
-	        }
+			if (!checkFiles(project, Arrays.asList(configFiles))) {
+				// RtdruidLog.log("The project " + project.getName() +
+				// " doesn't contains the RT-Druid config file " + configFile);
+				return; // next
+			}
     		
     		
     		
@@ -226,8 +229,15 @@ public class OilBuilder extends IncrementalProjectBuilder {
 	    	}
 	    	IPath filePath = null;
 	        try {
-		        //NiosProjectBuilder builder = new NiosProjectBuilder(file.getFullPath(), project);
-                IProjectBuilder builder = getProjectBuilder(file.getFullPath(), project);
+	            ArrayList<IPath> paths = new ArrayList<IPath>();
+            	for (String configFile : configFiles) {
+    	        	IFile file = project.getFile(configFile);
+    	        	paths.add(file.getFullPath());
+            	}
+
+                
+                // build internally the project
+                IProjectBuilder builder = getProjectBuilder(paths.toArray(new IPath[paths.size()]), project);
 		        builder.disableSignature(true);
 		        filePath = builder.getOutputFolder();
 	        } finally {
@@ -266,9 +276,9 @@ public class OilBuilder extends IncrementalProjectBuilder {
     // ------------------------- INCREMENTATL -------------------------
 
     protected class DeltaBuilder {
-        protected HashMap<IProject, String> rebuild = new HashMap<IProject, String>();
+        protected HashMap<IProject, Set<String>> rebuild = new HashMap<IProject, Set<String>>();
         protected HashMap<IProject, Object> confBuffer = new HashMap<IProject, Object>();
-        protected HashMap<IProject, String> visited = new HashMap<IProject, String>();
+        protected HashMap<IProject, Set<String>> visited = new HashMap<IProject, Set<String>>();
         
         //protected IProjectBuilder builder;// = getProjectBuilder();
         protected boolean rebuilded = false;
@@ -280,7 +290,7 @@ public class OilBuilder extends IncrementalProjectBuilder {
                 //System.err.println(">>" + res);
                 
                 IProject project = res.getProject();
-                String confFile = getConfigFile(project);
+                Set<String> confFile = new LinkedHashSet<String>(Arrays.asList(getConfigFile(project)));
                 
                 // if rebuild already contains this project, continue with the next resource
                 //IProjectBuilder builder = getProjectBuilder();
@@ -296,7 +306,9 @@ public class OilBuilder extends IncrementalProjectBuilder {
                 build |= ".project".equals(resName);
                 build |= ".cproject".equals(resName);
                 
-                build |= confFile.equals(resName);
+                
+                
+                build |= confFile.contains(resName);
                 //System.err.println("\t>>rebuild = " + build);
 
                 if (build) {
@@ -339,17 +351,22 @@ long a1 = System.currentTimeMillis();
                 for (Iterator<IProject> iter = keys.iterator(); iter.hasNext();) {
                     
                     IProject project = (IProject) iter.next();
-                    String configFile = (String) rebuild.get(project);
+                    Set<String> configFiles = rebuild.get(project);
                     
-                    IFile file = project.getFile(configFile);
-                    if (!file.exists()) {
-                        
-                        // TODO : log something !!!!
-                        throw new RuntimeException("The project " + project.getName() + " doesn't contains the RT-Druid config file " + configFile);
-                        //continue; // next
-                    }
+                    if (!checkFiles(project,  configFiles)) {
+	//                      RtdruidLog.log("The project " + project.getName() + " doesn't contains the RT-Druid config file " + configFile);
+	                  	continue; // next
+	                }
                     
-                    IProjectBuilder builder = getProjectBuilder(file.getFullPath(), project);
+                    ArrayList<IPath> paths = new ArrayList<IPath>();
+                	for (String configFile : configFiles) {
+        	        	IFile file = project.getFile(configFile);
+        	        	paths.add(file.getFullPath());
+                	}
+
+                    
+                    // build internally the project
+                    IProjectBuilder builder = getProjectBuilder(paths.toArray(new IPath[paths.size()]), project);
                     try {
                     	rebuilded = builder.store();
                     	EELocationLinkVar.reindex(project);
@@ -386,26 +403,32 @@ long a1 = System.currentTimeMillis();
                     
                 	// check the configFile
                     IProject project = (IProject) iter.next();
-                    String configFile = (String) visited.get(project);
-                    
-                    IFile file = project.getFile(configFile);
-                    if (!file.exists()) {
-                        
-                        RtdruidLog.log("The project " + project.getName() + " doesn't contains the RT-Druid config file " + configFile);
+                    Set<String> confFiles = visited.get(project);
+                    if (!checkFiles(project,  confFiles)) {
+//                        RtdruidLog.log("The project " + project.getName() + " doesn't contains the RT-Druid config file " + configFile);
                     	continue; // next
                     }
-                    long configFileTimeStamp = file.getLocalTimeStamp();
+                    long configFileTimeStamp = 0;
+                    ArrayList<IPath> paths = new ArrayList<IPath>();
+                	for (String configFile : confFiles) {
+        	        	IFile file = project.getFile(configFile);
+        	        	paths.add(file.getFullPath());
+        	        	long newtimeStamp = file.getLocalTimeStamp();
+        	        	if (configFileTimeStamp<newtimeStamp) {
+        	        		configFileTimeStamp = newtimeStamp;
+        	        	}
+                	}
 
                     
                     // build internally the project
                     //NiosProjectBuilder builder = new NiosProjectBuilder(file.getFullPath(), project); 
-                    IProjectBuilder builder = getProjectBuilder(file.getFullPath(), project);
+                    IProjectBuilder builder = getProjectBuilder(paths.toArray(new IPath[paths.size()]), project);
                     try {
                         builder.build();
             		} catch (/*NotFoundSignature*/Exception e) {
-            			Messages.sendErrorNl("For more details, use \"E.E. Library problems solver\" View", null, "ASDASDASghjD", null);
+//            			Messages.sendErrorNl("For more details, use \"E.E. Library problems solver\" View", null, "ASDASDASghjD", null);
 
-            			activeSignaturesView(file);
+//            			activeSignaturesView(file);
             			return;
             		}
             		
@@ -475,26 +498,21 @@ long a1 = System.currentTimeMillis();
             
         }
         
-
 		/** Returns the config file of specified project. Uses a buffer to cache already computed projects */
-        protected String getConfigFile(IProject project) {
+        protected String[] getConfigFile(IProject project) {
             
             // specified project is already visited 
             if (confBuffer.containsKey(project)) {
                 Object o = confBuffer.get(project);
-                if (o instanceof String) {
-                    return (String) o;
+                if (o instanceof String[]) {
+                    return (String[]) o;
                 } else {
                     return null;
                 }
             }
             
             // Check if this project is valid and contains the required attribute 
-            String tmp = null;
-    	    Map<String, String> attributes = OilBuilder.getParameters(project);
-    	    if (attributes != null && attributes.containsKey(OilBuilder.ATTR_CONFIG_FILE)) {
-    	        tmp = (String) attributes.get(OilBuilder.ATTR_CONFIG_FILE);
-    	    } 
+            String[] tmp = OilProjectProperties.getConfigFile(project);
     	    
     	    if (tmp == null) {
     	        // some error : disable this project
@@ -504,56 +522,56 @@ long a1 = System.currentTimeMillis();
     	    return tmp;
         }
 
-        /**
-		 * This method tries to open an Oil Editor for specified file and then
-		 * open the RT-Druid Signatures View
-		 */
-        protected void activeSignaturesView(final IFile file) {
-        	PlatformUI.getWorkbench().getDisplay().asyncExec
-			(new Runnable() {
-
-				public void run() {
-					// open the Signature View
-					IWorkbench iw = PlatformUI.getWorkbench();
-					IWorkbenchWindow iww = iw == null ? null : iw.getActiveWorkbenchWindow();
-					IWorkbenchPage iwp = iww == null ? null : iww.getActivePage();
-		
-					if (iwp != null) {
-					
-						/* Open the oil file */
-						IEditorPart idp = iwp.findEditor(new FileEditorInput(file));
-						if (idp == null) {
-							try {
-								idp = iwp.openEditor(
-											new FileEditorInput(file),
-											iw.getEditorRegistry()
-													.getDefaultEditor(
-															file.getFullPath()
-																	.toString())
-													.getId());
-							} catch (PartInitException e1) {
-								RtdruidLog.log(e1);
-							}
-				    	}
-		
-						if (idp != null) {
-							iwp.activate(idp);
-						}
-					
-//						try {
-//							IViewPart view = iwp.showView("com.eu.evidence.rtdruid.modules.oil.ui.editor.form.SignaturesViewID");
-//							if (view != null && view instanceof SignaturesView) {
-//								((SignaturesView) view).searchEditor();
+//        /**
+//		 * This method tries to open an Oil Editor for specified file and then
+//		 * open the RT-Druid Signatures View
+//		 */
+//        protected void activeSignaturesView(final IFile file) {
+//        	PlatformUI.getWorkbench().getDisplay().asyncExec
+//			(new Runnable() {
+//
+//				public void run() {
+//					// open the Signature View
+//					IWorkbench iw = PlatformUI.getWorkbench();
+//					IWorkbenchWindow iww = iw == null ? null : iw.getActiveWorkbenchWindow();
+//					IWorkbenchPage iwp = iww == null ? null : iww.getActivePage();
+//		
+//					if (iwp != null) {
+//					
+//						/* Open the oil file */
+//						IEditorPart idp = iwp.findEditor(new FileEditorInput(file));
+//						if (idp == null) {
+//							try {
+//								idp = iwp.openEditor(
+//											new FileEditorInput(file),
+//											iw.getEditorRegistry()
+//													.getDefaultEditor(
+//															file.getFullPath()
+//																	.toString())
+//													.getId());
+//							} catch (PartInitException e1) {
+//								RtdruidLog.log(e1);
 //							}
+//				    	}
+//		
+//						if (idp != null) {
+//							iwp.activate(idp);
 //						}
-//						catch (PartInitException exception) {
-//							RtdruidLog.log(exception);
-//						}
-					}
-				}
-			});
-
-        }
+//					
+////						try {
+////							IViewPart view = iwp.showView("com.eu.evidence.rtdruid.modules.oil.ui.editor.form.SignaturesViewID");
+////							if (view != null && view instanceof SignaturesView) {
+////								((SignaturesView) view).searchEditor();
+////							}
+////						}
+////						catch (PartInitException exception) {
+////							RtdruidLog.log(exception);
+////						}
+//					}
+//				}
+//			});
+//
+//        }
     }
     
     // --------------------------
@@ -604,28 +622,24 @@ long a1 = System.currentTimeMillis();
         }
     }
 
-
-	/** Returns the config file of specified project.
-	 *  Doesn't uses caches and always check project's properties. 
-	 */
-    protected String getConfigFile(IProject project) {
-        
-        // Check if this project is valid and contains the required attribute 
-        String tmp = null;
-	    Map<String, String> attributes = OilBuilder.getParameters(project);
-	    if (attributes != null && attributes.containsKey(OilBuilder.ATTR_CONFIG_FILE)) {
-	        tmp = (String) attributes.get(OilBuilder.ATTR_CONFIG_FILE);
-	    } 
-	    
-	    return tmp;
-    }
-
     /**
      * Returns the most correct ProjectBuilder
      */
-    protected IProjectBuilder getProjectBuilder(IPath confgiFilePath, IProject project) {
+    protected IProjectBuilder getProjectBuilder(IPath[] confgiFilePath, IProject project) {
     	//return new NiosProjectBuilder(file.getFullPath(), project);
     	return new ProjectBuilder(confgiFilePath, project);
+    }
+    
+    protected static boolean checkFiles(IProject project, Collection<String> files) {
+    	boolean all = true;
+    	for (String configFile : files) {
+        	IFile file = project.getFile(configFile);
+            if (!file.exists()) {
+            	RtdruidLog.log("The project " + project.getName() + " doesn't contains the RT-Druid config file " + configFile);
+            	all = false;
+            }
+    	}
+    	return all;
     }
  }
 
@@ -653,7 +667,7 @@ class ProjectBuilder implements IProjectBuilder {
 		}	
 	}; 
 	
-	protected final IPath configFile;
+	protected final IPath[] configFile;
 	protected final IProject project;
 	protected final String projectName;
 	
@@ -667,7 +681,7 @@ class ProjectBuilder implements IProjectBuilder {
 	protected HashMap<String, Object> options;
 	
 	
-	public ProjectBuilder(IPath configFile, IProject project) {
+	public ProjectBuilder(IPath[] configFile, IProject project) {
 		this.configFile = configFile;
 		this.projectName = project.getName();
 		this.project = project;
@@ -692,7 +706,14 @@ class ProjectBuilder implements IProjectBuilder {
 			return true;
 		}
 		
-	    Messages.sendTextNl("Rebuild " +configFile + " in the project " + projectName);
+		{
+			StringBuffer conf_files = new StringBuffer();
+			for (IPath p: configFile) {
+				conf_files.append("\n\t"+p);
+			}
+			
+		    Messages.sendTextNl("Rebuild the project " + projectName + ". Config file:"+conf_files);
+		}
 		/***********************************************************************
 		 * PREPARE A MONITOR
 		 **********************************************************************/
@@ -967,61 +988,232 @@ class ProjectBuilder implements IProjectBuilder {
 	/**
 	 * Load the Configuration File
 	 */
-	public static IVarTree loadConfigFile(IPath inputFile) {
-		if (inputFile == null) {
+	public static IVarTree loadConfigFile(IPath[] inputFiles) {
+		if (inputFiles == null || inputFiles.length == 0) {
 			return null;
 		}
-		
-		IFile fPath = ResourcesPlugin.getWorkspace().getRoot()
-			.getFile(inputFile);
-		
-		
-		
-		IVTResource res = (IVTResource) new RTD_XMI_Factory().createResource(URI.createFileURI(fPath.getLocation().toString()));
+//		
+//		IFile fPath = ResourcesPlugin.getWorkspace().getRoot()
+//			.getFile(inputFile);
+//		
+//		
+//		
+//		IVTResource res = (IVTResource) new RTD_XMI_Factory().createResource(URI.createFileURI(fPath.getLocation().toString()));
+//		try {
+////			res.setLoadHandler(new ErrorHandler() {
+////				public void error(SAXParseException e) throws SAXException {
+////					Messages.sendErrorNl("syntax error at line " + e.getLineNumber() 
+////							+ " : " + e.getMessage()+ " \n",null,"", new Properties());
+////				}
+////
+////				public void fatalError(SAXParseException e) throws SAXException {
+////					Messages.sendErrorNl("fatal error at line " + e.getLineNumber()
+////							+ " : " + e.getMessage() + " \n",null,"", new Properties());
+////				}
+////
+////				public void warning(SAXParseException e) throws SAXException {
+////					Messages.sendWarningNl("syntax warning at line " + e.getLineNumber() 
+////							+ " : " + e.getMessage()+" \n",null,"", new Properties());
+////				}
+////
+////			});
+//			{	
+//				InputStream input = fPath.getContents();
+//				int a;
+//				while ( (a = input.read()) != -1) {
+//					System.out.print((char)a);
+//				}
+//				input.close();
+//			}
+//			
+//			res.load(fPath.getContents(), new HashMap());
+//		} catch (Exception e) {
+//			
+//			RtdruidLog.log("Unable to load \"" + inputFile + "\".");
+//			RtdruidLog.log(e);
+//			Messages.sendErrorNl("Unable to load \"" + inputFile
+//					+ "\" caused by :", "", "ASDASDAS", null);
+//			Messages.sendErrorNl(e.getMessage(), "", "ASDASDAS", null);
+//			return null;
+//		}
+//
+//		
+//		IVarTree vt = (IVarTree) RTDFactory.get(IVarTree.class);
+//		vt.setRoot(res);
+//		
+////		
+////		
+////        try {
+////        	String inputPath = null;
+////        	IPath lPath = fPath.getLocation();
+////        	if (lPath != null) {
+////        		lPath = lPath.removeLastSegments(1);
+////        		inputPath = lPath.toOSString();
+////        	}
+////
+////       		(OilReaderFactory.getAnOilReader()).load(fPath.getContents(), vt, inputFile.toString(), inputPath);
+////
+////        	IProject project = fPath.getProject();
+////        	
+////        	if (project != null) {
+////        	    vt.getProperties().put(IWritersKeywords.VTProperty_OilProjectName, project.getName());
+////        	    IPath path = project.getLocation();
+////        	    
+////       	        vt.getProperties().put(IWritersKeywords.VTProperty_OilProjectPath,
+////       	                path == null ? project.getName() : path.toString());
+////        	}
+////        } catch (Exception e) {
+////			//e.printStackTrace();
+////            
+////            RtdruidLog.log("Unable to load \"" + inputFile + "\".");
+////            RtdruidLog.log(e);
+////            Messages.sendErrorNl("Unable to load \"" + inputFile + "\" caused by :", "", "ASDASDAS", null);
+////            Messages.sendErrorNl(e.getMessage(), "", "ASDASDAS", null);
+////			return null;
+////        }
+//
+//		return vt;
+		IVarTree vt = (IVarTree) RTDFactory.get(IVarTree.class);
+
 		try {
-//			res.setLoadHandler(new ErrorHandler() {
-//				public void error(SAXParseException e) throws SAXException {
-//					Messages.sendErrorNl("syntax error at line " + e.getLineNumber() 
-//							+ " : " + e.getMessage()+ " \n",null,"", new Properties());
-//				}
-//
-//				public void fatalError(SAXParseException e) throws SAXException {
-//					Messages.sendErrorNl("fatal error at line " + e.getLineNumber()
-//							+ " : " + e.getMessage() + " \n",null,"", new Properties());
-//				}
-//
-//				public void warning(SAXParseException e) throws SAXException {
-//					Messages.sendWarningNl("syntax warning at line " + e.getLineNumber() 
-//							+ " : " + e.getMessage()+" \n",null,"", new Properties());
-//				}
-//
-//			});
-			{	
-				InputStream input = fPath.getContents();
-				int a;
-				while ( (a = input.read()) != -1) {
-					System.out.print((char)a);
+
+			// prepare
+			ArrayList<MultiSourceImporterFactory.LoadHelper> helpers = new ArrayList<MultiSourceImporterFactory.LoadHelper>();
+			ArrayList<String> simpleLoad = new ArrayList<String>();
+			for (IPath inputFile : inputFiles) {
+
+				InputStream input;
+				String osPath;
+				try {
+					IFile fPath = ResourcesPlugin.getWorkspace().getRoot()
+							.getFile(inputFile);
+					osPath = fPath.getLocation().toOSString();
+					
+					input = new FileInputStream(fPath.getLocation().toFile());
+				} catch (FileNotFoundException e) {
+					Messages.sendErrorNl("Unable to load \"" + inputFile + "\" caused by :", "", "ASDASDAS", null);
+		            Messages.sendErrorNl(e.getMessage(), "", "ASDASDAS", null);
+					return null;
 				}
-				input.close();
+
+				boolean found = false;
+				// check already existing helpers
+				for (MultiSourceImporterFactory.LoadHelper helper : helpers) {
+					if (helper.add(osPath, input)) {
+						found = true;
+						break;
+					}
+				}
+
+				if (!found) {
+					// check a new helper
+					MultiSourceImporterFactory.LoadHelper helper = new MultiSourceImporterFactory.LoadHelper();
+					if (helper.add(osPath, input)) {
+						found = true;
+						helpers.add(helper);
+					}
+				}
+
+				if (!found) {
+					// ok. it should be handled as single file
+					simpleLoad.add(osPath);
+				}
+			}
+
+			// load
+			for (MultiSourceImporterFactory.LoadHelper helper : helpers) {
+
+//				for (String s: helper.getNames()) {
+//					myLog("LOAD", s);
+//				}
+//				
+				try {
+					com.eu.evidence.rtdruid.vartree.data.System root = helper.load();
+					mergeInput(vt, root);
+				} catch (Exception e) {
+					Messages.sendErrorNl("Unable to load \"" + helper.getNames() + "\" caused by :", "", "ASDASDAS", null);
+		            Messages.sendErrorNl(e.getMessage(), "", "ASDASDAS", null);
+					return null;
+				}
+
 			}
 			
-			res.load(fPath.getContents(), new HashMap());
-		} catch (Exception e) {
-			
-			RtdruidLog.log("Unable to load \"" + inputFile + "\".");
-			RtdruidLog.log(e);
-			Messages.sendErrorNl("Unable to load \"" + inputFile
-					+ "\" caused by :", "", "ASDASDAS", null);
-			Messages.sendErrorNl(e.getMessage(), "", "ASDASDAS", null);
+			// load
+			for (String inputFile : simpleLoad) {
+
+//				myLog("LOAD", inputFile);
+				// load and parse the input file
+				IVTResource res = (IVTResource) new RTD_XMI_Factory()
+						.createResource(URI.createFileURI(inputFile));
+				try {
+					res.load(new FileInputStream(inputFile), null);
+					mergeInput(vt, res);
+				} catch (Exception e) {
+					Messages.sendErrorNl("Unable to load \""
+							+ inputFile + "\" caused by :" + e.getMessage(), "", "ASDASDAS", null);
+					return null;
+				}
+			}
+
+		} catch (RuntimeException e) {
+            Messages.sendErrorNl(e.getMessage(), "", "ASDASDAS", null);
 			return null;
 		}
 
-		
-		IVarTree vt = (IVarTree) RTDFactory.get(IVarTree.class);
-		vt.setRoot(res);
-		
+		return vt;
+	}
+
+	protected static void mergeInput(IVarTree vt, IVTResource res) {
+		EList<EObject> objList = res.getContents();
+		if (objList.size() > 0) {
+			IVarTree vtt = RTDFactory.newVarTree();
+			vtt.setRoot(res);
+//			
+//			System.out.println("\t------------OI1L------------\n\n");
+//			System.out.println(Vt2StringUtilities.explodeOilVar(Vt2StringUtilities.writeString(vtt, "ertd")));
+//			System.out.println("\t------------FINE OI1L------------\n\n");
+
+			
+			mergeInput(vt, ((com.eu.evidence.rtdruid.vartree.data.System) objList.get(0)));
+		}
+	}
+	
+	protected static void mergeInput(IVarTree vt, com.eu.evidence.rtdruid.vartree.data.System root) {
+		// get the old root
+		EList<Resource> resList = vt.getResourceSet().getResources();
+		if (resList.size() == 0) {
+			resList.add((new RTD_XMI_Factory()).createResource());
+		}
+		EList<EObject> objList = resList.get(0).getContents();
+		if (objList.size() == 0) {
+			// set the new root
+			objList.add(root);
+		} else {
+			// merge old and new root
+			((ObjectWithID) objList.get(0)).merge(root, null, false);
+		}
+//		System.out.println("\t------------ERTD------------\n\n");
+//		System.out.println(Vt2StringUtilities.explodeOilVar(Vt2StringUtilities.writeString(vt, "ertd")));
+//		System.out.println("\t------------FINE ERTD------------\n\n");
+	}
+	
+	
+	
+	
+	
+//
+//	/**
+//	 * Load the Oil File
+//	 */
+//	public static IVarTree loadOilFile(IPath inputFile) {
+//		if (inputFile == null) {
+//			return null;
+//		}
 //		
+//		IFile fPath = ResourcesPlugin.getWorkspace().getRoot()
+//			.getFile(inputFile);
 //		
+//		IVarTree vt = (IVarTree) RTDFactory.get(IVarTree.class);
 //        try {
 //        	String inputPath = null;
 //        	IPath lPath = fPath.getLocation();
@@ -1050,53 +1242,9 @@ class ProjectBuilder implements IProjectBuilder {
 //            Messages.sendErrorNl(e.getMessage(), "", "ASDASDAS", null);
 //			return null;
 //        }
-
-		return vt;
-	}
-
-	/**
-	 * Load the Oil File
-	 */
-	public static IVarTree loadOilFile(IPath inputFile) {
-		if (inputFile == null) {
-			return null;
-		}
-		
-		IFile fPath = ResourcesPlugin.getWorkspace().getRoot()
-			.getFile(inputFile);
-		
-		IVarTree vt = (IVarTree) RTDFactory.get(IVarTree.class);
-        try {
-        	String inputPath = null;
-        	IPath lPath = fPath.getLocation();
-        	if (lPath != null) {
-        		lPath = lPath.removeLastSegments(1);
-        		inputPath = lPath.toOSString();
-        	}
-
-       		(OilReaderFactory.getAnOilReader()).load(fPath.getContents(), vt, inputFile.toString(), inputPath);
-
-        	IProject project = fPath.getProject();
-        	
-        	if (project != null) {
-        	    vt.getProperties().put(IWritersKeywords.VTProperty_OilProjectName, project.getName());
-        	    IPath path = project.getLocation();
-        	    
-       	        vt.getProperties().put(IWritersKeywords.VTProperty_OilProjectPath,
-       	                path == null ? project.getName() : path.toString());
-        	}
-        } catch (Exception e) {
-			//e.printStackTrace();
-            
-            RtdruidLog.log("Unable to load \"" + inputFile + "\".");
-            RtdruidLog.log(e);
-            Messages.sendErrorNl("Unable to load \"" + inputFile + "\" caused by :", "", "ASDASDAS", null);
-            Messages.sendErrorNl(e.getMessage(), "", "ASDASDAS", null);
-			return null;
-        }
-
-		return vt;
-	}
+//
+//		return vt;
+//	}
 
 	
 	/**
@@ -1265,72 +1413,72 @@ class ProjectBuilder implements IProjectBuilder {
 
 }
 
-class NiosProjectBuilder_old extends ProjectBuilder {
-	
-
-	public NiosProjectBuilder_old(IPath configFile, IProject project) {
-		super(configFile, project);
-	}
-	
-	/**
-	 * This method doesn't check if the returned folder exist or if it's a folder, not a file.
-	 * Use <code>ResourcesPlugin.getWorkspace().getRoot().findMember(getWorkFolder().getFullPath()))</code>
-	 * to check if exist and it's type.
-	 * 
-	 * @return the work folder or null if not set or if there are some problems 
-	 */
-	public IFolder getWorkFolder() {
-		
-    	/*
-    	 * Disable output 
-    	 */
-    	{
-			Messages.setCurrent(NULL_OUTPUT);
-    	}
-
-        try {
-
-	        /***********************************************************************
-			 * GET BUFFERS
-			 **********************************************************************/
-	        IOilWriterBuffer[] buffers = getWriterBuffers();
-	        if (buffers == null) {
-	        	return null;
-	        }
-	        
-	        /***********************************************************************
-			 * SEARCH MAKEFILE
-			 **********************************************************************/
-	        for (int bi=0; bi<buffers.length; bi++) {
-				String[] keys = buffers[bi].getKeys();
-				
-				for (int ki=0; ki<keys.length; ki++) {
-					
-					if (IWritersKeywords.FILE_MAKEFILE.equals(buffers[bi].getFileName(keys[ki]))) {
-
-						String path = buffers[bi].getFilePath(keys[ki]);
-						
-						return path != null && path.length() >0 ? project.getFolder(path) : null;
-					}
-				}
-	        }
-	        
-        } finally {
-        	//enable again output
-        	Messages.setPrevious();
-        }
-        
-		return null;
-	}
-	
-	/** Add some checks about mapping to standard build
-	 */
-	public boolean build() {
-		
-		
-
-		return super.build();
-	}
-	
-
-}
+//class NiosProjectBuilder_old extends ProjectBuilder {
+//	
+//
+//	public NiosProjectBuilder_old(IPath[] configFile, IProject project) {
+//		super(configFile, project);
+//	}
+//	
+//	/**
+//	 * This method doesn't check if the returned folder exist or if it's a folder, not a file.
+//	 * Use <code>ResourcesPlugin.getWorkspace().getRoot().findMember(getWorkFolder().getFullPath()))</code>
+//	 * to check if exist and it's type.
+//	 * 
+//	 * @return the work folder or null if not set or if there are some problems 
+//	 */
+//	public IFolder getWorkFolder() {
+//		
+//    	/*
+//    	 * Disable output 
+//    	 */
+//    	{
+//			Messages.setCurrent(NULL_OUTPUT);
+//    	}
+//
+//        try {
+//
+//	        /***********************************************************************
+//			 * GET BUFFERS
+//			 **********************************************************************/
+//	        IOilWriterBuffer[] buffers = getWriterBuffers();
+//	        if (buffers == null) {
+//	        	return null;
+//	        }
+//	        
+//	        /***********************************************************************
+//			 * SEARCH MAKEFILE
+//			 **********************************************************************/
+//	        for (int bi=0; bi<buffers.length; bi++) {
+//				String[] keys = buffers[bi].getKeys();
+//				
+//				for (int ki=0; ki<keys.length; ki++) {
+//					
+//					if (IWritersKeywords.FILE_MAKEFILE.equals(buffers[bi].getFileName(keys[ki]))) {
+//
+//						String path = buffers[bi].getFilePath(keys[ki]);
+//						
+//						return path != null && path.length() >0 ? project.getFolder(path) : null;
+//					}
+//				}
+//	        }
+//	        
+//        } finally {
+//        	//enable again output
+//        	Messages.setPrevious();
+//        }
+//        
+//		return null;
+//	}
+//	
+//	/** Add some checks about mapping to standard build
+//	 */
+//	public boolean build() {
+//		
+//		
+//
+//		return super.build();
+//	}
+//	
+//
+//}
