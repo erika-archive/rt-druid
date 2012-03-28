@@ -33,6 +33,9 @@ public interface IWritersKeywords {
 	/** Identifies a JANUS architecture (two cpu) */
 	public final static String CPU_JANUS = "JANUS";
 
+	/** Identifies a Renesas RX200 architecture */
+	public final static String CPU_RX200 = "RX200";
+	
 	/** Identifies a PPC architecture (without protection) */
 	public final static String CPU_MPC5xx = "MPC5";
 

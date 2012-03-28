@@ -81,6 +81,9 @@
 		<property name="frtd_oil_ee_lmico32_v"         value="1.6.1"/>
 		<property name="rtd_oil_ee_lmico32_core_v"     value="1.6.1"/>
 
+		<property name="frtd_oil_ee_renesas_v"         value="1.6.1"/>
+		<property name="rtd_oil_ee_renesas_core_v"     value="1.6.1"/>
+
 		
 	<property name="fee_code_v"            value="1.6.1"/>
 	<property name="ee_code_v"            value="1.6.1"/>
