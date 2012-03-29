@@ -176,6 +176,10 @@ public class SectionWriterHalMpc567 extends SectionWriter
 						tmp_eeopts.add("__PPCE200Z0__");
 						hw_type = IWritersKeywords.CPU_PPCE200Z0;
 						
+					} else if ("E200Z4".equals(cpu_model)) {
+						tmp_eeopts.add("EE_PPCE200Z4");
+						hw_type = IWritersKeywords.CPU_PPCE200Z4;
+						
 					} else if ("E200Z6".equals(cpu_model)) {
 						tmp_eeopts.add("__PPCE200Z6__");
 						hw_type = IWritersKeywords.CPU_PPCE200Z6;
@@ -800,6 +804,7 @@ public class SectionWriterHalMpc567 extends SectionWriter
 		
 		final IOilObjectList[] oilObjects = parent.getOilObjects();
 		int z0 = 0;
+		int z4 = 0;
 		int z6 = 0;
 		int z7 = 0;
 		
@@ -837,6 +842,8 @@ public class SectionWriterHalMpc567 extends SectionWriter
 
 				if (IWritersKeywords.CPU_PPCE200Z0.equals(hw_type)) {
 					z0++;
+				} else if (IWritersKeywords.CPU_PPCE200Z4.equals(hw_type)) {
+					z4++;
 				} else if (IWritersKeywords.CPU_PPCE200Z6.equals(hw_type)) {
 					z6++;
 				} else if (IWritersKeywords.CPU_PPCE200Z7.equals(hw_type)) {
@@ -849,16 +856,22 @@ public class SectionWriterHalMpc567 extends SectionWriter
 		String mcu_ee_opt = null;
 		if ("MPC5668G".equals(mcu_model)) {
 			
-			if (z0>1 || z6>1 || z7 >0) {
+			if (z0>1 || z6>1 || z4 >0 || z7 >0) {
 				Messages.sendWarningNl("MPC5668G mcu supports not more than one z0 and not more than one z6");
 			}
 			mcu_ee_opt = "__MPC5668G__";
 		} else if ("MPC5674F".equals(mcu_model)) {
 			
-			if (z0>0 || z6>0 || z7 !=1) {
+			if (z0>0 || z6>0 || z4 >0 || z7 !=1) {
 				Messages.sendWarningNl("MPC5674F mcu supports only a single Z7 cpu");
 			}
 			mcu_ee_opt = "__MPC5674F__";
+		} else if ("MPC5643L".equals(mcu_model)) {
+			
+			if (z0>0 || z6>0 || z7 >0 || z4 > 2) {
+				Messages.sendWarningNl("MPC5643L mcu supports one or two Z4 cpu");
+			}
+			mcu_ee_opt = "EE_MPC5643L";
 			
 		} else {
 			Messages.sendWarningNl("Unsupported MCU");
