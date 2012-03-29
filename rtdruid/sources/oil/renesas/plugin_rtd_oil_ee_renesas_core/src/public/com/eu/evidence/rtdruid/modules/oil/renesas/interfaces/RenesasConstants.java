@@ -3,14 +3,14 @@
  *
  * $Id$
  */
-package com.eu.evidence.rtdruid.internal.modules.oil.codewriter.erikaenterprise;
+package com.eu.evidence.rtdruid.modules.oil.renesas.interfaces;
 
 
 /**
  * 
  * @author Nicola Serreli
  */
-class RenesasConstants {
+public interface RenesasConstants {
 
 	public static final String SGRK__RENESAS_COMPILER_TYPE__ = "sgrk_os__renesas_compiler_type";
 
