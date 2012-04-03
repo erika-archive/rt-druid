@@ -775,7 +775,7 @@ public class SectionWriterKernelFP extends SectionWriter implements
 			// ... resource
 			if (ool.getList(IOilObjectList.RESOURCE).size() == 0
 					&& !requiredOilObjects.contains(new Integer(IOilObjectList.RESOURCE))) {
-				answer.add("__FP_NO_RESOURCES__");
+				answer.add("__FP_NO_RESOURCE__");
 			}
 
 			{ // ... autostart
