@@ -95,6 +95,7 @@ public interface ISimpleGenResKeywords {
 	public final static String COUNTER_DEVICE = "counter__hw_device";
 	/** Handler defined by the user (if one)*/
 	public final static String COUNTER_USER_HANDLER = "counter__hw_user_handler";
+	public final static String COUNTER_ISR_PRIORITY = "counter__hw_isr_priority";
 	/** Handler used by the code (it may be the one proposed by the user or one computed by the code generator */
 	public final static String COUNTER_GENERATED_HANDLER = "counter__hw_generated_handler";
 	public final static String COUNTER_SYSTIMER = "counter__hw_system_timer";

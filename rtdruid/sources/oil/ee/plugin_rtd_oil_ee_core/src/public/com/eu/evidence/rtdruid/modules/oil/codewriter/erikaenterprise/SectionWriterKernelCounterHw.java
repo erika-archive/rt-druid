@@ -122,8 +122,13 @@ public class SectionWriterKernelCounterHw implements IEEWriterKeywords, IExtract
 			
 			for (Entry<String, ISimpleGenRes> dev: devices.entrySet()) {
 				String entry_id = "EE_"+hw_id+"_"+dev.getKey()+"_ISR";
-				
-				buffer.append("#define " + entry_id + " " + dev.getValue().getString(ISimpleGenResKeywords.COUNTER_GENERATED_HANDLER) +"\n");
+				ISimpleGenRes curr = dev.getValue();
+				buffer.append("#define " + entry_id + " " + curr.getString(ISimpleGenResKeywords.COUNTER_GENERATED_HANDLER) +"\n");
+				if (curr.containsProperty(ISimpleGenResKeywords.COUNTER_ISR_PRIORITY)) {
+					String prio = curr.containsProperty(ISimpleGenResKeywords.COUNTER_ISR_PRIORITY) ? curr.getString(ISimpleGenResKeywords.COUNTER_ISR_PRIORITY) : "";
+					buffer.append("#define " + entry_id + "_PRI " + prio+"\n");
+				}
+
 			}
 
 		}
@@ -177,6 +182,7 @@ public class SectionWriterKernelCounterHw implements IEEWriterKeywords, IExtract
 						}
 						
 						sgr.setProperty(ISimpleGenResKeywords.COUNTER_GENERATED_HANDLER, handler);
+						
 					}
 				}
 			}

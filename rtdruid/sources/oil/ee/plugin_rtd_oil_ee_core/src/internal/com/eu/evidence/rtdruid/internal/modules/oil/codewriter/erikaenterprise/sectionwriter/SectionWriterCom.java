@@ -217,11 +217,11 @@ public class SectionWriterCom extends SectionWriter
 		final IOilObjectList[] oilObjects = parent.getOilObjects();
 		
         String comType = null;
+        int messagesNumber = 0;
 
         final String oilHwRtosPrefix = parent.getOilHwRtosPrefix();
 		
-		for (int currentRtosId = 0; currentRtosId < oilObjects.length; currentRtosId++) {
-			final IOilObjectList ool = oilObjects[currentRtosId];
+		for (final IOilObjectList ool : oilObjects) {
 			
 			for (ISimpleGenRes sgr : ool.getList(IOilObjectList.COM)) {
 //				System.out.println("-- COM -- " + sgr.getName() + " " + sgr.getPath());
@@ -239,26 +239,23 @@ public class SectionWriterCom extends SectionWriter
 						}
 						sgr.setProperty(SGRK_COM_COMTYPE, chType);
 						
-					} else {
-						throw new OilCodeWriterException("Expected a value for COM/COMTYPE");
 					}
 				}
 				
 				{// get COM COMAPPMODE
 					String[] values = CommonUtils.getValue(vt, path+"COMAPPMODE");
-					if (values!= null) {
+					if (values!= null && values.length>0) {
 						sgr.setObject(SGRK_COM_COMAPPMODE, values);
 					} else {
-						sgr.setObject(SGRK_COM_COMAPPMODE, new String[0]);
+						throw new OilCodeWriterException("Expected a value for COM/COMAPPMODE");
 					}
 				}
 				
 //				System.out.println("\t" + sgr);
 			}
 			
-			
-			
 			for (ISimpleGenRes sgr : ool.getList(IOilObjectList.MESSAGE)) {
+				messagesNumber++;
 				System.out.println("-- MESSAGE -- " + sgr.getName() + " " + sgr.getPath());
 				final String path = sgr.getPath() + S+oilHwRtosPrefix;
 				
@@ -450,8 +447,11 @@ public class SectionWriterCom extends SectionWriter
 				
 			} // END MESSAGE
 
-		}
+		} // END for OilObjects
 
+		if (comType == null && messagesNumber>0) {
+			throw new OilCodeWriterException("Expected a value for COM/COMTYPE when there is at least one message");
+		}
 	}
 	
 	/**
@@ -520,6 +520,23 @@ public class SectionWriterCom extends SectionWriter
 		return null;
 	}
 	
+	private boolean enableCom(IOilObjectList[] ools) {
+		boolean answer = false;
+		for (IOilObjectList ool : ools) {
+			answer |= enableCom(ool);
+		}
+		return answer;
+	}
+	
+	private boolean enableCom(IOilObjectList ool) {
+		boolean answer = false;
+		for (ISimpleGenRes sgr : ool.getList(IOilObjectList.COM)) {
+			answer |= sgr.containsProperty(SGRK_COM_COMTYPE) && sgr.getString(SGRK_COM_COMTYPE) != null &&  sgr.getString(SGRK_COM_COMTYPE).length()>0;
+		}
+		return answer;
+	}
+	
+	
 	/**
 	 * Write configuration's files for Com initialization
 	 * 
@@ -532,7 +549,11 @@ public class SectionWriterCom extends SectionWriter
 			throws OilCodeWriterException {
 		
 		
-		final IOilObjectList[] oilObjects = parent.getOilObjects();		
+		final IOilObjectList[] oilObjects = parent.getOilObjects();
+		if (!enableCom(oilObjects)) {
+			return new IOilWriterBuffer[0];
+		}
+		
 		IOilWriterBuffer[] answer = new IOilWriterBuffer[oilObjects.length];//new IOilWriterBuffer[oilObjects.length];
 
 		final int rtosNumber = oilObjects.length;
@@ -545,6 +566,13 @@ public class SectionWriterCom extends SectionWriter
 		for (int currentRtosId = 0; currentRtosId < rtosNumber; currentRtosId++) {
 			final IOilObjectList ool = oilObjects[currentRtosId];
 			answer[currentRtosId] = new OilWriterBuffer();
+			
+			// Write only if there is something to do, else continue with the next cpu
+			if (!enableCom(ool)) {
+				continue;
+			}
+			
+			
 			answer[currentRtosId].append(common_buf);
 			StringBuffer buff_c = answer[currentRtosId].get(FILE_COM_C);
 			StringBuffer buff_h = answer[currentRtosId].get(FILE_EE_CFG_H);
@@ -833,9 +861,11 @@ public class SectionWriterCom extends SectionWriter
 			final IOilObjectList ool = oilObjects[rtosId];
 			
 			for (ISimpleGenRes sgr : ool.getList(IOilObjectList.COM)) {
-				String comType = sgr.getString(SGRK_COM_COMTYPE);
-				if (COM_EEOPTS.containsKey(comType)) {
-					answer.add(COM_EEOPTS.get(comType));
+				if (sgr.containsProperty(SGRK_COM_COMTYPE)) {
+					String comType = sgr.getString(SGRK_COM_COMTYPE);
+					if (COM_EEOPTS.containsKey(comType)) {
+						answer.add(COM_EEOPTS.get(comType));
+					}
 				}
 			}
 		}

@@ -563,20 +563,28 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 						if (ISimpleGenResKeywords.COUNTER_TYPE_HW.equals(counter_type)) {
 							sgr.setObject(ISimpleGenResKeywords.COUNTER_TYPE, ISimpleGenResKeywords.COUNTER_TYPE_HW);
 
-							String[] device = CommonUtils.getValue(vt, path+"TYPE"+VARIANT_ELIST+child[0] + PARAMETER_LIST + "DEVICE");
+							final String hw_path = path+"TYPE"+VARIANT_ELIST+child[0] + PARAMETER_LIST;
+							String[] device = CommonUtils.getValue(vt, hw_path + "DEVICE");
 							
 							if (device!= null && device.length > 0) {
 								sgr.setObject(ISimpleGenResKeywords.COUNTER_DEVICE, device[0]);
 							}
 							
-							String[] handler = CommonUtils.getValue(vt, path+"TYPE"+VARIANT_ELIST+child[0] + PARAMETER_LIST + "HANDLER");
+							String[] handler = CommonUtils.getValue(vt, hw_path + "HANDLER");
 							
 							if (handler!= null && handler.length > 0) {
 								sgr.setObject(ISimpleGenResKeywords.COUNTER_USER_HANDLER, handler[0]);
 							}
 							
+							{	// ----------- PRIORITY ------------
+								String[] values = CommonUtils.getValue(vt, hw_path+"PRIORITY");
+								if (values!= null && values.length >0) {
+									sgr.setProperty(ISimpleGenResKeywords.COUNTER_ISR_PRIORITY, values[0]);
+								}
+							}
 							
-							String systimer = CommonUtils.getFirstChildEnumType(vt, path+"TYPE"+VARIANT_ELIST+child[0] + PARAMETER_LIST + "SYSTEM_TIMER");
+							
+							String systimer = CommonUtils.getFirstChildEnumType(vt, hw_path + "SYSTEM_TIMER");
 							
 							boolean first = false;
 							if (systimer!= null && "true".equalsIgnoreCase(systimer)) {

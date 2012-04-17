@@ -37,6 +37,7 @@ import com.eu.evidence.rtdruid.modules.oil.codewriter.common.SectionWriter;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.comments.FileTypes;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.comments.ICommentWriter;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.SectionWriterIsr;
+import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.SectionWriterKernelCounterHw;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.hw.EEStacks;
 import com.eu.evidence.rtdruid.modules.oil.cortex.constants.CortexConstants;
 import com.eu.evidence.rtdruid.modules.oil.erikaenterprise.constants.IEEWriterKeywords;
@@ -66,7 +67,8 @@ public class SectionWriterHalCortexMx extends SectionWriter
 	public final static String EEOPT__CORTEX_MODEL_M0__ = "__CORTEX_M0__";
 	public final static String EEOPT__CORTEX_MODEL_M4__ = "__CORTEX_M4__";
 
-
+	private static final String EE_CORTEX_SYSTEM_TIMER_HANDLER = "EE_cortex_system_timer_handler";
+	
 	final protected String CUSTOM_MCU = "CUSTOM";
 	final protected static HashMap<String, Mcu_Model> LPCX_MCU_PROPERTIES = new HashMap<String, Mcu_Model>();
 	final protected static HashMap<String, Mcu_Model> STELLARIS_MCU_PROPERTIES = new HashMap<String, Mcu_Model>();
@@ -86,6 +88,7 @@ public class SectionWriterHalCortexMx extends SectionWriter
 	protected final IVarTree vt;
 	
 	private final SectionWriterIsr isrWriter; 
+	private final SectionWriterKernelCounterHw counterHwWriter;
 	
 	/**
 	 * 
@@ -114,6 +117,7 @@ public class SectionWriterHalCortexMx extends SectionWriter
 		
 		isrWriter = new SectionWriterIsr(parent, IWritersKeywords.CPU_CORTEX_MX);
 		isrWriter.setValidEntries(ISR_LIST);
+		counterHwWriter = new SectionWriterKernelCounterHw(parent, IWritersKeywords.CPU_CORTEX_MX, EE_CORTEX_SYSTEM_TIMER_HANDLER);
 	}
 
 	/**
@@ -146,9 +150,10 @@ public class SectionWriterHalCortexMx extends SectionWriter
 	/**
 	 * This method makes some changes to computed Oil Object
 	 */
-	public void updateObjects() {
+	public void updateObjects() throws OilCodeWriterException {
 		
 		isrWriter.updateObjects();
+		counterHwWriter.updateObjects();
 
 		final IOilObjectList[] oilObjects = parent.getOilObjects();		
 
@@ -302,7 +307,8 @@ public class SectionWriterHalCortexMx extends SectionWriter
 			// ------------- Compute --------------------
 
 			isrWriter.writeIsr(currentRtosId, ool, answer);
-
+			counterHwWriter.writeCounterHw(currentRtosId, ool, answer);
+			
 			sbInithal_c.append("\n#include \"ee.h\"\n");
 	
 	//		/***********************************************************************

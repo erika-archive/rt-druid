@@ -31,7 +31,7 @@ IMPLEMENTATION ee {
                 	// M2,
                 	M4
                 ] MODEL; 
-                
+                FLOAT CPU_CLOCK;                
             }
             
         ] CPU_DATA[];

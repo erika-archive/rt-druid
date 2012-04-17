@@ -725,6 +725,7 @@ edf
         ENUM [
         	HARDWARE {
         		BOOLEAN SYSTEM_TIMER = FALSE;
+				UINT32 PRIORITY: "the priority of related interrupt";
         		STRING DEVICE;
         		STRING HANDLER;
         	},
