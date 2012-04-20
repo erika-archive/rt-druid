@@ -371,20 +371,18 @@ public class SectionWriterMakefile_nios extends SectionWriter implements IEEWrit
 				/* Use an HashMap to write all files only one time */
 	            LinkedHashSet<String> src_files = new LinkedHashSet<String>();
 
-	            for (ISimpleGenRes sgrCpu : ool.getList(IOilObjectList.OS)) {
-		            if (sgrCpu.containsProperty(SGRK_OS_CPU_DATA_PREFIX)) {
-						final String currentCpuPrefix = sgrCpu.getString(SGRK_OS_CPU_DATA_PREFIX);
-		
-						/* Get all source files for current cpu */ 
-						String[] tmp = CommonUtils.getValue(vt, currentCpuPrefix
-						                              						+ S + "APP_SRC");
-						if (tmp != null) {
-		
-							for (int i = 0; i < tmp.length; i++) {
-								src_files.add(tmp[i]);
-							}
+				final List<String> currentCpuPrefixes = AbstractRtosWriter.getOsProperties(ool, SGRK_OS_CPU_DATA_PREFIX);
+				for (String currentCpuPrefix: currentCpuPrefixes) {
+	
+					/* Get all source files for current cpu */ 
+					String[] tmp = CommonUtils.getValue(vt, currentCpuPrefix
+					                              						+ S + "APP_SRC");
+					if (tmp != null) {
+	
+						for (int i = 0; i < tmp.length; i++) {
+							src_files.add(tmp[i]);
 						}
-		            }
+					}
 	            }
 				/* Get all source files of all tasks mapped to current cpu */ 
 				for (Iterator<ISimpleGenRes> iter = ool.getList(IOilObjectList.TASK).iterator(); iter.hasNext(); ) {

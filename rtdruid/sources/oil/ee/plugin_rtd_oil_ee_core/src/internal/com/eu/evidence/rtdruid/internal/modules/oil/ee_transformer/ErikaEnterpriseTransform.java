@@ -161,8 +161,12 @@ public class ErikaEnterpriseTransform extends SimpleTransform {
 							tmpCpuName = DEFAULT_CPU_NAME;
 						}
 						
-						if (firstCpuName_os != null && !firstCpuName_os.equalsIgnoreCase(tmpCpuName)) {
+						if (firstCpuName_os == null) {
+							firstCpuName_os = tmpCpuName;
 							
+							// save current os inside the os-cpuName list
+							finalOsList.add(new OScpuName(osList[i], firstCpuName_os));
+						} else if (!firstCpuName_os.equalsIgnoreCase(tmpCpuName)) {
 							/*
 							 * Create a new OS object and move current cpu inside it 
 							 */
@@ -187,12 +191,6 @@ public class ErikaEnterpriseTransform extends SimpleTransform {
 
 							// save the new os inside the os-cpuName list
 							finalOsList.add(new OScpuName(newOS, tmpCpuName));
-							
-						} else {
-							firstCpuName_os = tmpCpuName;
-							
-							// save current os inside the os-cpuName list
-							finalOsList.add(new OScpuName(osList[i], firstCpuName_os));
 						}
 
 					}

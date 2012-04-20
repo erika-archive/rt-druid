@@ -84,9 +84,6 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 	 *  
 	 **************************************************************************/
 
-	/** Prefix of cpu's data stored in each RT_OS */
-	protected Map<String, String> cpuDataPrefix;
-
 	/** Identifies current Eclipse project or output prefix */
 	public String default_output_prefix = "";
 	
@@ -193,8 +190,6 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 			}
 			
 		}
-
-		cpuDataPrefix = new HashMap<String, String>();
 		
 		/**
 		 * Use a specific Properties that check if the new value is already
@@ -255,75 +250,74 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 		}; 
 		
 		MyProperties checkKeys = new MyProperties();
+		
+		Boolean enable_multiStack = null;
 
 		for (int rtodId=0; rtodId<rtosPrefix.length; rtodId++) {
-			
-			/** The prefix of all data about current cpu */
-			String currentCpuDataPrefix = null;
-
 			
 			final String currentRtosPrefix = computeOilRtosPrefix(rtosPrefix[rtodId]);
 			{
 				/*******************************************************************
 				 * CPU TYPE
 				 ******************************************************************/
-				// check only the first RTOS !!! (as rtos of CPU0)
-				String[] child = new String[1];
-				String hw_type = CommonUtils.getFirstChildEnumType(vt,
-						currentRtosPrefix + "CPU_DATA", child);
-				if (hw_type != null) {
-					
-					// check if the value is valid
-					checkKeys.setOilProperty("CPU_DATA", hw_type);
-
-					if (!answer.contains(hw_type)) {
-						answer.add(hw_type);
-					}
-					currentCpuDataPrefix = currentRtosPrefix + "CPU_DATA"
-							+ VARIANT_ELIST + child[0] + PARAMETER_LIST;
-				}
-			}
-			cpuDataPrefix.put(rtosPrefix[rtodId], currentCpuDataPrefix);
-			
-			
-			if (currentCpuDataPrefix != null) {
-				/*******************************************************************
-				 * CPU PARAMETER (MULTI STACK)
-				 ******************************************************************/
-				String[] child = new String[1];
-				String tmp = CommonUtils
-						.getFirstChildEnumType(vt, currentCpuDataPrefix
-								+ "MULTI_STACK", child);
-	
-				// TODO DEFAULT
-				if (tmp == null) {
-					tmp = "FALSE";
-				}
-
-				// check if the value is valid
-				checkKeys.setOilProperty("MULTI_STACK", tmp);
-
-				if ("TRUE".equalsIgnoreCase(tmp) && !answer.contains(DEF__MULTI_STACK__)) {
-					answer.add(DEF__MULTI_STACK__);
-					String tmpPath = currentCpuDataPrefix
-						+ "MULTI_STACK" + VARIANT_ELIST+child[0] + PARAMETER_LIST
-						+ "IRQ_STACK";
-					
-					String tmp2 = CommonUtils.getFirstChildEnumType(vt, tmpPath, child);
-					boolean ok = "TRUE".equalsIgnoreCase(tmp2);
 				
-					// check if the value is valid
-					checkKeys.setOilProperty("IRQ_STACK", tmp2);
+				ArrayList<String> cpu_paths = new ArrayList<String>();
+				ArrayList<String> hw_types = new ArrayList<String>();
+				getOsCpuData(currentRtosPrefix, hw_types, cpu_paths);
+				
+				for (int child_id = 0; child_id < cpu_paths.size(); child_id++ ) { 
+					String hw_type = hw_types.get(child_id);
+					String currentCpuDataPrefix = cpu_paths.get(child_id);
 					
-					if (ok && !answer.contains(DEF__IRQ_STACK_NEEDED__)) {
-						answer.add(DEF__IRQ_STACK_NEEDED__);
-					}
-					
-				} else if ("FALSE".equalsIgnoreCase(tmp) && !answer.contains(DEF__MONO_STACK__)) {
-					answer.add(DEF__MONO_STACK__); 
-				}
+					if (hw_type != null) {
+						
+						// check if the value is valid
+						checkKeys.setOilProperty("CPU_DATA", hw_type);
 	
+						if (!answer.contains(hw_type)) {
+							answer.add(hw_type);
+						}
+					}
+			
+			
+					if (currentCpuDataPrefix != null) {
+						/*******************************************************************
+						 * CPU PARAMETER (MULTI STACK)
+						 ******************************************************************/
+						String[] child = new String[1];
+						String tmp = CommonUtils
+								.getFirstChildEnumType(vt, currentCpuDataPrefix
+										+ "MULTI_STACK", child);
+			
+						// TODO DEFAULT
+						if (tmp != null) {
+				
+							// check if the value is valid
+							checkKeys.setOilProperty("MULTI_STACK", tmp);
+				
+							if ("TRUE".equalsIgnoreCase(tmp) && !answer.contains(DEF__MULTI_STACK__)) {
+								enable_multiStack = Boolean.TRUE;
+								String tmpPath = currentCpuDataPrefix
+									+ "MULTI_STACK" + VARIANT_ELIST+child[0] + PARAMETER_LIST
+									+ "IRQ_STACK";
+								
+								String tmp2 = CommonUtils.getFirstChildEnumType(vt, tmpPath, child);
+								boolean ok = "TRUE".equalsIgnoreCase(tmp2);
+							
+								// check if the value is valid
+								checkKeys.setOilProperty("IRQ_STACK", tmp2);
+								
+								if (ok && !answer.contains(DEF__IRQ_STACK_NEEDED__)) {
+									answer.add(DEF__IRQ_STACK_NEEDED__);
+								}
+							} else {
+								enable_multiStack = Boolean.FALSE;
+							}
+						}
+					}
+				}
 			}
+
 			{
 				/*******************************************************************
 				 * MCU TYPE
@@ -364,6 +358,12 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 			}
 		} // end for
 		
+		
+		if (enable_multiStack == Boolean.TRUE && !answer.contains(DEF__MULTI_STACK__)) {
+			answer.add(DEF__MULTI_STACK__);
+		} else if (!answer.contains(DEF__MONO_STACK__)){
+			answer.add(DEF__MONO_STACK__);
+		}
 		
 //		// DEFAULT KERNEL
 		if (false) {
@@ -452,35 +452,38 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 				String currentRtosPrefix = answer[i].getPath() + S
 					+ DataPackage.eINSTANCE.getRtos_OilVar().getName() + S
 					+ IOilXMLLabels.OBJ_OS + oilHwRtosPrefix;
-				String[] child = new String[1];
-				String hw_type = CommonUtils.getFirstChildEnumType(vt,
-						currentRtosPrefix + "CPU_DATA", child);
-				if (hw_type != null) {
-					answer[i].setProperty(ISimpleGenResKeywords.OS_CPU_TYPE, hw_type);
+				ArrayList<String> cpu_paths = new ArrayList<String>();
+				ArrayList<String> hw_types = new ArrayList<String>();
+				getOsCpuData(currentRtosPrefix, hw_types, cpu_paths);
+				ISimpleGenRes current = answer[i]; 
+				String hw_type = null;
+				for (int child_id = 0; hw_type == null && child_id < cpu_paths.size(); child_id++ ) { 
+					hw_type = hw_types.get(child_id);
 					
-					
-					CpuHwDescription cpuDescr = EECpuDescriptionManager.getHWDescription(hw_type);
-					if (cpuDescr != null) {
-						answer[i].setObject(ISimpleGenResKeywords.OS_CPU_DESCRIPTOR, cpuDescr);
-						answer[i].setObject(ISimpleGenResKeywords.OS_CPU_COMMENT_MANAGER, cpuDescr.commentManager);
-					} else {
-						answer[i].removeAProperty(ISimpleGenResKeywords.OS_CPU_DESCRIPTOR);
+					if (hw_type != null) {
+						current.setProperty(ISimpleGenResKeywords.OS_CPU_TYPE, hw_type);
+						
+						CpuHwDescription cpuDescr = EECpuDescriptionManager.getHWDescription(hw_type);
+						if (cpuDescr != null) {
+							current.setObject(ISimpleGenResKeywords.OS_CPU_DESCRIPTOR, cpuDescr);
+							current.setObject(ISimpleGenResKeywords.OS_CPU_COMMENT_MANAGER, cpuDescr.commentManager);
+						} else {
+							current.removeAProperty(ISimpleGenResKeywords.OS_CPU_DESCRIPTOR);
+							hw_type = null;
+						}
 					}
 				}
-				answer[i].setProperty(ISimpleGenResKeywords.OS_CPU_NAME,
-						getOSName(answer[i]));
-				
+				current.setProperty(ISimpleGenResKeywords.OS_CPU_NAME,
+						getOSName(current));
+					
 				{
-					String cpuPrefix = cpuDataPrefix.get(prefix);
-					
-					if (cpuPrefix != null) {
-					    answer[i].setProperty(SGRK_OS_CPU_DATA_PREFIX, cpuPrefix);
-					}
+				    current.setObject(SGRK_OS_CPU_DATA_PREFIX, cpu_paths);
 				}
+				
 				{
 					// cpu speed
 					IVarTreePointer vtp = vt.newVarTreePointer();
-					boolean ok = vtp.goAbsolute(answer[i].getPath());
+					boolean ok = vtp.goAbsolute(current.getPath());
 					ok &= vtp.goParent();
 					ok &= vtp.go(DPKG.getCpu_Speed().getName());
 					if (ok) {
@@ -508,7 +511,7 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 									throw new OilCodeWriterException("Expected a real number as cpu speed", e);
 								}
 								
-								answer[i].setProperty(SGRK_OS_CPU_SPEED_HZ, "" + Math.round(speed*factor));
+								current.setProperty(SGRK_OS_CPU_SPEED_HZ, "" + Math.round(speed*factor));
 							}
 						}
 					}
@@ -2293,6 +2296,24 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 			}
 		}
 		return answer;
+	}
+	
+	
+	private void getOsCpuData(String currentRtosPrefix, ArrayList<String> hw_types, ArrayList<String> paths) {
+		hw_types.clear();
+		paths.clear();
+	
+		ArrayList<String> child = new ArrayList<String>();
+		ArrayList<String> tmp_types = CommonUtils.getAllChildrenEnumType(vt, currentRtosPrefix + "CPU_DATA", child);
+		for (int child_id = 0; child_id < child.size(); child_id++ ) { 
+			String hw_type = tmp_types.get(child_id);
+			
+			if (hw_type != null) {
+				
+				hw_types.add(hw_type);
+				paths.add(currentRtosPrefix + "CPU_DATA" + VARIANT_ELIST + child.get(child_id) + PARAMETER_LIST);
+			}
+		}
 	}
 }
 
