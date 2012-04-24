@@ -22,6 +22,7 @@ import com.eu.evidence.rtdruid.modules.oil.erikaenterprise.interfaces.IExtractOb
 
 public class SectionWriterIsr implements IEEWriterKeywords, IExtractObjectsExtentions {
 	
+	private static final String ISR_DISABLE_ENTRY = "isr_disable_entry";
 	protected Set<String> entries;
 	protected final String hw_id;
 	
@@ -98,6 +99,7 @@ public class SectionWriterIsr implements IEEWriterKeywords, IExtractObjectsExten
 					} else if ("2".equals(category)) {
 						String handler = curr.getString(ISimpleGenResKeywords.ISR_GENERATED_HANDLER);
 						String entry_id = curr.getString(ISimpleGenResKeywords.ISR_GENERATED_ENTRY);
+						boolean disable = curr.containsProperty(ISR_DISABLE_ENTRY) && "true".equalsIgnoreCase(curr.getString(ISR_DISABLE_ENTRY));
 						
 						if (entries != null) {
 							if (!entries.contains(entry_id)) {
@@ -113,8 +115,8 @@ public class SectionWriterIsr implements IEEWriterKeywords, IExtractObjectsExten
 							tempStrings.add("#define " + curr.getString(ISimpleGenResKeywords.ISR_GENERATED_PRIOID) + " " + prio+"\n");
 						}
 
-						if (entry_id==null || entry_id.length()==0){
-							Messages.sendWarningNl("Disabling static ISR define for " + curr.getName() +": missing the entry value.");
+						if (disable){
+							Messages.sendWarningNl("Disabling static ISR define for " + curr.getName());
 							for (int i=0; i<tempStrings.size(); i++) {
 								tempStrings.set(i, 
 										commentWriterH.writerSingleLineComment(tempStrings.get(i)));
@@ -150,6 +152,10 @@ public class SectionWriterIsr implements IEEWriterKeywords, IExtractObjectsExten
 				if ("2".equals(category)) {
 					
 					String entry = sgr.containsProperty(ISimpleGenResKeywords.ISR_ENTRY) ? sgr.getString(ISimpleGenResKeywords.ISR_ENTRY) : "";
+					if (entry == null || entry.length() == 0) {
+						Messages.sendWarningNl("Missing ISR ENTRY for isr " + sgr.getName());
+						sgr.setProperty(ISR_DISABLE_ENTRY, "true");
+					}
 					String entry_id = "EE_"+hw_id+"_"+entry+"_ISR";
 					sgr.setProperty(ISimpleGenResKeywords.ISR_GENERATED_ENTRY, entry_id);
 

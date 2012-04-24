@@ -81,7 +81,7 @@ public class SectionWriterKernelSystemCalls extends SectionWriter
 		"SetRelAlarm",
 		"SetAbsAlarm",
 		"CancelAlarm",
-		"counter_tick"
+		"IncrementCounter"
 	};
 
 	

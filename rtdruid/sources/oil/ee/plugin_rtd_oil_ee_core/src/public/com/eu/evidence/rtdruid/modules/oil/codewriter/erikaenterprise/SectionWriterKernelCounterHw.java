@@ -113,7 +113,7 @@ public class SectionWriterKernelCounterHw implements IEEWriterKeywords, IExtract
 				throw new OilCodeWriterException("Expected a CLOCK for cpu " + ErikaEnterpriseWriter.getOSName(ool));
 			}
 			buffer.append(    "#define EE_CPU_CLOCK      " + speed+"U\n");
-			buffer.append(    "#define EE_MAX_COUNTER_HW " + max_counter_hw+"U\n");
+			buffer.append(    "#define EE_MAX_COUNTER_HW " + max_counter_hw+"\n");
 			if (sysTimer != null) {
 				buffer.append("#define EE_SYSTEM_TIMER   " + sysTimer.getName() +"\n");
 			}
