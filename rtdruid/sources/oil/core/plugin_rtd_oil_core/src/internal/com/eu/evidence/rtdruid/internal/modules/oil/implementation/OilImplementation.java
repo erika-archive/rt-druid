@@ -347,7 +347,7 @@ public class OilImplementation implements IOilImplementation {
 					String ndescr = tcd.getAttributes().getProperty(IOilXMLLabels.ATTR_VALUE);
 							
 					if (!(description.contains(ndescr))) {
-						description = (description.length() == 0 ? " : " : description+ ". " )
+						description = (description.length() == 0 ? " : \"" : description+ ". " )
 								+ ndescr;
 					}
 				}
@@ -373,6 +373,9 @@ public class OilImplementation implements IOilImplementation {
 			}
 		}
 		// ------------- end -------------
+		if (description.length() > 0) {
+			description +="\""; 
+		}
 		buffer.append(end[0]+description+end[1]);
 	}
 
