@@ -787,7 +787,7 @@ public class ResourceList {
 		if (current.linkTo != null) {
 
 			// only if is a new node
-			if (!current.linkTo.equals(previous.name)) {
+			if (previous==null || !current.linkTo.equals(previous.name)) {
 				int i = Collections.binarySearch(remainder, current.linkTo);
 				if (i < 0) {
 					throw new RuntimeException(
