@@ -760,10 +760,7 @@ edf
                 UINT32 CYCLETIME;
                 APPMODE_TYPE APPMODE[];
             },
-            FALSE {
-                UINT32 ALARMTIME;
-                UINT32 CYCLETIME;
-            }
+            FALSE
         ] AUTOSTART;
     };
 };
