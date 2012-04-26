@@ -468,26 +468,32 @@ public class RTDOilProjectNature implements IProjectNature {
 			} else {
 				
 				ICProjectDescription cpd = CCorePlugin.getDefault().getProjectDescription(project, false);
-				ICConfigurationDescription[] cpds = cpd.getConfigurations();
+				if (cpd != null) {
+					ICConfigurationDescription[] cpds = cpd.getConfigurations();
+									
+					for (ICConfigurationDescription cc : cpds) {
+						if (cc.isActive()) {
+							ICBuildSetting bset = cc.getBuildSetting();
+							
+							ICOutputEntry[] outputs = bset.getOutputDirectories();
+							if (outputs.length >0) {
+			//					cc.getConfigurationData()
+			//					cc.getChildSettings()
+								IPath loc  = outputs[0].getLocation();
+								IPath full = outputs[0].getFullPath();
 								
-				for (ICConfigurationDescription cc : cpds) {
-					ICBuildSetting bset = cc.getBuildSetting();
-					
-					ICOutputEntry[] outputs = bset.getOutputDirectories();
-					if (outputs.length >0) {
-	//					cc.getConfigurationData()
-	//					cc.getChildSettings()
-						IPath loc  = outputs[0].getLocation();
-						IPath full = outputs[0].getFullPath();
-						
-//						System.out.println("loc  " + loc);
-//						System.out.println("full " + full);
-						
-						
-						return "" + full;
+//								System.out.println("loc  " + loc);
+//								System.out.println("full " + full);
+								
+								
+								return "" + full;
+							}
+							// else
+							return "" +bset.getBuilderCWD();
+						}
 					}
-					// else
-					return "" +bset.getBuilderCWD();
+				} {
+					return "/"+project.getFullPath()+"/output";
 				}
 				
 			}
