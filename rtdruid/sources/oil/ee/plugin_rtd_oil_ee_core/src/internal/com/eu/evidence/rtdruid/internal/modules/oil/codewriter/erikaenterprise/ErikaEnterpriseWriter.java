@@ -1967,8 +1967,9 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 			ISimpleGenRes curr = (ISimpleGenRes) iter.next();
 
 			int type = curr.getInt(ISimpleGenResKeywords.RESOURCE_TYPE);
-			if ((type & ISimpleGenResKeywords.RESOURCE_CHAIN_ROOT) != 0
-					& !((type & ISimpleGenResKeywords.RESOURCE_INTERNAL) != 0)) {
+			if ((type & ISimpleGenResKeywords.RESOURCE_INTERNAL) == 0) {
+//			if ((type & ISimpleGenResKeywords.RESOURCE_CHAIN_ROOT) != 0
+//					& !((type & ISimpleGenResKeywords.RESOURCE_INTERNAL) != 0)) {
 				answer.add(curr);
 			}
 		}
