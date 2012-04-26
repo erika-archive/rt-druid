@@ -23,6 +23,7 @@ import org.eclipse.cdt.make.core.MakeCorePlugin;
 import org.eclipse.cdt.managedbuilder.core.IBuilder;
 import org.eclipse.cdt.managedbuilder.core.IConfiguration;
 import org.eclipse.cdt.managedbuilder.core.IMultiConfiguration;
+import org.eclipse.cdt.managedbuilder.core.IToolChain;
 import org.eclipse.cdt.managedbuilder.core.ManagedBuildManager;
 import org.eclipse.cdt.managedbuilder.core.ManagedBuilderCorePlugin;
 import org.eclipse.core.resources.ICommand;
@@ -362,6 +363,78 @@ public class RTDOilProjectNature implements IProjectNature {
 		Element element = descriptor.getProjectData("org.eclipse.cdt.core.pathentry");
 */
 	}
+	
+	/**
+	 * Set CDT work folder
+	 */
+	public static void addRtduidBuildConfiguration(IProject project, String outputFolder) throws CoreException {
+		
+		if (outputFolder == null) {
+			outputFolder = project.getFullPath().toOSString();
+		}
+		
+		final boolean old_style = ManagedBuilderCorePlugin.getDefault().isOldStyleMakeProject(project);
+		
+		//if (CURRENT_CDT_VERS == CDT_VERS_34) {
+		if (!old_style) {
+			ICProjectDescription cpd = CCorePlugin.getDefault().getProjectDescription(project, true);
+			ICConfigurationDescription rtdConf;
+			
+			{ // first step
+				rtdConf = cpd.createConfiguration("com.eu.evidence.rtdruid.code_gen.defaultconf", "RT-Druid", cpd.getActiveConfiguration());
+				cpd.setActiveConfiguration(rtdConf);
+				
+				ICBuildSetting bset = rtdConf.getBuildSetting();
+				bset.setBuilderCWD(new Path(outputFolder));
+				COutputEntry output = new COutputEntry(outputFolder, new IPath[0], 0);
+				bset.setOutputDirectories(new ICOutputEntry[] {output});
+				
+	    		IConfiguration icfg = ManagedBuildManager.getConfigurationForDescription(rtdConf);
+	    		IToolChain tool = icfg.getToolChain();
+	    		if (tool != null) {
+	    			IBuilder builder = tool.getBuilder();
+	    			if (builder != null) {
+	    				builder.setManagedBuildOn(false);
+	    			}
+	    		}
+				
+				// set ProjectDescription (it is used later to build the "make command")
+				CCorePlugin.getDefault().setProjectDescription(project, cpd);
+			}
+			
+			{ // second step
+				String newCommand;
+				{
+			    	MyMakeBuilder myMakeBuilder = new MyMakeBuilder(project, null);
+			    	MyMakePath mmp = myMakeBuilder.getLocation();
+			    	newCommand = mmp instanceof MyMakeEclipseRelativePath ? 
+			    			((MyMakeEclipseRelativePath) mmp).fsPath : mmp.osPath;
+			    			
+			    	if (Platform.OS_WIN32.equals(Platform.getOS())) {
+	//		    	        	if (newCommand.indexOf(' ')>-1) {
+		        		newCommand = '\"' + newCommand + '\"';
+		        	}
+	
+				}
+
+	    		IConfiguration icfg = ManagedBuildManager.getConfigurationForDescription(rtdConf);
+	
+	    		if (icfg instanceof IMultiConfiguration) {
+	    			IConfiguration[] cfs = (IConfiguration[])((IMultiConfiguration)icfg).getItems();
+	    			for (int i=0; i<cfs.length; i++) {
+	    				IBuilder b = cfs[i].getEditableBuilder();
+	    				b.setCommand(newCommand);
+	    			}
+	    		} else {
+	    			icfg.getEditableBuilder().setCommand(newCommand);
+	    		}
+    		
+	    		CCorePlugin.getDefault().setProjectDescription(project, cpd);
+			}
+		}
+	}
+
+	
 	/**
 	 * Set CDT work folder
 	 */

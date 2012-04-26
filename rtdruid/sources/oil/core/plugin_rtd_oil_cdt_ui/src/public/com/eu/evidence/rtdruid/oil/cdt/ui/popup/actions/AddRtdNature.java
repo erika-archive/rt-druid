@@ -53,6 +53,7 @@ public class AddRtdNature implements IObjectActionDelegate {
 			    command.setArguments(attributes);
 			    command.setBuilderName(OilBuilder.BUILDER_ID);
 			    RTDOilProjectNature.setBuildSpec(project, command);
+			    RTDOilProjectNature.addRtduidBuildConfiguration(project, project.getFullPath().append("rtdruidOutput").toOSString());
 			    EELocationLinkVar.setEEIncludePaths(project, null);
 			} catch (CoreException e) {
 				RtdruidLog.log(e);
