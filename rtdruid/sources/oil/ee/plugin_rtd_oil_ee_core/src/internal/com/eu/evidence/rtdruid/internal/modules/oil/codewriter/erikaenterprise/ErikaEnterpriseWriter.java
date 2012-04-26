@@ -1894,11 +1894,11 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 							ISimpleGenRes curr = (ISimpleGenRes) iterRes.next();
 							
 							// use only Internal Resources required by this task
-							if (ISimpleGenResKeywords.RESOURCE_INTERNAL == curr.getInt(ISimpleGenResKeywords.RESOURCE_TYPE)
+							if ((ISimpleGenResKeywords.RESOURCE_INTERNAL & curr.getInt(ISimpleGenResKeywords.RESOURCE_TYPE)) != 0
 									&& Collections.binarySearch(tRes, curr.getName()) >= 0) {
 								
 								// get task priority
-								int tmp_priority = curr.getInt(ISimpleGenResKeywords.TASK_READY_PRIORITY);
+								int tmp_priority = curr.getInt(ISimpleGenResKeywords.RESOURCE_CEILING);
 								
 								// search max ready priority
 								max_ceiling = tmp_priority > max_ceiling ? tmp_priority : max_ceiling;
