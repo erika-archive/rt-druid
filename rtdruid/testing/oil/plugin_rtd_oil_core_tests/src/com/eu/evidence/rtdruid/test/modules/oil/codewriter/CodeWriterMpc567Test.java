@@ -1835,17 +1835,20 @@ public class CodeWriterMpc567Test extends AbstractCodeWriterTest {
 	    		"     PRIORITY = 1;\n" + 
 	    		"     RESOURCE = \"ResourceA\";\n" + 
 	    		"     RESOURCE = \"ResourceB\";\n" + 
+	    	    "     ENTRY = \"0\";\n" +
 	    		"   };\n" + 
 	    		" \n" + 
 	    		"   ISR IsrMedium {\n" + 
 	    		"     CATEGORY = 2;\n" + 
 	    		"     PRIORITY = 2;\n" + 
+	    	    "     ENTRY = \"1\";\n" +
 	    		"   };\n" + 
 	    		" \n" + 
 	    		"   ISR IsrHigh {\n" + 
 	    		"     CATEGORY = 2;\n" + 
 	    		"     PRIORITY = 3;\n" + 
 	    		"     RESOURCE = \"ResourceB\";\n" + 
+	    	    "     ENTRY = \"2\";\n" +
 	    		"   };\n" + 
 	    		" \n" + 
 	    		"   RESOURCE Resource1 { RESOURCEPROPERTY = STANDARD; };\n" + 

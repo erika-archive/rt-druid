@@ -684,7 +684,7 @@ public abstract class AbstractRtosWriter implements IRtosWriter {
 				{	// ----------- PRIORITY ------------
 					values = CommonUtils.getValue(vt, path+"PRIORITY");
 					if (values!= null && values.length >0) {
-						answer[i].setProperty(ISimpleGenResKeywords.ISR_PRIORITY, values[0]);
+						answer[i].setProperty(ISimpleGenResKeywords.ISR_USER_PRIORITY, values[0]);
 //					} else {
 //						answer[i].setProperty(ISimpleGenResKeywords.ISR_PRIORITY, "");
 					}

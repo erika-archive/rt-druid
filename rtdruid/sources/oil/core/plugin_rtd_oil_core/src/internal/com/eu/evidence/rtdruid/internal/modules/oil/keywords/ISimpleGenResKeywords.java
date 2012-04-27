@@ -61,9 +61,11 @@ public interface ISimpleGenResKeywords {
 	 **************************************************************************/
 	public final static String ISR_CATEGORY = "category";
 	public final static String ISR_ENTRY = "entry";
-	public final static String ISR_PRIORITY = "priority";
+	public final static String ISR_USER_PRIORITY = "isr_priority_defined_by_user";
 	public final static String ISR_READY_PRIORITY = "isr_ready_priority";
 	public final static String ISR_HANDLER = "handler";
+	public final static String ISR_GENERATED_PRIORITY_VALUE  = "isr_priority_generated__integer";
+	public final static String ISR_GENERATED_PRIORITY_STRING = "isr_priority_generated__string";
 	public final static String ISR_GENERATED_HANDLER = "isr___generated_handler";
 	public final static String ISR_GENERATED_ENTRY = "isr___generated_entry";
 	public final static String ISR_GENERATED_PRIOID = "isr___generated_priority_id";
@@ -98,6 +100,8 @@ public interface ISimpleGenResKeywords {
 	public final static String COUNTER_ISR_PRIORITY = "counter__hw_isr_priority";
 	/** Handler used by the code (it may be the one proposed by the user or one computed by the code generator */
 	public final static String COUNTER_GENERATED_HANDLER = "counter__hw_generated_handler";
+	public final static String COUNTER_GENERATED_PRIORITY_VALUE = "counter__hw_generated_priority_value";
+	public final static String COUNTER_GENERATED_PRIORITY_STRING = "counter__hw_generated_priority_string";
 	public final static String COUNTER_SYSTIMER = "counter__hw_system_timer";
 	public final static String COUNTER_TYPE_SW = "SOFTWARE";
 	

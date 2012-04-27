@@ -36,6 +36,7 @@ import com.eu.evidence.rtdruid.vartree.data.init.DataPath;
  */
 public class ResourceList {
 	
+	public static final String EE_RES_ISR_UNMASKED = "EE_ISR_UNMASKED";
 	/* Where found data inside the oil var of a resource */
 	protected final static String RESOURCE_PROPERTY = "RESOURCEPROPERTY";
 	protected final static String RESOURCE_LINKED = "LINKEDRESOURCE";
@@ -72,6 +73,8 @@ public class ResourceList {
 
 		/** The isr ceiling of this resource */
 		int[] isrceiling;
+		/** The macro corresponding to the isr ceiling */
+		String[] isrceilingId;
 
 		/** The type of this resource */
 		int type;
@@ -96,6 +99,7 @@ public class ResourceList {
 			cpu = new BitSet();
 			ceiling = new int[numOfRtos];
 			isrceiling = new int[numOfRtos];
+			isrceilingId = new String[numOfRtos];
 		}
 
 		/**
@@ -521,7 +525,7 @@ public class ResourceList {
 						//copy.setProperty(SimpleGenResKeywords.RESOURCE_ID, "" + id);
 
 						copy.setProperty(ISimpleGenResKeywords.RESOURCE_CEILING, "" + info.ceiling[i]);
-						copy.setProperty(ISimpleGenResKeywords.RESOURCE_ISR_CEILING, "" + info.isrceiling[i]);
+						copy.setProperty(ISimpleGenResKeywords.RESOURCE_ISR_CEILING, (info.isrceilingId[i] == null ? EE_RES_ISR_UNMASKED : info.isrceilingId[i]) );
 						tmpList[i].add(copy);
 					}
 				}
@@ -677,7 +681,7 @@ public class ResourceList {
 					continue;
 				}
 				
-				if (!isr.containsProperty(ISimpleGenResKeywords.ISR_PRIORITY)) {
+				if (!isr.containsProperty(ISimpleGenResKeywords.ISR_GENERATED_PRIORITY_VALUE)) {
 					Messages.sendErrorNl("Need isr priority to support ISR2 resources (" + isr.getName() + ")", null, "", null);
 				}
 					
@@ -690,7 +694,7 @@ public class ResourceList {
 				
 				
 				/** ISR's PRIORITY ==> RESOURCE's CEILING (prio) */
-				int prio = isr.getInt(ISimpleGenResKeywords.ISR_PRIORITY);
+				int prio = isr.getInt(ISimpleGenResKeywords.ISR_GENERATED_PRIORITY_VALUE);
 				int readyprio = isr.getInt(ISimpleGenResKeywords.ISR_READY_PRIORITY);
 				
 //				if (maxprioritiesIsr[cpuId] < prio) { // check max priority of this cpu
@@ -718,6 +722,7 @@ public class ResourceList {
 
 					if (rinfo.isrceiling[cpuId] < prio) {
 						rinfo.isrceiling[cpuId] = prio;
+						rinfo.isrceilingId[cpuId] = isr.getString(ISimpleGenResKeywords.ISR_GENERATED_PRIORITY_STRING);
 					} // ceiling
 
 					// first set cpuId ..

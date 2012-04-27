@@ -6,8 +6,6 @@
 package com.eu.evidence.rtdruid.internal.modules.oil.codewriter.erikaenterprise;
 
 
-import static com.eu.evidence.rtdruid.modules.oil.erikaenterprise.constants.IEEWriterKeywords.S;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -15,7 +13,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
 import com.eu.evidence.rtdruid.desk.Messages;
@@ -893,6 +890,7 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 		 * Set Task's Priority and Remote attribute.
 		 *  
 		 **********************************************************************/
+		setIsrPriorities();
 		setTaskPriorityAndRemote();
 
 		
@@ -1709,7 +1707,7 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 					ArrayList<Integer> isrPrioPres = new ArrayList<Integer>();
 					for (ISimpleGenRes curr : oilObjects[i].getList(IOilObjectList.ISR)) {
 	
-						if (curr.containsProperty(ISimpleGenResKeywords.ISR_PRIORITY)) {
+						if (curr.containsProperty(ISimpleGenResKeywords.ISR_GENERATED_PRIORITY_VALUE)) {
 							
 							// check priority only for those isr that have resources
 							String[] tRes;
@@ -1723,7 +1721,7 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 							
 								// search max ready priority
 								int tmp_priority = curr
-										.getInt(ISimpleGenResKeywords.ISR_PRIORITY);
+										.getInt(ISimpleGenResKeywords.ISR_GENERATED_PRIORITY_VALUE);
 								{// store the priority (if not already stored)
 									int pos = Collections.binarySearch(isrPrioPres,
 											new Integer(tmp_priority));
@@ -1738,12 +1736,12 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 		
 					for (ISimpleGenRes curr : oilObjects[i].getList(IOilObjectList.ISR)) {
 		
-						if (curr.containsProperty(ISimpleGenResKeywords.ISR_PRIORITY)) {
+						if (curr.containsProperty(ISimpleGenResKeywords.ISR_GENERATED_PRIORITY_VALUE)) {
 							
 							int tmp_priority;
 							{// set the right bit as priority of this task
 								Integer integer_priority = new Integer(curr
-										.getInt(ISimpleGenResKeywords.ISR_PRIORITY));
+										.getInt(ISimpleGenResKeywords.ISR_GENERATED_PRIORITY_VALUE));
 								int prioVal = Collections.binarySearch(isrPrioPres,
 										integer_priority);
 								if (prioVal >= 0) {
@@ -1759,7 +1757,7 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 					// set all ready priority to 2^(max_priority + 1)
 					for (ISimpleGenRes curr : oilObjects[i].getList(IOilObjectList.ISR)) {
 						
-						if (curr.containsProperty(ISimpleGenResKeywords.ISR_PRIORITY)) {
+						if (curr.containsProperty(ISimpleGenResKeywords.ISR_GENERATED_PRIORITY_VALUE)) {
 							
 							int tmp_priority = 1 << (prioPres.size());
 							curr.setProperty(ISimpleGenResKeywords.ISR_READY_PRIORITY,
@@ -1828,6 +1826,86 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 		}
 
 	}
+	
+	protected void setIsrPriorities() {
+		
+		for (IOilObjectList ool : parent.getOilObjects()) {
+
+			ArrayList<Integer> isrPrioPres = new ArrayList<Integer>();
+
+			for (ISimpleGenRes sgr: ool.getList(IOilObjectList.ISR)) {
+				String category = sgr.containsProperty(ISimpleGenResKeywords.ISR_CATEGORY) ? sgr.getString(ISimpleGenResKeywords.ISR_CATEGORY) : "";
+				
+				if ("2".equals(category)) {
+					
+					// priority
+					if (sgr.containsProperty(ISimpleGenResKeywords.ISR_USER_PRIORITY)) {
+						// search max ready priority
+						int tmp_priority = sgr.getInt(ISimpleGenResKeywords.ISR_USER_PRIORITY);
+						{// store the priority (if not already stored)
+							int pos = Collections.binarySearch(isrPrioPres,
+									new Integer(tmp_priority));
+							if (pos < 0) { // not found
+								isrPrioPres.add(-pos - 1, new Integer(tmp_priority));
+							}
+						}
+					}				
+				}
+			}
+			
+			for (ISimpleGenRes sgr: ool.getList(IOilObjectList.COUNTER)) {
+				if (sgr.containsProperty(ISimpleGenResKeywords.COUNTER_TYPE) && 
+						ISimpleGenResKeywords.COUNTER_TYPE_HW.equalsIgnoreCase(sgr.getString(ISimpleGenResKeywords.COUNTER_TYPE))) {
+					
+					// priority
+					if (sgr.containsProperty(ISimpleGenResKeywords.COUNTER_ISR_PRIORITY)) {
+						// search max ready priority
+						int tmp_priority = sgr.getInt(ISimpleGenResKeywords.COUNTER_ISR_PRIORITY);
+						{// store the priority (if not already stored)
+							int pos = Collections.binarySearch(isrPrioPres,
+									new Integer(tmp_priority));
+							if (pos < 0) { // not found
+								isrPrioPres.add(-pos - 1, new Integer(tmp_priority));
+							}
+						}
+					}				
+				}
+			}
+			
+			
+			for (ISimpleGenRes sgr: ool.getList(IOilObjectList.ISR)) {
+				String category = sgr.containsProperty(ISimpleGenResKeywords.ISR_CATEGORY) ? sgr.getString(ISimpleGenResKeywords.ISR_CATEGORY) : "";
+				
+				if ("2".equals(category) && sgr.containsProperty(ISimpleGenResKeywords.ISR_USER_PRIORITY)) {
+							
+					Integer integer_priority = new Integer(sgr.getInt(ISimpleGenResKeywords.ISR_USER_PRIORITY));
+					int prioVal = Collections.binarySearch(isrPrioPres, integer_priority);
+					if (prioVal >= 0) {
+						prioVal++; // values starting from 1 (not 0)
+						sgr.setProperty(ISimpleGenResKeywords.ISR_GENERATED_PRIORITY_VALUE, "" + prioVal);
+						sgr.setProperty(ISimpleGenResKeywords.ISR_GENERATED_PRIORITY_STRING, "EE_ISR_PRIO_" + prioVal);
+					}
+				}
+			}
+			
+			for (ISimpleGenRes sgr: ool.getList(IOilObjectList.COUNTER)) {
+				if (sgr.containsProperty(ISimpleGenResKeywords.COUNTER_TYPE) && 
+						ISimpleGenResKeywords.COUNTER_TYPE_HW.equalsIgnoreCase(sgr.getString(ISimpleGenResKeywords.COUNTER_TYPE))) {
+					if (sgr.containsProperty(ISimpleGenResKeywords.COUNTER_ISR_PRIORITY)) {
+							
+						Integer integer_priority = new Integer(sgr.getInt(ISimpleGenResKeywords.COUNTER_ISR_PRIORITY));
+						int prioVal = Collections.binarySearch(isrPrioPres, integer_priority);
+						if (prioVal >= 0) {
+							prioVal++; // values starting from 1 (not 0)
+							sgr.setProperty(ISimpleGenResKeywords.COUNTER_GENERATED_PRIORITY_VALUE, "" + prioVal);
+							sgr.setProperty(ISimpleGenResKeywords.COUNTER_GENERATED_PRIORITY_STRING, "EE_ISR_PRIO_" + prioVal);
+						}
+					}
+				}
+			}
+		}
+	}
+	
 	
 	/**
 	 * Set the Dispatch priority (TASK_DISPATCH_PRIORITY) of each task.

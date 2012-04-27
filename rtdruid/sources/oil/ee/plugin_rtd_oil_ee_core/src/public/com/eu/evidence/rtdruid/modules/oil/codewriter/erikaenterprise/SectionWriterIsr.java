@@ -110,8 +110,8 @@ public class SectionWriterIsr implements IEEWriterKeywords, IExtractObjectsExten
 
 						ArrayList<String> tempStrings = new ArrayList<String>();
 						tempStrings.add("#define " + entry_id + " " + handler+"\n");
-						if (curr.containsProperty(ISimpleGenResKeywords.ISR_GENERATED_PRIOID)) {
-							String prio = curr.containsProperty(ISimpleGenResKeywords.ISR_PRIORITY) ? curr.getString(ISimpleGenResKeywords.ISR_PRIORITY) : "";
+						if (curr.containsProperty(ISimpleGenResKeywords.ISR_GENERATED_PRIOID) && curr.containsProperty(ISimpleGenResKeywords.ISR_GENERATED_PRIORITY_STRING)) {
+							String prio = curr.getString(ISimpleGenResKeywords.ISR_GENERATED_PRIORITY_STRING);
 							tempStrings.add("#define " + curr.getString(ISimpleGenResKeywords.ISR_GENERATED_PRIOID) + " " + prio+"\n");
 						}
 
@@ -142,10 +142,8 @@ public class SectionWriterIsr implements IEEWriterKeywords, IExtractObjectsExten
 	public void updateObjects() {
 		
 		for (IOilObjectList ool : parent.getOilObjects()) {
-
-			int size = 0;
 			int max_level = 0;
-			
+			int size = 0;
 			for (ISimpleGenRes sgr: ool.getList(IOilObjectList.ISR)) {
 				String category = sgr.containsProperty(ISimpleGenResKeywords.ISR_CATEGORY) ? sgr.getString(ISimpleGenResKeywords.ISR_CATEGORY) : "";
 				
@@ -159,6 +157,9 @@ public class SectionWriterIsr implements IEEWriterKeywords, IExtractObjectsExten
 					String entry_id = "EE_"+hw_id+"_"+entry+"_ISR";
 					sgr.setProperty(ISimpleGenResKeywords.ISR_GENERATED_ENTRY, entry_id);
 
+					String prioId = entry_id+"_PRI";
+					sgr.setProperty(ISimpleGenResKeywords.ISR_GENERATED_PRIOID, prioId);
+
 					
 					{ // handler
 						String handler = sgr.containsProperty(ISimpleGenResKeywords.ISR_HANDLER) ? sgr.getString(ISimpleGenResKeywords.ISR_HANDLER) : sgr.getName();
@@ -166,15 +167,12 @@ public class SectionWriterIsr implements IEEWriterKeywords, IExtractObjectsExten
 					}
 					
 					{ // priority
-						if (sgr.containsProperty(ISimpleGenResKeywords.ISR_PRIORITY)) {
+						if (sgr.containsProperty(ISimpleGenResKeywords.ISR_GENERATED_PRIORITY_VALUE)) {
+							int prioVal = sgr.getInt(ISimpleGenResKeywords.ISR_GENERATED_PRIORITY_VALUE);
 							
-							int prio = sgr.getInt(ISimpleGenResKeywords.ISR_PRIORITY);
-							if (prio>max_level) {
-								max_level = prio;
+							if (prioVal>max_level) {
+								max_level = prioVal;
 							}
-							
-							String prioId = entry_id+"_PRI";
-							sgr.setProperty(ISimpleGenResKeywords.ISR_GENERATED_PRIOID, prioId);
 						}
 					}
 					
@@ -192,6 +190,7 @@ public class SectionWriterIsr implements IEEWriterKeywords, IExtractObjectsExten
 					}
 				}
 			}
+			
 			
 			if (size> 0) {
 				ISimpleGenRes os = ool.getList(IOilObjectList.OS).get(0);

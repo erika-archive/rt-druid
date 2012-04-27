@@ -26,6 +26,7 @@ import com.eu.evidence.rtdruid.modules.oil.codewriter.common.AbstractRtosWriter;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.AlarmAutoStartDescr;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.CommonUtils;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.OilWriterBuffer;
+import com.eu.evidence.rtdruid.modules.oil.codewriter.common.ResourceList;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.SWCategoryManager;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.SectionWriter;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.comments.FileTypes;
@@ -940,11 +941,7 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 			
 							int id = curr.getInt(ISimpleGenResKeywords.RESOURCE_SYS_ID);
 							
-							ceilings[id] = "0x"
-									+ (Integer
-											.toHexString(curr
-													.getInt(ISimpleGenResKeywords.RESOURCE_ISR_CEILING)))
-											.toUpperCase()+"U";
+							ceilings[id] = curr.getString(ISimpleGenResKeywords.RESOURCE_ISR_CEILING);
 							names[id]  = curr.getName();
 						}
 						pre2 = "";
@@ -958,7 +955,7 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 								ceiling = ceilings[j];
 							} else {
 								name = "UNUSED";
-								ceiling = "0U";
+								ceiling = ResourceList.EE_RES_ISR_UNMASKED;
 							}
 							
 							buffer.append(pre2 + post + indent2 + ceiling);

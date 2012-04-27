@@ -124,8 +124,8 @@ public class SectionWriterKernelCounterHw implements IEEWriterKeywords, IExtract
 				String entry_id = "EE_"+hw_id+"_"+dev.getKey()+"_ISR";
 				ISimpleGenRes curr = dev.getValue();
 				buffer.append("#define " + entry_id + " " + curr.getString(ISimpleGenResKeywords.COUNTER_GENERATED_HANDLER) +"\n");
-				if (curr.containsProperty(ISimpleGenResKeywords.COUNTER_ISR_PRIORITY)) {
-					String prio = curr.containsProperty(ISimpleGenResKeywords.COUNTER_ISR_PRIORITY) ? curr.getString(ISimpleGenResKeywords.COUNTER_ISR_PRIORITY) : "";
+				if (curr.containsProperty(ISimpleGenResKeywords.COUNTER_GENERATED_PRIORITY_STRING)) {
+					String prio = curr.getString(ISimpleGenResKeywords.COUNTER_GENERATED_PRIORITY_STRING);
 					buffer.append("#define " + entry_id + "_PRI " + prio+"\n");
 				}
 
@@ -171,18 +171,23 @@ public class SectionWriterKernelCounterHw implements IEEWriterKeywords, IExtract
 					if (sgr.containsProperty(ISimpleGenResKeywords.COUNTER_SYSTIMER)
 							&& Boolean.TRUE.equals(sgr.getObject(ISimpleGenResKeywords.COUNTER_SYSTIMER))) {
 						sysTimer = sgr;
-					}
-					
-					{ // handler
+						
+						if (sgr.containsProperty(ISimpleGenResKeywords.COUNTER_USER_HANDLER)) {
+							throw new OilCodeWriterException("System time does not support handler redefinition");
+						}
+						if (sgr.containsProperty(ISimpleGenResKeywords.COUNTER_ISR_PRIORITY)) {
+							throw new OilCodeWriterException("System time does not support priority redefinition");
+						}
+						
+						sgr.setProperty(ISimpleGenResKeywords.COUNTER_GENERATED_HANDLER, systimer_handler);
+						
+					} else  { // handler
 						String handler = "EE_" + sgr.getName() + "_handler";
 						if (sgr.containsProperty(ISimpleGenResKeywords.COUNTER_USER_HANDLER)) {
 							handler = sgr.getString(ISimpleGenResKeywords.COUNTER_USER_HANDLER);
-						} else if (sgr == sysTimer) {
-							handler = systimer_handler;
 						}
 						
 						sgr.setProperty(ISimpleGenResKeywords.COUNTER_GENERATED_HANDLER, handler);
-						
 					}
 				}
 			}
