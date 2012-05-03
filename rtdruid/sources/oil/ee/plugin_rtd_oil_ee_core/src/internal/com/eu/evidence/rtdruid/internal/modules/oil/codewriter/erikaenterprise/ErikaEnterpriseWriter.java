@@ -644,6 +644,7 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 								throw new OilCodeWriterException("Expected a real number as second per tick of counter "+answer[i].getName(), e);
 							}
 							answer[i].setObject(ISimpleGenResKeywords.COUNTER_SECONDPERTICK, Math.round(speed*1000000));
+							answer[i].setObject(ISimpleGenResKeywords.COUNTER_NANOSECONDPERTICK, Math.round(speed*1000000000));
 						}
 					}
 				}

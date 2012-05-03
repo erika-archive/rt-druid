@@ -221,6 +221,7 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 			ArrayList<String> appModes = null;
 			List<Integer> requiredOilObjects = (List<Integer>) AbstractRtosWriter.getOsObject(ool, SGRK__FORCE_ARRAYS_LIST__);
 			final ICommentWriter commentWriterC = getCommentWriter(ool, FileTypes.C);
+			final ICommentWriter commentWriterH = getCommentWriter(ool, FileTypes.H);
 
 			
 			/*
@@ -285,6 +286,7 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 			}
 		
 			StringBuffer buffer = answer[rtosId].get(FILE_EE_CFG_C);
+			StringBuffer buffer_h = answer[rtosId].get(FILE_EE_CFG_H);
 			//String ee_cfg_h_file_name = answer[rtosId].getFileName(FILE_EE_CFG_H);
 		
 			buffer.append(
@@ -1004,6 +1006,8 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 		
 				if (counterList.size() > 0 || requiredOilObjects.contains(new Integer(IOilObjectList.COUNTER))) {
 					buffer.append(commentWriterC.writerBanner("Counters"));
+					
+					buffer_h.append(commentWriterH.writerBanner("Counter defines"));
 		
 					/*
 					 * EE_counter_ROM
@@ -1017,17 +1021,39 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 		
 						// ------ GET VALUES -----
 						ISimpleGenRes curr = iter.next();
+						String name = curr.getName();
 		
 						String maxAllowed = curr.getString(ISimpleGenResKeywords.COUNTER_MAX_ALLOWED)+"U";
 						String ticks = curr.getString(ISimpleGenResKeywords.COUNTER_TICKS)+"U";
 						String minCycle = curr.getString(ISimpleGenResKeywords.COUNTER_MIN_CYCLE)+"U";
 		
 						// ------ WRITE BUFFER -----
+						
+						buffer_h.append(
+								"#define OSMAXALLOWEDVALUE_" + name + " " + maxAllowed + "\n" +
+								"#define OSTICKSPERBASE_" + name + "    " + ticks + "\n" +
+								"#define OSMINCYCLE_" + name + "        " + minCycle + "\n\n");
+						
+						if (curr.containsProperty(ISimpleGenResKeywords.COUNTER_SYSTIMER) &&
+								"true".equalsIgnoreCase(curr.getString(ISimpleGenResKeywords.COUNTER_SYSTIMER))) {
+							
+							buffer_h.append(
+									"#define OSMAXALLOWEDVALUE" + " " + maxAllowed + "\n" +
+									"#define OSTICKSPERBASE" + "    " + ticks + "\n" +
+									"#define OSMINCYCLE" + "        " + minCycle + "\n");
+
+							if (curr.containsProperty(ISimpleGenResKeywords.COUNTER_NANOSECONDPERTICK)) {
+								String speed = curr.getLong(ISimpleGenResKeywords.COUNTER_NANOSECONDPERTICK)+"U";
+								buffer_h.append("#define OSTICKDURATION" + "    " + speed + "\n");
+								
+							}
+							buffer_h.append("\n");
+						}
 		
 						buffer.append(pre2 + post + indent2+"{" + maxAllowed + ", "
 								+ ticks + ", " + minCycle + "}");
 						pre2 = ",";
-						post = indent2 + commentWriterC.writerSingleLineComment(curr.getName()); // end with \n;
+						post = indent2 + commentWriterC.writerSingleLineComment(name); // end with \n;
 					}
 					buffer.append(" " + post +indent1+ "};\n\n");
 		

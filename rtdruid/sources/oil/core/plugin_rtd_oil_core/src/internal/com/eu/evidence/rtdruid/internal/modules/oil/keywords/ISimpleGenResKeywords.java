@@ -91,6 +91,7 @@ public interface ISimpleGenResKeywords {
 	public final static String COUNTER_TICKS = "counter_ticks";
 	public final static String COUNTER_MIN_CYCLE = "counter_minCycle";
 	public final static String COUNTER_SECONDPERTICK = "counter_second_per_ticks";
+	public final static String COUNTER_NANOSECONDPERTICK = "counter_nanosecond_per_ticks";
 	
 	public final static String COUNTER_TYPE = "counter_type";
 	public final static String COUNTER_TYPE_HW = "HARDWARE";
