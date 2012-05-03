@@ -1883,7 +1883,7 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 					if (prioVal >= 0) {
 						prioVal++; // values starting from 1 (not 0)
 						sgr.setProperty(ISimpleGenResKeywords.ISR_GENERATED_PRIORITY_VALUE, "" + prioVal);
-						sgr.setProperty(ISimpleGenResKeywords.ISR_GENERATED_PRIORITY_STRING, "EE_ISR_PRIO_" + prioVal);
+						sgr.setProperty(ISimpleGenResKeywords.ISR_GENERATED_PRIORITY_STRING, "EE_ISR_PRI_" + prioVal);
 					}
 				}
 			}
@@ -1898,7 +1898,7 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 						if (prioVal >= 0) {
 							prioVal++; // values starting from 1 (not 0)
 							sgr.setProperty(ISimpleGenResKeywords.COUNTER_GENERATED_PRIORITY_VALUE, "" + prioVal);
-							sgr.setProperty(ISimpleGenResKeywords.COUNTER_GENERATED_PRIORITY_STRING, "EE_ISR_PRIO_" + prioVal);
+							sgr.setProperty(ISimpleGenResKeywords.COUNTER_GENERATED_PRIORITY_STRING, "EE_ISR_PRI_" + prioVal);
 						}
 					}
 				}
