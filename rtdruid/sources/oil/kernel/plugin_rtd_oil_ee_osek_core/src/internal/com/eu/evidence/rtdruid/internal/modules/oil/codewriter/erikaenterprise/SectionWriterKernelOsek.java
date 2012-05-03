@@ -310,6 +310,8 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 			// buffer for th_rnact (one row for each task)
 			StringBuffer EE_th_rnactBuffer = new StringBuffer(indent1
 					+ "EE_TYPEPRIO EE_th_rnact["+MAX_TASK+"] = {\n");
+			StringBuffer EE_th_rnactMaxBuffer = new StringBuffer(indent1
+					+ "const EE_TYPENACT EE_th_rnact_max["+MAX_TASK+"] = {\n");
 			// for each task, contains if it's extended or not
 			StringBuffer EE_th_is_extendedBuffer = new StringBuffer(indent1
 					+ "EE_TYPEPRIO EE_th_is_extended["+MAX_TASK+"] =\n"
@@ -496,6 +498,7 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 							+ dspPrio + "U");
 					EE_rq_linkBuffer.append(pre + " " + priorityLevel + "U");
 					EE_th_rnactBuffer.append(pre + post + indent2 + act + "U");
+					EE_th_rnactMaxBuffer.append(pre + post + indent2 + act + "U");
 					EE_th_is_extendedBuffer.append(pre + " " + sched + "U");
 		
 					sbDecThread.append(pre2 + indent1 + "DeclareTask(" + tname + ");");
@@ -518,6 +521,7 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 			EE_th_dispatch_prioBuffer.append(" " + post + indent1 + "};\n\n");
 			EE_rq_linkBuffer.append("};\n\n");
 			EE_th_rnactBuffer.append(post + indent1 + "};\n\n");
+			EE_th_rnactMaxBuffer.append(post + indent1 + "};\n\n");
 			EE_th_is_extendedBuffer.append("};\n\n");
 			sbStub.append(" " + post);
 		
@@ -663,7 +667,7 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 				buffer
 						.append(indent1
 								+ commentWriterC.writerSingleLineComment("remaining nact: init= maximum pending activations of a Task")
-								+ EE_th_rnactBuffer + EE_rq_linkBuffer);
+								+ EE_th_rnactBuffer + EE_th_rnactMaxBuffer + EE_rq_linkBuffer);
 		
 				// EE_rq_pairs_next
 				buffer
