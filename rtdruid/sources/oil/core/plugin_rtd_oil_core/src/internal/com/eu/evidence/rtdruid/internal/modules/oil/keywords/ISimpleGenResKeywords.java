@@ -141,6 +141,7 @@ public interface ISimpleGenResKeywords {
 	public final static String RESOURCE_GLOBAL = "resource_global";
 	public final static String RESOURCE_CEILING = "resource_ceiling";
 	public final static String RESOURCE_ISR_CEILING = "resource_isr_ceiling";
+	public final static String RESOURCE_USER_ISR_CEILING = "resource_isr_ceiling__user_value";
 	public final static String RESOURCE_SYS_ID = "resource_id";
 	public final static String RESOURCE_PROPERTY = "RESOURCEPROPERTY";
 	/** All Src files required by a resource (String[]) */

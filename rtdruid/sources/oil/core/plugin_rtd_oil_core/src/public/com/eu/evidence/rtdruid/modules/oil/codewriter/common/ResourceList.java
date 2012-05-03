@@ -75,6 +75,8 @@ public class ResourceList {
 		int[] isrceiling;
 		/** The macro corresponding to the isr ceiling */
 		String[] isrceilingId;
+		/** The value set by the user */
+		String[] isrceilingUser;
 
 		/** The type of this resource */
 		int type;
@@ -100,6 +102,7 @@ public class ResourceList {
 			ceiling = new int[numOfRtos];
 			isrceiling = new int[numOfRtos];
 			isrceilingId = new String[numOfRtos];
+			isrceilingUser = new String[numOfRtos];
 		}
 
 		/**
@@ -525,6 +528,7 @@ public class ResourceList {
 						//copy.setProperty(SimpleGenResKeywords.RESOURCE_ID, "" + id);
 
 						copy.setProperty(ISimpleGenResKeywords.RESOURCE_CEILING, "" + info.ceiling[i]);
+						copy.setProperty(ISimpleGenResKeywords.RESOURCE_USER_ISR_CEILING, (info.isrceilingUser[i] == null ? "0" : info.isrceilingUser[i]) );
 						copy.setProperty(ISimpleGenResKeywords.RESOURCE_ISR_CEILING, (info.isrceilingId[i] == null ? EE_RES_ISR_UNMASKED : info.isrceilingId[i]) );
 						tmpList[i].add(copy);
 					}
@@ -722,6 +726,7 @@ public class ResourceList {
 
 					if (rinfo.isrceiling[cpuId] < prio) {
 						rinfo.isrceiling[cpuId] = prio;
+						rinfo.isrceilingUser[cpuId] = isr.getString(ISimpleGenResKeywords.ISR_USER_PRIORITY);
 						rinfo.isrceilingId[cpuId] = isr.getString(ISimpleGenResKeywords.ISR_GENERATED_PRIORITY_STRING);
 					} // ceiling
 

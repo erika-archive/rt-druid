@@ -934,16 +934,21 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 							buffer.append("#include \"ee_irq.h\"\n");
 						}
 						
+						StringBuffer isr_ceilingBuffer = new StringBuffer();
+						
 						/*
 						 * EE_resource_ceiling
 						 */
 						buffer.append(indent1
 										+ "const EE_TYPEISR2PRIO EE_resource_isr2_priority["+MAX_RESOURCE+"]= {\n");
+						isr_ceilingBuffer.append(indent1
+								+ "const EE_TYPEPRIO EE_resource_isr2_ceiling["+MAX_RESOURCE+"]= {\n");
 						
 			
 						// search all ceilings and order them
 						String[] names = new String[maxMutex];
 						String[] ceilings = new String[maxMutex];
+						String[] user_ceilings = new String[maxMutex];
 						for (Iterator<ISimpleGenRes> iter = mutexList.iterator(); iter
 								.hasNext();) {
 			
@@ -952,6 +957,7 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 							int id = curr.getInt(ISimpleGenResKeywords.RESOURCE_SYS_ID);
 							
 							ceilings[id] = curr.getString(ISimpleGenResKeywords.RESOURCE_ISR_CEILING);
+							user_ceilings[id] = curr.getString(ISimpleGenResKeywords.RESOURCE_USER_ISR_CEILING);
 							names[id]  = curr.getName();
 						}
 						pre2 = "";
@@ -960,22 +966,28 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 			
 							final String name;
 							final String ceiling;
+							final String user_ceiling;
 							if (ceilings[j] != null) {
 								name = names[j];
 								ceiling = ceilings[j];
+								user_ceiling = user_ceilings[j];
 							} else {
 								name = "UNUSED";
 								ceiling = ResourceList.EE_RES_ISR_UNMASKED;
+								user_ceiling = "0";
 							}
 							
 							buffer.append(pre2 + post + indent2 + ceiling);
+							isr_ceilingBuffer.append(pre2 + post + indent2 + user_ceiling + "U");
 							post = "\t\t" + commentWriterC.writerSingleLineComment("resource " + name); // Ends with  " \n";
 							pre2 = ",";
 						}
 						buffer.append(" " + post + indent1 + "};\n\n");
+						isr_ceilingBuffer.append(" " + post + indent1 + "};\n\n");
 			
 						buffer.append(indent1
-										+ "EE_TYPEISR2PRIO EE_isr2_oldpriority["+MAX_RESOURCE+"];\n\n");
+										+ "EE_TYPEISR2PRIO EE_isr2_oldpriority["+MAX_RESOURCE+"];\n\n"
+										+isr_ceilingBuffer.toString());
 			
 						
 						/*
