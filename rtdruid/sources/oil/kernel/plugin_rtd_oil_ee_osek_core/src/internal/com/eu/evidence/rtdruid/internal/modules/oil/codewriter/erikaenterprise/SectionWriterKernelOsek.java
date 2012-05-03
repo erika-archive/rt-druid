@@ -309,7 +309,7 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 							+ "const EE_TYPEPRIO EE_th_dispatch_prio["+MAX_TASK+"] = {\n");
 			// buffer for th_rnact (one row for each task)
 			StringBuffer EE_th_rnactBuffer = new StringBuffer(indent1
-					+ "EE_TYPEPRIO EE_th_rnact["+MAX_TASK+"] = {\n");
+					+ "EE_TYPENACT EE_th_rnact["+MAX_TASK+"] = {\n");
 			StringBuffer EE_th_rnactMaxBuffer = new StringBuffer(indent1
 					+ "const EE_TYPENACT EE_th_rnact_max["+MAX_TASK+"] = {\n");
 			// for each task, contains if it's extended or not
