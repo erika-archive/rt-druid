@@ -1903,6 +1903,10 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 					}
 				}
 			}
+			
+			if (isrPrioPres.size()>0) {
+				ool.getList(IOilObjectList.OS).get(0).setProperty(ISimpleGenResKeywords.OS_ADD_IRQH, "true");
+			}
 		}
 	}
 	

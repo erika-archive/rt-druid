@@ -923,6 +923,10 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 					
 					 // ISR RESOURCES
 					if ("true".equalsIgnoreCase(AbstractRtosWriter.getOsProperty(ool, ISimpleGenResKeywords.OS_CPU__ISR_REQUIRES_RESOURCES))) {
+					
+						if ("true".equalsIgnoreCase(AbstractRtosWriter.getOsProperty(ool, ISimpleGenResKeywords.OS_ADD_IRQH))) {
+							buffer.append("#include \"ee_irq.h\"\n");
+						}
 						
 						/*
 						 * EE_resource_ceiling

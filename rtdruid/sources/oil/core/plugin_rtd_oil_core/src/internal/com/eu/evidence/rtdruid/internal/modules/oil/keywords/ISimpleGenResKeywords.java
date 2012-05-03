@@ -184,6 +184,7 @@ public interface ISimpleGenResKeywords {
 	public final static String OS_CPU_NAME = "cpu_name";
 	public final static String OS_CPU_DESCRIPTOR = "cpu_descriptor";
 	public final static String OS_CPU_COMMENT_MANAGER = "comment_manager";
+	public final static String OS_ADD_IRQH = "add_irq.h_include";
 	
 	public final static String OS_IRQ_STACK_ID = "id_for_default_irq_stack";
 
