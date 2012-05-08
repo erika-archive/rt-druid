@@ -642,7 +642,7 @@ public class CodeWriterCosmicS12Test extends AbstractCodeWriterTest {
 				"    ALARM AlarmTask2 {\n"+
 				"                COUNTER = \"Counter1\";\n"+
 				"                ACTION = ACTIVATETASK { TASK = \"Task2\"; };\n"+
-				"                AUTOSTART = FALSE { ALARMTIME = 55; CYCLETIME = 66; };\n"+
+				"                AUTOSTART = FALSE;\n"+
 				"    };\n"+
 				"};";
 	    final String text_new =

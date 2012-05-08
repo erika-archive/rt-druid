@@ -17,6 +17,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import com.eu.evidence.rtdruid.desk.Messages;
+import com.eu.evidence.rtdruid.internal.modules.oil.exceptions.OilCodeWriterException;
 import com.eu.evidence.rtdruid.internal.modules.oil.keywords.IOilXMLLabels;
 import com.eu.evidence.rtdruid.internal.modules.oil.keywords.ISimpleGenResKeywords;
 import com.eu.evidence.rtdruid.internal.modules.oil.keywords.IWritersKeywords;
@@ -27,6 +28,7 @@ import com.eu.evidence.rtdruid.vartree.ITreeInterface;
 import com.eu.evidence.rtdruid.vartree.IVarTree;
 import com.eu.evidence.rtdruid.vartree.data.DataPackage;
 import com.eu.evidence.rtdruid.vartree.data.init.DataPath;
+import com.sun.corba.se.impl.protocol.giopmsgheaders.Message;
 
 /**
  * Stores all resource, groupping chains and calculating ceiling
@@ -345,7 +347,7 @@ public class ResourceList {
 	 *            contains all objects (only tasks are required)
 	 */
 	public ResourceList(IVarTree vt, String prefix, String oilPrefix,
-			IOilObjectList[] oilObjects, final boolean useResScheduler) {
+			IOilObjectList[] oilObjects, final boolean useResScheduler) throws OilCodeWriterException {
 
 		final LinkedList<ResourceTmp> rTemp;
 		{
@@ -378,6 +380,24 @@ public class ResourceList {
 				String resType = CommonUtils.getFirstChildEnumType(vt, currPrefix + RESOURCE_PROPERTY, newName);
 				currPrefix += RESOURCE_PROPERTY+CommonUtils.VARIANT_ELIST + newName[0] + CommonUtils.PARAMETER_LIST;
 	
+				if (IWritersKeywords.RES_SCHEDULER.equals(resName[i])) {
+					if (useResScheduler) {
+						if ((RES_STANDARD.equalsIgnoreCase(resType))) {
+							
+							continue; // !!! do not create a new RES_SCHEDULER
+							
+						} else {
+							throw new OilCodeWriterException("When USERESSCHEDULER is true, a resource called RES_SCHEDULER can have only a 'STANDARD' type");
+						}
+					} else {
+						if (RES_STANDARD.equalsIgnoreCase(resType)) {
+							Messages.sendWarningNl("Found a resource called RES_SCHEDULER when USERESSCHEDULER is false");
+						} else {
+							Messages.sendWarningNl("Found a resource called RES_SCHEDULER with type different from 'STANDARD' (USERESSCHEDULER is false)");
+						}
+					}
+				}
+				
 				ResourceTmp current;
 				if (RES_STANDARD.equalsIgnoreCase(resType)) {
 					// -------- RES_STANDARD ------------
