@@ -9,6 +9,7 @@ package com.eu.evidence.rtdruid.modules.oil.codewriter.common;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -293,17 +294,17 @@ public class ResourceList {
 		 * 
 		 * @param vet
 		 *            a list of ResourceTmp
-		 * @param size
-		 *            the current size of legal ResourceTmp in vet
 		 * @param name
 		 *            the name to search
+		 *            
+		 * @return the value, or null if not found
 		 */
-		public int search(ResourceTmp[] vet, int size, String name) {
-			for (int i = 0; i < size; i++) {
-				if (name.equals(vet[i].name))
-					return i;
+		public ResourceTmp search(Collection<ResourceTmp> vet, String name) {
+			for (ResourceTmp res : vet) {
+				if (name.equals(res.name))
+					return res;
 			}
-			return -1;
+			return null;
 		}
 
 		/**
@@ -346,7 +347,7 @@ public class ResourceList {
 	public ResourceList(IVarTree vt, String prefix, String oilPrefix,
 			IOilObjectList[] oilObjects, final boolean useResScheduler) {
 
-		final LinkedList rTt;
+		final LinkedList<ResourceTmp> rTemp;
 		{
 			ITreeInterface ti = vt.newTreeInterface();
 			LinkedList pendenti = new LinkedList(); // store a link to a resource
@@ -362,7 +363,11 @@ public class ResourceList {
 					+ dpkg.getArchitectural_MutexList().getName() +S;
 			String[] resName = ti.getAllName(tmpPref, dpkg.getMutex().getName());
 	
-			ResourceTmp[] rTemp = new ResourceTmp[resName.length];
+			rTemp = new LinkedList<ResourceList.ResourceTmp>();
+			if (useResScheduler) {
+				rTemp.add(new ResourceTmp(IWritersKeywords.RES_SCHEDULER, STANDARD));
+			}
+			
 			int resNumb = resName.length;
 			for (int i = 0; i < resNumb; i++) {
 	
@@ -373,14 +378,15 @@ public class ResourceList {
 				String resType = CommonUtils.getFirstChildEnumType(vt, currPrefix + RESOURCE_PROPERTY, newName);
 				currPrefix += RESOURCE_PROPERTY+CommonUtils.VARIANT_ELIST + newName[0] + CommonUtils.PARAMETER_LIST;
 	
+				ResourceTmp current;
 				if (RES_STANDARD.equalsIgnoreCase(resType)) {
 					// -------- RES_STANDARD ------------
-					rTemp[i] = new ResourceTmp(resName[i], STANDARD);
+					current = new ResourceTmp(resName[i], STANDARD);
 	
 					// --------- SRC ----------
 					String[] srcFiles = CommonUtils.getValue(vt, currPrefix + "APP_SRC");
 					if (srcFiles != null) {
-						rTemp[i].srcFiles = srcFiles;
+						current.srcFiles = srcFiles;
 					}
 	
 				} else if (RES_LINKED.equalsIgnoreCase(resType)) {
@@ -392,21 +398,21 @@ public class ResourceList {
 								"Resources : Expected a not null resource type for a linked resource."
 										+ " (resource = " + resName[i] + ")");
 	
-					rTemp[i] = new ResourceTmp(resName[i], LINKED);
-					rTemp[i].linkTo = tmp[0];
+					current = new ResourceTmp(resName[i], LINKED);
+					current.linkTo = tmp[0];
 	
-					int pos = (new ResourceTmp()).search(rTemp, i, tmp[0]);
+					ResourceTmp searched = (new ResourceTmp()).search(rTemp, tmp[0]);
 	
-					if (pos == -1) { // store a link
+					if (searched == null) { // store a link
 						String[] link = { tmp[0], resName[i] };
 						pendenti.add(link);
 					} else {
-						rTemp[pos].dep.add(resName[i]);
+						searched.dep.add(resName[i]);
 					}
 					
 				} else if (RES_INTERNAL.equalsIgnoreCase(resType)) {
 					// -------- RES_INTERNAL ------------
-					rTemp[i] = new ResourceTmp(resName[i], INTERNAL);
+					current = new ResourceTmp(resName[i], INTERNAL);
 	
 				} else {
 					throw new RuntimeException(
@@ -414,9 +420,9 @@ public class ResourceList {
 									+ resName[i] + ", type = " + resType);
 				}
 	
-	
+				rTemp.add(current);
 			}
-	
+			
 			/***********************************************************************
 			 * 
 			 * check links between resources
@@ -427,18 +433,16 @@ public class ResourceList {
 			for (Iterator iter = pendenti.iterator(); iter.hasNext(); ) {
 				String[] p = (String[]) iter.next();
 	
-				int pos = (new ResourceTmp()).search(rTemp, resNumb, p[0]);
+				ResourceTmp searched = (new ResourceTmp()).search(rTemp, p[0]);
 	
-				if (pos == -1) { // store a link
+				if (searched == null) { // store a link
 					throw new RuntimeException(
 							"Resources: link to a non-existent resource : from = "
 									+ p[1] + " -> to = " + p[0]);
 				}
 	
-				rTemp[pos].dep.add(p[1]);
+				searched.dep.add(p[1]);
 			}
-			
-			rTt = new LinkedList(Arrays.asList(rTemp));
 		}
 
 		// move data and check for chains
@@ -446,9 +450,9 @@ public class ResourceList {
 		nomiRis = new ArrayList();
 		infoRis = new ArrayList();
 		//rTt = new LinkedList(Arrays.asList(rTemp));
-		Collections.sort(rTt);
-		while (rTt.size() > 0) {
-			ResourceTmp risorsa = (ResourceTmp) rTt.removeFirst();
+		Collections.sort(rTemp);
+		while (rTemp.size() > 0) {
+			ResourceTmp risorsa = (ResourceTmp) rTemp.removeFirst();
 
 			ResInfo r = new ResInfo(oilObjects.length);
 			infoRis.add(r);
@@ -469,7 +473,7 @@ public class ResourceList {
 			// if (i>0) { // impossible !!
 			nomiRis.add(-i - 1, new ResName(risorsa.name, pos, risorsa.type));
 
-			makeGroup(risorsa, null, rTt, r, pos);
+			makeGroup(risorsa, null, rTemp, r, pos);
 			pos++; // update index
 		}
 		
