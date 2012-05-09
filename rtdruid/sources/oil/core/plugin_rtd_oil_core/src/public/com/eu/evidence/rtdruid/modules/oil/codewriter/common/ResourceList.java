@@ -649,7 +649,7 @@ public class ResourceList {
 						}
 						
 						if (!preemptable) {
-							throw new RuntimeException(
+							Messages.sendWarningNl(
 									"Resources: an internal resource ("
 											+ tRes[j]
 											+ ") is required by a non preemptable task ("+currTask.getName()+")");
