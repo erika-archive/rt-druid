@@ -277,7 +277,8 @@ public class SectionWriterCom extends SectionWriter
 						if (value != null && value.length>0) {
 							String length = getLength(value[0]);
 							if (length == null) {
-								throw new OilCodeWriterException("Expected a valid value for CDATATYPE in message " + sgr.getName() + ": " + VALID_CDATATYPES.keySet());
+//								Messages.sendWarningNl("Found an unknown value for CDATATYPE in message " + sgr.getName());
+								length = "8U*sizeof("+value[0]+")";
 							}
 							
 							sgr.setProperty(SGRK_MESSAGE_SEND_INTERNAL_DATATYPE, value[0]);
