@@ -306,7 +306,7 @@ public class SectionWriterCom extends SectionWriter
 							String[] value = CommonUtils.getValue(vt, tPath+"INITIALVALUE");
 							if (value != null && value.length>0) {
 								try {
-									found = Long.parseLong(value[0]);
+									found = Long.decode(value[0]);
 								} catch (NumberFormatException e) {
 									throw new OilCodeWriterException("IntialValue of " + sgr.getName() + " message is not a valid number ("+value[0]+")");
 								}
@@ -336,7 +336,7 @@ public class SectionWriterCom extends SectionWriter
 							String[] value = CommonUtils.getValue(vt, tPath+"QUEUESIZE");
 							if (value != null && value.length>0) {
 								try {
-									found = Long.parseLong(value[0]);
+									found = Long.decode(value[0]);
 								} catch (NumberFormatException e) {
 									throw new OilCodeWriterException("The queue size of " + sgr.getName() + " message is not a valid number ("+value[0]+")");
 								}
