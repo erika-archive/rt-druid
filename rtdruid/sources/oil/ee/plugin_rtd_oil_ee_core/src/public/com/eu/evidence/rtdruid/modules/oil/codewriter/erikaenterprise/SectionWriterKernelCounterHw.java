@@ -116,6 +116,9 @@ public class SectionWriterKernelCounterHw implements IEEWriterKeywords, IExtract
 			buffer.append(    "#define EE_MAX_COUNTER_HW " + max_counter_hw+"\n");
 			if (sysTimer != null) {
 				buffer.append("#define EE_SYSTEM_TIMER   " + sysTimer.getName() +"\n");
+				if (sysTimer.containsProperty(ISimpleGenResKeywords.COUNTER_DEVICE)) {
+					buffer.append("#define EE_SYSTEM_TIMER_DEVICE   " + "EE_"+hw_id+"_"+sysTimer.getString(ISimpleGenResKeywords.COUNTER_DEVICE) +"\n");					
+				}
 			}
 			
 			buffer.append("\n");
