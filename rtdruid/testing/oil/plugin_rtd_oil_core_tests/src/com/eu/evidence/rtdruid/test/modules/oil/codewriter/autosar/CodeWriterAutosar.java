@@ -208,11 +208,11 @@ public class CodeWriterAutosar extends AbstractCodeWriterTest {
 			"		CATEGORY = 2;\n" +
 			"	};\n" +
 			"\n" +
-			"	OSAPPLICATION TrustedApp {\n" +
+			"	APPLICATION TrustedApp {\n" +
 			"		TRUSTED = TRUE;\n" +
-			"		OS_APP_ISR_REF = \"TrustedIsr\";\n" +
-			"		OS_APP_TASK_REF = \"MainTask\";\n" +
-			"		OS_APP_TASK_REF = \"TrustedTask\";\n" +
+			"		ISR = \"TrustedIsr\";\n" +
+			"		TASK = \"MainTask\";\n" +
+			"		TASK = \"TrustedTask\";\n" +
 			
 			"		MEMORY_BASE = 0x40010000;\n" +
 			"		MEMORY_SIZE = 0x10000;\n" +
@@ -220,10 +220,10 @@ public class CodeWriterAutosar extends AbstractCodeWriterTest {
 			"		SHARED_STACK_SIZE = 512;\n" +
 			"	};\n" +
 			"\n" +
-			"	OSAPPLICATION App1 {\n" +
+			"	APPLICATION App1 {\n" +
 			"		TRUSTED = FALSE;\n" +
-			"		OS_APP_ISR_REF = \"App1Isr\";\n" +
-			"		OS_APP_TASK_REF = \"App1Task\";\n" +
+			"		ISR = \"App1Isr\";\n" +
+			"		TASK = \"App1Task\";\n" +
 
 			"		MEMORY_BASE = 0x40020000;\n" +
 			"		MEMORY_SIZE = 0x10000;\n" +
@@ -231,10 +231,10 @@ public class CodeWriterAutosar extends AbstractCodeWriterTest {
 			"		SHARED_STACK_SIZE = 512;\n" +
 			"	};\n" +
 			"\n" +
-			"	OSAPPLICATION App2 {\n" +
+			"	APPLICATION App2 {\n" +
 			"		TRUSTED = FALSE;\n" +
-			"		OS_APP_ISR_REF = \"App2Isr\";\n" +
-			"		OS_APP_TASK_REF = \"App2Task\";\n" +
+			"		ISR = \"App2Isr\";\n" +
+			"		TASK = \"App2Task\";\n" +
 
 			"		MEMORY_BASE = 0x40030000;\n" +
 			"		MEMORY_SIZE = 0x4000;\n" +

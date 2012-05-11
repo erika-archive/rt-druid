@@ -66,6 +66,7 @@ public class SectionWriterCom extends SectionWriter
 	 */
 	private static final String SGRK_COM_COMTYPE = "SimpleGenResKey_com_comtype";
 	private static final String SGRK_COM_COMAPPMODE = "SimpleGenResKey_com_comAPPMODE_stringArray";
+	private static final String SGRK_COM_STARTCOMEXTENSION = "SimpleGenResKey_com_comstartcomeextension";
 	
 	
 	private static final String SGRK_MESSAGE_TYPE = "SimpleGenResKeyword__message_type";
@@ -250,6 +251,14 @@ public class SectionWriterCom extends SectionWriter
 						throw new OilCodeWriterException("Expected a value for COM/COMAPPMODE");
 					}
 				}
+				
+				{ // get COM TYPE
+					String chType = CommonUtils.getFirstChildEnumType(vt, path+"COMSTARTCOMEXTENSION");
+					if ("true".equalsIgnoreCase(chType)) {
+						sgr.setProperty(SGRK_COM_STARTCOMEXTENSION, "true");
+					}
+				}
+				
 				
 //				System.out.println("\t" + sgr);
 			}
@@ -866,6 +875,12 @@ public class SectionWriterCom extends SectionWriter
 					String comType = sgr.getString(SGRK_COM_COMTYPE);
 					if (COM_EEOPTS.containsKey(comType)) {
 						answer.add(COM_EEOPTS.get(comType));
+					}
+				}
+				
+				if (sgr.containsProperty(SGRK_COM_STARTCOMEXTENSION)) {
+					if ("true".equalsIgnoreCase(sgr.getString(SGRK_COM_STARTCOMEXTENSION))) {
+						answer.add("__USE_STARTCOM_EXTENSION__");
 					}
 				}
 			}
