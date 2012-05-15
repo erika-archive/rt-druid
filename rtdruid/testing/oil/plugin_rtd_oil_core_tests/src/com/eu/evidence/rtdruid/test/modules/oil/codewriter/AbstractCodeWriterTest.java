@@ -2,8 +2,11 @@ package com.eu.evidence.rtdruid.test.modules.oil.codewriter;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
@@ -44,7 +47,8 @@ import com.eu.evidence.rtdruid.vartree.data.init.RTD_XMI_Factory;
  *
  */
 public class AbstractCodeWriterTest extends TestCase {
-	
+	protected String basePath = "e:/tests_161/";
+
 	/**
 	 * A small class used to retur the IVarTree and computed Buffers
 	 * 
@@ -100,7 +104,8 @@ public class AbstractCodeWriterTest extends TestCase {
 		assertEquals(expected_cpu, buffers.length);
 		for (int i=0; i<expected_cpu; i++)
 			System.out.println("buff " + i + ":\n" + (buffers[i]).toString());
-
+		writeTestResultToFile(buffers);
+		
 		return new DefaultTestResult(vt, buffers);
 	}
 
@@ -193,6 +198,7 @@ public class AbstractCodeWriterTest extends TestCase {
 		for (int i=0; i<buffers.length; i++)
 			System.out.println("buff " + i + ":\n" + (buffers[i]).toString());
 
+		writeTestResultToFile(buffers);
 		assertEquals(expected_cpu, buffers.length);
 
 		return new DefaultTestResult(vt, buffers);
@@ -267,4 +273,47 @@ public class AbstractCodeWriterTest extends TestCase {
 		return output.toString();
     }
 
+
+    /**
+     * This method writes all provided test results to a file corresponding to current test 
+     * 
+     * @param buffers
+     */
+    protected void writeTestResultToFile(IOilWriterBuffer[] buffers) {
+    	String path = basePath + (basePath.length()>0 && !basePath.endsWith(File.separator) ? File.separator : "")+getClass().getName() + "-" + getName();
+    	writeTestResultToFile(buffers, path);
+    }
+    /**
+     * This method writes all provided test results to a generic file 
+     * 
+     * @param buffers
+     */
+    protected void writeTestResultToFile(IOilWriterBuffer[] buffers, String filePath) {
+		try {
+	    	File f = new File(filePath);
+	    	FileOutputStream out = new FileOutputStream(f);
+	    	write(buffers, out);
+	    	out.flush();
+	    	out.close();
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+    }
+    
+	
+	/**
+	 * Write all buffers to standard output or to the given stream
+	 * 
+	 * @param buffers
+	 */
+	public void write(IOilWriterBuffer[] buffers, OutputStream out) {
+		try {
+			for (int i=0; i<buffers.length; i++) {
+				out.write(("buff " + i + ":\n").getBytes());
+				out.write((buffers[i]).toString().getBytes());
+			}
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
 }

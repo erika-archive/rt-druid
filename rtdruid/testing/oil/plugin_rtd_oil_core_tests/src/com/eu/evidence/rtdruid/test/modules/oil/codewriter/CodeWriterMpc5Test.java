@@ -17,7 +17,7 @@ public class CodeWriterMpc5Test extends AbstractCodeWriterTest {
 			"			\n" +
 			"			APP_SRC = \"code.c\";\n" +
 			"	\n" +
-			"        STACK_BOTTOM = 0xFFFF0000;\n"+
+			"        STACK_BOTTOM = 0x0FFF0000;\n"+
 			"        SYS_SIZE = 0x1000;\n"+
 		
 			"        HANDLER_LVL0 = \"handler lvl 0\";\n"+
@@ -70,7 +70,7 @@ public class CodeWriterMpc5Test extends AbstractCodeWriterTest {
 			"			\n" +
 			"			APP_SRC = \"code.c\";\n" +
 			"	\n" +
-			"        STACK_BOTTOM = 0xFFFF0000;\n"+
+			"        STACK_BOTTOM = 0x0FFF0000;\n"+
 			"        SYS_SIZE = 0x1000;\n"+
 		
 			"        HANDLER_LVL0 = \"pit_handler\";\n"+
