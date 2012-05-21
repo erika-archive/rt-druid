@@ -9,6 +9,8 @@ package com.eu.evidence.rtdruid.modules.oil.codewriter.common;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -969,6 +971,32 @@ public abstract class AbstractRtosWriter implements IRtosWriter {
 
 					}
 	        	}
+	        }
+	        
+	        if (type == IOilObjectList.EVENT) {
+	        	Collections.sort(tmpAnswer, new Comparator<ISimpleGenRes>() {
+	        		/* (non-Javadoc)
+	        		 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
+	        		 */
+	        		@Override
+	        		public int compare(ISimpleGenRes o1, ISimpleGenRes o2) {
+	        			final int answer;
+	        			if (o1 == null || o1.getName() == null) {
+	        				if (o2 == null || o2.getName() == null) {
+	        					answer = 0;
+	        				} else {
+	        					answer = Integer.MIN_VALUE; 
+	        				}
+	        			} else {
+	        				if (o2 == null || o2.getName() == null) {
+	        					answer = Integer.MIN_VALUE; 
+	        				} else {
+	        					answer = o1.getName().compareTo(o2.getName()); 
+	        				}
+	        			}
+	        			return answer;
+	        		}
+				});
 	        }
 	        
 	        // convert the answer 
