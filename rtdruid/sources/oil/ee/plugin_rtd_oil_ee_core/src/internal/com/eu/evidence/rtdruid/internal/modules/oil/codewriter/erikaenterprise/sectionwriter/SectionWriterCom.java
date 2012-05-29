@@ -424,9 +424,6 @@ public class SectionWriterCom extends SectionWriter
 								sgr.setProperty(SGRK_MESSAGE_NOTIFICATION_EVENT_TASKNAME, tName);
 							}
 
-
-							sgr.setProperty(SGRK_MESSAGE_NOTIFICATION_TYPE, chType);
-
 							String eName = getReference(ool, tPath+"EVENT", IOilObjectList.EVENT);
 							if (eName == null) {
 								throw new OilCodeWriterException("Cannot find the event that should be activated by " + sgr.getName() + " message");
@@ -657,6 +654,7 @@ public class SectionWriterCom extends SectionWriter
 				StringBuffer callBackDecls = new StringBuffer();
 				StringBuffer flagDecls = new StringBuffer();
 				StringBuffer taskDecls = new StringBuffer();
+				TaskEventMap taskEventMap = new TaskEventMap();
 				LinkedHashMap<String, String> sendDecls = new LinkedHashMap<String, String>();
 				LinkedHashMap<String, String> sendSize = new LinkedHashMap<String, String>();
 				LinkedHashMap<String, List<ISimpleGenRes>> receiving = new LinkedHashMap<String, List<ISimpleGenRes>>();
@@ -701,6 +699,9 @@ public class SectionWriterCom extends SectionWriter
 								flagDecls.append("EE_COM_DEFINE_FLAG(" + id + ");\n");
 								flagIds.add(id);
 							}
+						} else if (NOTIFICATION__SETEVENT.equals(sgr.getString(SGRK_MESSAGE_NOTIFICATION_TYPE))) {
+							taskEventMap.add(sgr.getString(SGRK_MESSAGE_NOTIFICATION_EVENT_TASKNAME), sgr.getString(SGRK_MESSAGE_NOTIFICATION_EVENT_EVENTNAME));
+							
 						} else if (NOTIFICATION__ACTIVATETASK.equals(sgr.getString(SGRK_MESSAGE_NOTIFICATION_TYPE))) {
 							String id = sgr.getString(SGRK_MESSAGE_NOTIFICATION_TASK_TASKNAME);
 							if (!taskIds.contains(id)) {
@@ -792,7 +793,7 @@ public class SectionWriterCom extends SectionWriter
 								
 							} else if (NOTIFICATION__SETEVENT.equals(chType)) {
 								decl_type = "EE_COM_E_OK";
-								ref = sgr.getString(SGRK_MESSAGE_NOTIFICATION_EVENT_EVENTNAME);
+								ref = "&"+taskEventMap.getStructureName(sgr.getString(SGRK_MESSAGE_NOTIFICATION_EVENT_TASKNAME), sgr.getString(SGRK_MESSAGE_NOTIFICATION_EVENT_EVENTNAME));
 								
 							} else if (NOTIFICATION__COMCALLBACK.equals(chType)) {
 								decl_type = "EE_COM_CB_OK";
@@ -830,6 +831,12 @@ public class SectionWriterCom extends SectionWriter
 					buff_c.append("\n" +
 							commentWriter.writerSingleLineComment("Flags") +
 							flagDecls + "\n");
+				}
+				if (taskEventMap.size()>0) {
+					// add SetEvents
+					buff_c.append("\n" +
+							commentWriter.writerSingleLineComment("Set Events") +
+							taskEventMap.getInitStructures() + "\n");
 				}
 				
 				
