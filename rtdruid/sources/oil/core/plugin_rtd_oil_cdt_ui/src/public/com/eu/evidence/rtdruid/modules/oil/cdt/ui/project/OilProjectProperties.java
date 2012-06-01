@@ -407,6 +407,8 @@ public class OilProjectProperties extends PropertyPage {
 	    Map<String, String> attributes = OilBuilder.getParameters(project);
 	    if (attributes != null && attributes.containsKey(OilBuilder.ATTR_CONFIG_FILES)) {
 	        tmp = splitFiles((String) attributes.get(OilBuilder.ATTR_CONFIG_FILES));
+	    }
+	    if (tmp == null || tmp.length == 0) {
 	        Messages.sendWarningNl("Project " + project.getName() + " does not contain any RT-Druid configuration file. Check Project's properties, at Oil Properties page." );
 	    } 
 	    
