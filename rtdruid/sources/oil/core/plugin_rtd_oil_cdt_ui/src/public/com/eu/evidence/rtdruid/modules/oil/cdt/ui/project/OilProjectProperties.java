@@ -39,6 +39,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.ui.dialogs.ElementTreeSelectionDialog;
 import org.eclipse.ui.dialogs.PropertyPage;
 
+import com.eu.evidence.rtdruid.desk.Messages;
 import com.eu.evidence.rtdruid.modules.oil.cdt.ui.Rtd_oil_cdt_Plugin;
 import com.eu.evidence.rtdruid.modules.oil.cdt.ui.builder.OilBuilder;
 import com.eu.evidence.rtdruid.ui.common.MultipleResourceSelectionDialog;
@@ -406,6 +407,7 @@ public class OilProjectProperties extends PropertyPage {
 	    Map<String, String> attributes = OilBuilder.getParameters(project);
 	    if (attributes != null && attributes.containsKey(OilBuilder.ATTR_CONFIG_FILES)) {
 	        tmp = splitFiles((String) attributes.get(OilBuilder.ATTR_CONFIG_FILES));
+	        Messages.sendWarningNl("Project " + project.getName() + " does not contain any RT-Druid configuration file. Check Project's properties, at Oil Properties page." );
 	    } 
 	    
 	    return tmp;
