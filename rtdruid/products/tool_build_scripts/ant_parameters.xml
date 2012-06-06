@@ -73,6 +73,7 @@
 
 		<property name="frtd_oil_ee_ppc_v"         value="1.6.1"/>
 		<property name="rtd_oil_ee_ppc_core_v"     value="1.6.1"/>
+		<property name="rtd_oil_ee_ppc_ui_v"       value="1.6.1"/>
 
 		<property name="frtd_oil_ee_s12_v"         value="1.6.1"/>
 		<property name="rtd_oil_ee_s12_core_v"     value="1.6.1"/>

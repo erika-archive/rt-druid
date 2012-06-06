@@ -20,6 +20,7 @@ import java.util.Map.Entry;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 
+import com.eu.evidence.modules.oil.ppc.constants.PpcConstants;
 import com.eu.evidence.rtdruid.desk.Messages;
 import com.eu.evidence.rtdruid.internal.modules.oil.exceptions.OilCodeWriterException;
 import com.eu.evidence.rtdruid.internal.modules.oil.keywords.ISimpleGenResKeywords;
@@ -79,6 +80,8 @@ public class SectionWriterHalMpc567 extends SectionWriter
 
 	static final String STACK_BASE_NAME = "EE_stack_";
 	private static final long DEFAULT_SYS_STACK_SIZE = 4096;
+	
+	public static final String _EE_OPT_CODEWARRIOR_COMPILER = "__CODEWARRIOR__";
 	
 	private final SectionWriterIsr isrWriter;
 	private final SectionWriterKernelCounterHw counterHwWriter;
@@ -371,7 +374,7 @@ public class SectionWriterHalMpc567 extends SectionWriter
 			counterHwWriter.writeCounterHw(currentRtosId, ool, cpuBuffs);
 			
 			// makefile
-			prepareMakeFile(ool);
+			prepareMakeFile(currentRtosId, ool);
 		
 		}
 		
@@ -890,7 +893,7 @@ public class SectionWriterHalMpc567 extends SectionWriter
 		}
 	}
 	
-	void prepareMakeFile(IOilObjectList ool) {
+	void prepareMakeFile(final int currentRtosId, final IOilObjectList ool) {
 		final ICommentWriter commentWriterMf = getCommentWriter(ool, FileTypes.MAKEFILE);
 		
 		
@@ -913,34 +916,85 @@ public class SectionWriterHalMpc567 extends SectionWriter
 		    {	// PATHs
 	        	HashMap<String, ?> options = parent.getOptions();
 
-		        String outputDir = "Debug";
-		        String appBase = "..";
-		        
-		    	if (options.containsKey(IWritersKeywords.WRITER_OUTPUT_DIR_SET)) {
-					outputDir = (String) options.get(IWritersKeywords.WRITER_LAST_OUTPUT_DIR);
-					outputDir = (String) options.get(IWritersKeywords.WRITER_FS_PATH_OUTPUT_DIR);
-					
-					appBase = (String) options.get(IWritersKeywords.WRITER_WS_OUTPUT_projectbase_DIR);//"..";
-					if (options.containsKey(IWritersKeywords.WRITER_WS_PATH_OUTPUT_DIR)) {
-						outputDir = (String) options.get(IWritersKeywords.WRITER_WS_PATH_OUTPUT_DIR);
+	        	{ 
+			        String outputDir = "Debug";
+			        String appBase = "..";
+			        
+			    	if (options.containsKey(IWritersKeywords.WRITER_OUTPUT_DIR_SET)) {
+						outputDir = (String) options.get(IWritersKeywords.WRITER_LAST_OUTPUT_DIR);
+						outputDir = (String) options.get(IWritersKeywords.WRITER_FS_PATH_OUTPUT_DIR);
+						
+						appBase = (String) options.get(IWritersKeywords.WRITER_WS_OUTPUT_projectbase_DIR);//"..";
+						if (options.containsKey(IWritersKeywords.WRITER_WS_PATH_OUTPUT_DIR)) {
+							outputDir = (String) options.get(IWritersKeywords.WRITER_WS_PATH_OUTPUT_DIR);
+						}
 					}
-				}
-		    	IPath p = new Path(outputDir);
-		    	if (p.isAbsolute()) {
-		    		outputDir = wrapper.wrapPath(outputDir);
-		    	}
-		    	
-		    	
-		        sbMakefile_variables.append(
-		                "APPBASE := " + appBase + "\n" +
-		                "OUTBASE := " + outputDir + "\n\n"
-		                
-		        );
+			    	IPath p = new Path(outputDir);
+			    	if (p.isAbsolute()) {
+			    		outputDir = wrapper.wrapPath(outputDir);
+			    	}
+			    	
+			    	
+			        sbMakefile_variables.append(
+			                "APPBASE := " + appBase + "\n" +
+			                "OUTBASE := " + outputDir + "\n\n"
+			                
+			        );
+	        	}
+	        	{
+			        boolean found_codewarrior = usingCodewarriorCompiler(currentRtosId);
+			        
+			        String gcc = "";
+	
+			    	if (found_codewarrior) {
+			    		gcc = PpcConstants.DEFAULT_PPC_CODEWARRIOR_CONF_CC;
+				    	if (options.containsKey(PpcConstants.PREF_PPC_CODEWARRIOR_PATH) ) {
+							String tmp = (String) options.get(PpcConstants.PREF_PPC_CODEWARRIOR_PATH);
+							if (tmp.length()>0) gcc = tmp;
+						}
+				    	if (gcc.length()>0) {
+					    	wrapper.wrapPath(gcc);
+					    	sbMakefile_variables.append(
+					                "ifndef PPC_CW_BASEDIR\n" +
+					                "PPC_CW_BASEDIR := "+gcc+"\n" +
+					                "endif\n"
+							        );
+				    	}
+			    	} else {
+				    	if (options.containsKey(PpcConstants.PREF_PPC_DIAB_PATH) ) {
+							gcc = (String) options.get(PpcConstants.PREF_PPC_DIAB_PATH);
+						}
+						if (gcc.length()>0) {
+							gcc = wrapper.wrapPath(gcc);
+					    	sbMakefile_variables.append(
+					                "ifndef PPC_DIAB_BASEDIR\n" +
+					                "PPC_DIAB_BASEDIR := "+gcc+"\n" +
+					                "endif\n"
+							        );
+						}
+			    	}
+			        
+	        	}		        
+		        
+		        
 		    }
 
 			ISimpleGenRes sgrCpu = ool.getList(IOilObjectList.OS).get(0);
             sgrCpu.setProperty(SGRK__MAKEFILE_EXTENTIONS__, sbMakefile_variables.toString());
 
+	}
+	
+
+	private boolean usingCodewarriorCompiler(final int rtosId) {
+		boolean found_codewarrior = false;
+		for (String s : parent.extractEE_Opts(EE_OPT_USER_ONLY, rtosId)) {
+			if (_EE_OPT_CODEWARRIOR_COMPILER.equals(s)) {
+				found_codewarrior = true;
+				break;
+			}
+		}
+
+		return found_codewarrior;
 	}
 	
 	/**
