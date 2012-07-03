@@ -22,12 +22,8 @@ public class RtdOilProjectHelper extends RtdProjectHelper  {
 	
 	public RtdOilProjectHelper newRtdProject() {
 		bot.menu("File").menu("New").menu("Project...").click();
+		setWizardShell(bot.shell("New Project"));
 		bot.tree().expandNode("Evidence", "RT-Druid Oil and C/C++ Project").select();
-		setNewProjectShell(bot.shell("New Project"));
-		
-		captureScreenshot("Rtd_New_project.png");
-		
-		bot.button(BTN_TXT_NEXT).click();
 		return this;
 	}
 	
