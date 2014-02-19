@@ -1,5 +1,5 @@
 /*
- * Created on 1-oct-2008
+ * Created on Dec-2012
  *
  * $Id$
  */
@@ -216,13 +216,13 @@ public class SectionWriterQueuedSpinlock extends SectionWriter implements
 				
 				for (int i = 0; i<count; i++) {
 				    String name = globalResources.getProperty("" + i);
-				    sbSpinStatusArray.append(pre + post + indent2+"((EE_UINT32)&"+SPINLOCK_BASE_NAME+name+"[0]) + 1U");
-				    sbSpinValuesArray.append(pre2 + indent2+"&"+SPINLOCK_BASE_NAME+name+"[0]");
+				    sbSpinStatusArray.append(pre + post + indent2+"((EE_UINT32)&"+SPINLOCK_BASE_NAME+"RES_"+name+"[0]) + 1U");
+				    sbSpinValuesArray.append(pre2 + indent2+"&"+SPINLOCK_BASE_NAME+"RES_"+name+"[0]");
 	//			    sbSpinArrays.append(indent1+"extern EE_UINT32 EE_hal_spin_value_"+name+"["+MAX_CPU+"];\n");
 				    sbSpinShare.append(
 				    		macros.vectorRamUnitialized(
-				    				indent1+"EE_UINT16 ",
-				    				SPINLOCK_BASE_NAME+name,
+				    				indent1+"EE_TYPESPINVALUE ",
+				    				SPINLOCK_BASE_NAME+"RES_"+name,
 				    				"["+MAX_CPU+"]",
 				    				";\n"));
 	
@@ -230,6 +230,29 @@ public class SectionWriterQueuedSpinlock extends SectionWriter implements
 					pre2 = ",\n";
 					post = "\t /* " + name + " */\n";
 					spinlockIndex++;
+				}
+			}
+			
+			{
+				for (int rtosId = 0; rtosId < rtosNumber; rtosId++) {
+					for (ISimpleGenRes spin :  oilObjects[rtosId].getList(IOilObjectList.SPINLOCK) ) {
+						String name = spin.getName();
+						
+					    sbSpinStatusArray.append(pre + post + indent2+"((EE_UINT32)&"+SPINLOCK_BASE_NAME+"SPIN_"+name+"[0]) + 1U");
+					    sbSpinValuesArray.append(pre2 + indent2+"&"+SPINLOCK_BASE_NAME+"SPIN_"+name+"[0]");
+		//			    sbSpinArrays.append(indent1+"extern EE_UINT32 EE_hal_spin_value_"+name+"["+MAX_CPU+"];\n");
+					    sbSpinShare.append(
+					    		macros.vectorRamUnitialized(
+					    				indent1+"EE_TYPESPINVALUE ",
+					    				SPINLOCK_BASE_NAME+"SPIN_"+name,
+					    				"["+MAX_CPU+"]",
+					    				";\n"));
+		
+						pre = ",";
+						pre2 = ",\n";
+						post = "\t /* " + name + " */\n";
+						spinlockIndex++;
+					}
 				}
 			}
 
@@ -268,20 +291,22 @@ public class SectionWriterQueuedSpinlock extends SectionWriter implements
 //					sbSpinArrays.toString() + "\n\n" +
 					macros.vectorRam(
 						indent1 + "EE_TYPESPINSTATUS ",
-						SPINLOCK_STATUS_ARRAY, "[EE_MAX_SPINLOCK_OS]",
+						SPINLOCK_STATUS_ARRAY, "[EE_MAX_SPINLOCK]",
 						" = {\n" +
 						sbSpinStatusArray.toString() + " " + post +
 						indent1 + "};"
 						)+ "\n\n" +
 					macros.constVectorRom(
 						indent1 + "EE_TYPESPINVALUEREF const ",
-						SPINLOCK_VALUE_ARRAY,"[EE_MAX_SPINLOCK_OS]",
+						SPINLOCK_VALUE_ARRAY,"[EE_MAX_SPINLOCK]",
 						" = {\n" +
 						sbSpinValuesArray.toString() + "\n" +
 						indent1 + "};") +
 					"\n\n");
 			
-			sbCfg_h.append("#define EE_MAX_SPINLOCK_OS " + spinlockIndex + "\n\n");
+			
+			sbCfg_h.append("#define EE_MAX_SPINLOCK " + spinlockIndex + "\n"+
+					"#define EE_MAX_SPINLOCK_OS " + spinlockIndex + "\n\n");
 			
 			for (int rtosId = 0; rtosId < rtosNumber; rtosId++) {
 				StringBuffer sbCommon_h = answer[rtosId].get(FILE_EE_CFG_H);
@@ -290,45 +315,7 @@ public class SectionWriterQueuedSpinlock extends SectionWriter implements
 
 		}
 		
-		
-		
-		
-		
-		
-		
-//					macros.vectorRam(indent1 + "EE_TYPERN_NOTIFY ", "EE_rn_type","["+MAX_RN+"][2]", sb_rn_type_body.toString()) +"\n"
-//					
-//					+ indent1 + "/* For each RN: The counter number if EE_RN_COUNTER, or -1 */\n"
-//					+ indent1 + "#ifdef __RN_COUNTER__\n"
-//					+ macros.constVectorRom(indent2 + "const EE_TYPECOUNTER ", "EE_rn_counter","["+MAX_RN+"]", sb_rn_counter_body.toString())
-//			        + indent1 + "#endif\n\n"
-//			        
-//			        + indent1 + "#ifdef __RN_EVENT__ \n"
-//					+ macros.vectorRam(indent2 + "EE_TYPEEVENTMASK ", "EE_rn_event","["+MAX_RN+"][2]", sb_rn_event_body.toString())
-//			        + indent1 + "#endif\n\n"
-//			        
-//					+ macros.vectorRam(indent1 + "EE_TYPERN ", "EE_rn_next","["+MAX_RN+"][2]", sb_rn_next_body.toString()) + "\n"
-//					
-//			        + macros.vectorRam(indent1 + "EE_UREG ", "EE_rn_pending","["+MAX_RN+"][2]", sb_rn_pending_body.toString()) + "\n" +
-//			        
-//					indent1 + "#ifdef __RN_FUNC__\n"
-//					+ macros.constVectorRom(indent2 + "/* const EE_ADDR ", "EE_rn_func","["+MAX_RN+"]"," = {(EE_ADDR)f,...};*/\n") +
-//					indent1 + "#endif\n\n" +
-//					indent1 + "#ifdef __RN_SEM__\n" +
-//					macros.constVectorRom(indent2 + "/*EE_SEM * const ", "EE_rn_sem","["+MAX_RN+"]",";*/\n") +
-//					indent1 + "#endif\n\n");
-	
-			
-		
 		return answer;
-	}
-	
-	/**
-	 * @param rtosId
-	 * @return
-	 */
-	public static String getSpinCoreId(int rtosId) {
-		return "EE_SPINLOCK_CORE" + rtosId;
 	}
 
 	/* (non-Javadoc)
@@ -340,25 +327,29 @@ public class SectionWriterQueuedSpinlock extends SectionWriter implements
 	
 			final IVarTree vt = parent.getVt();
 	
-			//final ArrayList ee_opts = new ArrayList();
-			for (int i=0; i<rtosPrefix.length; i++) {
-				
+			String spinlockType = null;
+			
+			for (int i = 0; i < rtosPrefix.length && spinlockType == null; i++) {
+
 				/*******************************************************************
 				 * SPINLOCKS TYPE
 				 ******************************************************************/
 				String path = parent.computeOilRtosPrefix(rtosPrefix[i]) + "SPINLOCKS";
-	
-				String[] child = new String[1];
-				String board_type = CommonUtils.getFirstChildEnumType(vt,
-						path , child);
-				if ("QUEUED".equals(board_type)
-							&& !keywords.contains(QUEUED_SPINLOCK)) {
-						keywords.add(QUEUED_SPINLOCK);
-				}
+				spinlockType = CommonUtils.getFirstChildEnumType(vt, path, null);
+			}
+			if ("QUEUED".equals(spinlockType) && !keywords.contains(QUEUED_SPINLOCK)) {
+				keywords.add(QUEUED_SPINLOCK);
 			}
 		}
 	}
-	
+
+	/**
+	 * @param rtosId
+	 * @return
+	 */
+	public static String getSpinCoreId(int rtosId) {
+		return "EE_SPINLOCK_CORE" + rtosId;
+	}
 
 	/* (non-Javadoc)
 	 * @see com.eu.evidence.modules.oil.erikaenterprise.subwriters.IExtractObjectsExtentions#updateObjects()
@@ -381,6 +372,21 @@ public class SectionWriterQueuedSpinlock extends SectionWriter implements
 			if (parent.checkKeyword(QUEUED_SPINLOCK)) {
 				answer.add("EE_QUEUEING_SPINLOCKS");
 			}
+			
+			{
+				boolean hasUserSpinlock = false;
+				for (IOilObjectList ool: parent.getOilObjects()) {
+					if (ool.getList(IOilObjectList.SPINLOCK).size()>0) {
+						hasUserSpinlock = true;
+						break;
+					}
+				}
+				if (!hasUserSpinlock) {
+					answer.add("EE_AS_NO_USER_SPINLOCKS__");
+				}
+				
+			}
+			
 		}
 
 		return answer;
