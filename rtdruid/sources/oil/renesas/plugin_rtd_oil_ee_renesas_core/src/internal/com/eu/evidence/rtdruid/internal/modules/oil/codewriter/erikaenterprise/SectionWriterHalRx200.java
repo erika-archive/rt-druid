@@ -70,7 +70,7 @@ public class SectionWriterHalRx200 extends SectionWriter
 	protected final IVarTree vt;
 
 	private static final String RENESAS_MCU = "RENESAS";
-	private static final String ERR_CPU_TYPE = "Freescale PPC E200Zx";
+	private static final String ERR_CPU_TYPE = "Rx200";
 	private static final String SGR_OS_APPL_SHARED_STACK_ID = "sgr__os_application__shared_stack_id__integer";
 	private static final String SGR_OS_CPU_SYS_STACK_SIZE = "sgr__os_cpu_system_stack_size";
 	
