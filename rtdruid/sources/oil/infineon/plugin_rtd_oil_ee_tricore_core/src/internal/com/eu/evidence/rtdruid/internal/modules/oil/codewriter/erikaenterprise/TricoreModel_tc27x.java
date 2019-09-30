@@ -826,8 +826,16 @@ public class TricoreModel_tc27x extends TricoreAbstractModel implements IEEWrite
 	
 						sbStack
 								.append(indent+commentC.writerSingleLineComment("stack used only by IRQ handlers")
-										+ indent+"struct EE_TOS const EE_tc_IRQ_tos = {\n"
-										+ indent+indent+"EE_STACK_INITP("+STACK_BASE_NAME+j+")"
+										+ indent+"struct EE_TC_BOS const EE_tc_IRQ_tos = \n"
+										+ indent+indent+
+										writeSystemTos(commentC, size, descrStack, new String[] {
+													"(EE_ADDR)EE_E_USTACK",
+													"(EE_ADDR)EE_B_USTACK",
+													"EE_STACK_INITP("+STACK_BASE_NAME+j+")",
+													"EE_STACK_ENDP("+STACK_BASE_NAME+j+")"},
+													is_irq_stack,
+													"",
+													true /*needStackMonitoring*/, kernelStack_enabled)
 //										+ (needStackMonitoring ? ", EE_STACK_ENDP("+STACK_BASE_NAME+j+")" : "")
 										+ "\n" + indent+"};\n\n");
 	
