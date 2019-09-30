@@ -19,13 +19,15 @@ IMPLEMENTATION ee {
            	ECC1,
            	ECC2
         ] KERNEL_TYPE;
-        
+/*
+	Deprecated. it has not to be used         
         ENUM [
            	SC1,
            	SC2,
            	SC3,
            	SC4
         ] SCALABILITYCLASS;
+*/
     };
 
 	TASK {
