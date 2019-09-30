@@ -1,8 +1,6 @@
 package com.eu.evidence.rtdruid.internal.modules.oil.codewriter.erikaenterprise;
 
 
-import static com.eu.evidence.rtdruid.modules.oil.erikaenterprise.constants.IEEWriterKeywords.S;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -55,7 +53,8 @@ public class SectionWriterHalTricore extends SectionWriter
 		tc27x("tc27x",  new TricoreModelProvider_tc27x("tc27x"),  TricoreCompiler.TASKING),
 		tc27a("tc27xa", new TricoreModelProvider_tc27x("tc27xa"), TricoreCompiler.TASKING, "tc27x", new String[] {"EE_TC27X__", "EE_TC27XA__"}),
 		tc27b("tc27xb", new TricoreModelProvider_tc27x("tc27xb"), TricoreCompiler.TASKING, "tc27x", new String[] {"EE_TC27X__", "EE_TC27XB__"}),
-		tc27c("tc27xc", new TricoreModelProvider_tc27x("tc27xc"), TricoreCompiler.TASKING, "tc27x", new String[] {"EE_TC27X__", "EE_TC27XC__"});
+		tc27c("tc27xc", new TricoreModelProvider_tc27x("tc27xc"), TricoreCompiler.TASKING, "tc27x", new String[] {"EE_TC27X__", "EE_TC27XC__"}),
+		tc29x("tc29x", new TricoreModelProvider_tc27x("tc29x"), TricoreCompiler.TASKING);
 		
 		public final String oil_name;
 		public final String ee_id;
@@ -97,7 +96,11 @@ public class SectionWriterHalTricore extends SectionWriter
 	public static final String SGR_OS_CPU_HW_END_INIT = "sgr__os_cpu_hw_end_init";
 	public static final String SGR_OS_CPU_LINKERSCRIPT = "sgr__os_cpu_linker_script";
 	public static final String SGR_OS_MCU_LINKERSCRIPT = "sgr__os_mcu_linker_script";
-	
+
+	private static final String SGR_OS_CPU_SHUTDOWN_SYNC_BARRIER_CB = "sgr__os_cpu_shutdown_sync_barrier_cb";
+	private static final String SGR_OS_CPU_2ND_SYNC_BARRIER_CB = "sgr__os_cpu_2nd_sync_barrier_cb";
+	private static final String SGR_OS_CPU_1ST_SYNC_BARRIER_CB = "sgr__os_cpu_1st_sync_barrier_cb";
+
 	public static final String KEY_HAL_TRICORE = "__TRICORE1__";
 	public static final String EEOPT_HAL_TRICORE__OLD = "__TRICORE1__";
 	public static final String EEOPT_HAL_TRICORE = "EE_TRICORE__";
@@ -249,7 +252,10 @@ public class SectionWriterHalTricore extends SectionWriter
 					if ("TRIBOARD_TC2X5".equals(mcu_type)) {
 						board = mcu_type;
 						board_eeopt = "EE_TRIBOARD_TC2X5";
-					}
+					} else if ("TRIBOARD_TC2XN".equals(mcu_type)) {
+						board = mcu_type;
+						board_eeopt = "EE_TRIBOARD_TC2XN";
+					} 
 				}
     		}
         }
@@ -313,6 +319,31 @@ public class SectionWriterHalTricore extends SectionWriter
 				}
 				if (parent.checkKeyword(DEF__CUSTOM_STARTUP_CODE__) && !linker) {
 					throw new OilCodeWriterException("A custom linker script is needed if the custom startup code flag is enabled.");
+				}
+			}
+			
+	        
+			/***********************************************************************
+			 * 
+			 * CPU Sync Barrier
+			 *  
+			 **********************************************************************/
+			{
+				String[] cpu_syncBarrier = parent.getCpuDataValue(ool, "STARTOS_1ST_SYNC_BARRIER_CB");
+				if (cpu_syncBarrier != null && cpu_syncBarrier.length>0 && cpu_syncBarrier[0] != null) {
+					sgrCpu.setProperty(SGR_OS_CPU_1ST_SYNC_BARRIER_CB, ""+cpu_syncBarrier[0]);
+				}
+			}
+			{
+				String[] cpu_syncBarrier = parent.getCpuDataValue(ool, "STARTOS_2ND_SYNC_BARRIER_CB");
+				if (cpu_syncBarrier != null && cpu_syncBarrier.length>0 && cpu_syncBarrier[0] != null) {
+					sgrCpu.setProperty(SGR_OS_CPU_2ND_SYNC_BARRIER_CB, ""+cpu_syncBarrier[0]);
+				}
+			}
+			{
+				String[] cpu_syncBarrier = parent.getCpuDataValue(ool, "SHUTDOWNOS_SYNC_BARRIER_CB");
+				if (cpu_syncBarrier != null && cpu_syncBarrier.length>0 && cpu_syncBarrier[0] != null) {
+					sgrCpu.setProperty(SGR_OS_CPU_SHUTDOWN_SYNC_BARRIER_CB, ""+cpu_syncBarrier[0]);
 				}
 			}
 
@@ -538,6 +569,8 @@ public class SectionWriterHalTricore extends SectionWriter
 			
 			final IOilObjectList ool = oilObjects[currentRtosId];
 			
+			writeSyncBarrier(answer, ool);
+			
 			// ------------- Compute --------------------
 			TricoreAbstractModel tricoreModel = (TricoreAbstractModel) AbstractRtosWriter.getOsObject(ool, TricoreConstants.SGRK__TRICORE_MODEL_INFO__);
 			/***********************************************************************
@@ -553,6 +586,40 @@ public class SectionWriterHalTricore extends SectionWriter
 			writeMakeFile(currentRtosId, ool);
 		}
 		return all_results;
+	}
+	
+	private void writeSyncBarrier(IOilWriterBuffer answer, final IOilObjectList ool) {
+		ISimpleGenRes sgrCpu = ool.getList(IOilObjectList.OS).get(0);
+		/***********************************************************************
+		 * 
+		 * CPU Sync Barrier
+		 *  
+		 **********************************************************************/
+        String cpu_syncBarrier_1 = sgrCpu.containsProperty(SGR_OS_CPU_1ST_SYNC_BARRIER_CB) ?
+        					 sgrCpu.getString(SGR_OS_CPU_1ST_SYNC_BARRIER_CB) : null;
+        String cpu_syncBarrier_2 = sgrCpu.containsProperty(SGR_OS_CPU_2ND_SYNC_BARRIER_CB) ?
+			 sgrCpu.getString(SGR_OS_CPU_2ND_SYNC_BARRIER_CB) : null;
+		String cpu_syncBarrier_sd = sgrCpu.containsProperty(SGR_OS_CPU_SHUTDOWN_SYNC_BARRIER_CB) ?
+			 sgrCpu.getString(SGR_OS_CPU_SHUTDOWN_SYNC_BARRIER_CB) : null;
+
+		StringBuffer sbInithal_h = answer.get(FILE_EE_CFG_H);
+
+	    if (cpu_syncBarrier_1 != null || cpu_syncBarrier_2 != null) {
+		
+			sbInithal_h.append(SectionWriter.getCommentWriter(ool, FileTypes.H).writerBanner("StartOS() Callbacks.") + 
+					(cpu_syncBarrier_1 != null ? 
+							"#define EE_OO_STARTOS_1ST_SYNC_BARRIER_CB     " + cpu_syncBarrier_1 + "\n" : "") +
+					(cpu_syncBarrier_2 != null ? 
+							"#define EE_OO_STARTOS_2ND_SYNC_BARRIER_CB     " + cpu_syncBarrier_2 + "\n" : "")
+					+ "\n");
+	    }
+
+	    if (cpu_syncBarrier_sd != null) {
+		
+			sbInithal_h.append(SectionWriter.getCommentWriter(ool, FileTypes.H).writerBanner("ShutdownOS() Callback.") + 
+							"#define EE_OO_SHUTDOWNOS_SYNC_BARRIER_CB     " + cpu_syncBarrier_sd + "\n\n");
+	    }
+
 	}
 
 

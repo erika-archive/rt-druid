@@ -77,7 +77,7 @@ public class SectionWriterKernelCounterHw implements IEEWriterKeywords, IExtract
 		this.computeIsrIDFromPriority = computeIsrIDFromPriority;
 	}
 	
-	public void writeCounterHw(int currentRtosId, IOilObjectList ool, IOilWriterBuffer oilWBuff) throws OilCodeWriterException {
+	public void writeCounterHw(final int currentRtosId, IOilObjectList ool, IOilWriterBuffer oilWBuff) throws OilCodeWriterException {
 
 		int max_counter_hw = 0;
 		ISimpleGenRes sysTimer = null;
@@ -158,7 +158,7 @@ public class SectionWriterKernelCounterHw implements IEEWriterKeywords, IExtract
 				buffer.append("#define EE_SYSTEM_TIMER   " + sysTimer.getName() +"\n");
 				if (sysTimer.containsProperty(ISimpleGenResKeywords.COUNTER_DEVICE)) {
 					String deviceId = sysTimer.getString(ISimpleGenResKeywords.COUNTER_DEVICE);
-					CpuHwDescription.McuCounterDevice device = cpuDescr == null ? null : cpuDescr.getMcuDevice(deviceId);
+					CpuHwDescription.McuCounterDevice device = cpuDescr == null ? null : cpuDescr.getMcuDevice(deviceId, currentRtosId);
 					String value = "EE_" + 
 							(device == null ? hw_id : device.getMcu_id()) // CPU - MCU id
 							+ "_"+deviceId;
@@ -171,9 +171,14 @@ public class SectionWriterKernelCounterHw implements IEEWriterKeywords, IExtract
 			if (generateIsr2Defines == null) {
 				for (Entry<String, ISimpleGenRes> dev: devices.entrySet()) {
 					String deviceId = dev.getKey();
-					CpuHwDescription.McuCounterDevice device = cpuDescr == null ? null : cpuDescr.getMcuDevice(deviceId);
+					CpuHwDescription.McuCounterDevice device = cpuDescr == null ? null : cpuDescr.getMcuDevice(deviceId, currentRtosId);
 
-					String entry_id = "EE_" + 
+					final String entry_id;
+					final boolean useCustomDefine = device != null && device.getIsrDefine() != null;
+					if (useCustomDefine)
+						entry_id = device.getIsrDefine();
+					else
+						entry_id = "EE_" + 
 							(device == null ? hw_id : device.getMcu_id()) // CPU - MCU id
 							+ "_"+deviceId+"_ISR";
 
@@ -181,7 +186,7 @@ public class SectionWriterKernelCounterHw implements IEEWriterKeywords, IExtract
 					buffer.append("#define " + entry_id + " " + curr.getString(ISimpleGenResKeywords.COUNTER_GENERATED_HANDLER) +"\n");
 					if (curr.containsProperty(ISimpleGenResKeywords.COUNTER_GENERATED_PRIORITY_STRING)) {
 						String prio = curr.getString(ISimpleGenResKeywords.COUNTER_GENERATED_PRIORITY_STRING);
-						final String prio_id = (device == null ?
+						final String prio_id = (device == null || useCustomDefine ?
 								entry_id :
 								"EE_" + hw_id +"_"+device.getEntry()
 								)+"_PRI";
@@ -196,7 +201,7 @@ public class SectionWriterKernelCounterHw implements IEEWriterKeywords, IExtract
 							ISimpleGenResKeywords.COUNTER_TYPE_HW.equalsIgnoreCase(sgr.getString(ISimpleGenResKeywords.COUNTER_TYPE))) {
 
 						String deviceId = sgr.containsProperty(ISimpleGenResKeywords.COUNTER_DEVICE) ? sgr.getString(ISimpleGenResKeywords.COUNTER_DEVICE) : null;
-						CpuHwDescription.McuCounterDevice device = cpuDescr == null ? null : cpuDescr.getMcuDevice(deviceId);
+						CpuHwDescription.McuCounterDevice device = cpuDescr == null ? null : cpuDescr.getMcuDevice(deviceId, currentRtosId);
 						String mcuIsrId = ( device == null ? null : device.getIsrDefine());
 						final String entry_id = ( mcuIsrId == null ? 
 									"EE_" + 
@@ -255,7 +260,9 @@ public class SectionWriterKernelCounterHw implements IEEWriterKeywords, IExtract
 
 	@Override
 	public void updateObjects() throws OilCodeWriterException {
+		int rtosId = -1;
 		for (IOilObjectList ool : parent.getOilObjects()) {
+			rtosId++;
 			
 			final int isrNumber = ool.getList(IOilObjectList.ISR).size();
 			int counterIsrNumber = 0;
@@ -271,7 +278,7 @@ public class SectionWriterKernelCounterHw implements IEEWriterKeywords, IExtract
 					CpuHwDescription.McuCounterDevice device;
 					{
 						String deviceId = sgr.containsProperty(ISimpleGenResKeywords.COUNTER_DEVICE) ? sgr.getString(ISimpleGenResKeywords.COUNTER_DEVICE) : null;
-						device = cpuDescr == null ? null : cpuDescr.getMcuDevice(deviceId);
+						device = cpuDescr == null ? null : cpuDescr.getMcuDevice(deviceId, rtosId);
 					}
 						
 					if (sgr.containsProperty(ISimpleGenResKeywords.COUNTER_SYSTIMER)

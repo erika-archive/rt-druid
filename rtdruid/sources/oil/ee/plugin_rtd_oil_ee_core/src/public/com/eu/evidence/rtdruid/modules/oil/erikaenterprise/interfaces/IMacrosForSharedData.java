@@ -34,4 +34,8 @@ public interface IMacrosForSharedData {
 
 	String constValueRom(String type, String valueName, String body);
 	
+	String getHeader();
+	
+	String getFooter();
+	
 }

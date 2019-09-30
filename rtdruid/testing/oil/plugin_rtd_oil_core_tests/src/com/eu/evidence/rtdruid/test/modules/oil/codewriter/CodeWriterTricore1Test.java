@@ -9489,6 +9489,124 @@ public class CodeWriterTricore1Test extends AbstractCodeWriterTest {
 	}
 
 	
+	@Test public void testMemProp1() {
+	    final String text =
+			"CPU PerfTestApp {\n" +
+			"  OS EE {\n" +
+			"    EE_OPT = \"EE_DEBUG\";\n" +
+			"    EE_OPT = \"__ASSERT__\";\n" +
+			"    EE_OPT = \"EE_SAVE_TEMP_FILES\";\n" +
+			"\n" +
+			"    STACKMONITORING = TRUE;\n" +
+			"\n" +
+			"    CPU_DATA = TRICORE {\n" +
+			"      CPU_CLOCK = 200.0;\n" +
+			"      APP_SRC = \"code.c\";\n" +
+			"      APP_SRC = \"app.c\";\n" +
+			"      COMPILER_TYPE = DIAB;\n" +
+			"      MULTI_STACK = TRUE {\n" +
+			"        IRQ_STACK = TRUE {\n" +
+			"            SYS_SIZE = 256;\n" +
+			"        };\n" +
+			"      };\n" +
+			"      SYS_CSA_SIZE=0x2000;\n" +
+			"    };\n" +
+			"\n" +
+			"    MCU_DATA = TRICORE {\n" +
+			"      MODEL = TC27x;\n" +
+			"    };\n" +
+			"\n" +
+			"    STATUS = EXTENDED;\n" +
+			"    USEPARAMETERACCESS = FALSE;\n" +
+			"    USERESSCHEDULER = FALSE;\n" +
+			"    SHUTDOWNHOOK = TRUE;\n" +
+			"\n" +
+			"    PROTECTIONHOOK = TRUE;\n" +
+			"    KERNEL_TYPE    = BCC1;\n" +
+			"    ORTI_SECTIONS  = ALL;\n" +
+			"  };\n" +
+			"\n" +
+			"  TASK TaskApp1Prio1 {\n" +
+			"    PRIORITY = 2;\n" +
+			"    ACTIVATION = 1;\n" +
+			"    SCHEDULE = FULL;\n" +
+			"    AUTOSTART = TRUE;\n" +
+			"    STACK = SHARED;\n" +
+			"  };\n" +
+			"\n" +
+			"  TASK TaskApp1Prio2 {\n" +
+			"    PRIORITY = 2;\n" +
+			"    ACTIVATION = 1;\n" +
+			"    SCHEDULE = FULL;\n" +
+			"    AUTOSTART = FALSE;\n" +
+			"    STACK = SHARED;\n" +
+			"  };\n" +
+			"};\n";
+		commonWriterTest(text, 1);
+	}
+	
+
+	@Test public void testMemProp2() {
+	    final String text =
+			"CPU PerfTestApp {\n" +
+			"  OS EE {\n" +
+			"    EE_OPT = \"EE_DEBUG\";\n" +
+			"    EE_OPT = \"__ASSERT__\";\n" +
+			"    EE_OPT = \"EE_SAVE_TEMP_FILES\";\n" +
+			"\n" +
+			"    STACKMONITORING = TRUE\n" + 
+			"    {\n" + 
+			"		PATTERN=0xC3A55A3C;\n" + 
+			"		PROTECTION_SIZE=8;\n" + 
+			"    };\n" + 
+			"\n" +
+			"    CPU_DATA = TRICORE {\n" +
+			"      CPU_CLOCK = 200.0;\n" +
+			"      APP_SRC = \"code.c\";\n" +
+			"      APP_SRC = \"app.c\";\n" +
+			"      COMPILER_TYPE = DIAB;\n" +
+			"      MULTI_STACK = TRUE {\n" +
+			"        IRQ_STACK = TRUE {\n" +
+			"            SYS_SIZE = 256;\n" +
+			"        };\n" +
+			"      };\n" +
+			"      SYS_CSA_SIZE=0x2000;\n" +
+			"    };\n" +
+			"\n" +
+			"    MCU_DATA = TRICORE {\n" +
+			"      MODEL = TC27x;\n" +
+			"    };\n" +
+			"\n" +
+			"    STATUS = EXTENDED;\n" +
+			"    USEPARAMETERACCESS = FALSE;\n" +
+			"    USERESSCHEDULER = FALSE;\n" +
+			"    SHUTDOWNHOOK = TRUE;\n" +
+			"\n" +
+			"    PROTECTIONHOOK = TRUE{\n" +
+			"            SYS_SIZE = 256;\n" +
+			"        };\n" +
+			"    KERNEL_TYPE    = BCC1;\n" +
+			"    ORTI_SECTIONS  = ALL;\n" +
+			"  };\n" +
+			"\n" +
+			"  TASK TaskApp1Prio1 {\n" +
+			"    PRIORITY = 2;\n" +
+			"    ACTIVATION = 1;\n" +
+			"    SCHEDULE = FULL;\n" +
+			"    AUTOSTART = TRUE;\n" +
+			"    STACK = SHARED;\n" +
+			"  };\n" +
+			"\n" +
+			"  TASK TaskApp1Prio2 {\n" +
+			"    PRIORITY = 2;\n" +
+			"    ACTIVATION = 1;\n" +
+			"    SCHEDULE = FULL;\n" +
+			"    AUTOSTART = FALSE;\n" +
+			"    STACK = SHARED;\n" +
+			"  };\n" +
+			"};\n";
+		commonWriterTest(text, 1);
+	}
 
 	@Test public void testTc27A() {
 	    final String text =
@@ -9580,4 +9698,37 @@ public class CodeWriterTricore1Test extends AbstractCodeWriterTest {
 		commonWriterTest(text, 1);
 	}
 
+	@Test public void testTc29x() {
+	    final String text = "CPU test_application {\n"+
+			"\n"+
+			"	OS EE {\n"+
+			"		EE_OPT = \"__ASSERT__\";\n"+
+			"		CFLAGS = \"-g2\";\n"+
+			"		ASFLAGS = \"\";\n"+
+			"		LDFLAGS = \"\";\n"+
+			"\n"+
+			"\n"+
+			"    CPU_DATA = TRICORE {\n" +
+			"      CPU_CLOCK = 200.0;\n" +
+			"      APP_SRC = \"code.c\";\n" +
+			"      MULTI_STACK = TRUE;\n" +
+			"      COMPILER_TYPE = GNU;\n" +
+			"    };\n" +
+			"\n" +
+			"    MCU_DATA = TRICORE {\n" +
+			"      MODEL = TC27x;\n" +
+			"    };\n" +
+			"\n" +
+			"    BOARD_DATA = TRIBOARD_TC2X5;\n" +
+			"\n"+
+			"		STATUS = EXTENDED;\n"+
+			"\n"+
+			"		KERNEL_TYPE = FP;\n"+
+			"	};\n"+
+			"\n"+
+			"	TASK Task01 { PRIORITY = 1; };\n"+
+			"	TASK Task02 { PRIORITY = 2; };\n"+
+			"};\n";
+		commonWriterTest(text, 1);
+	}
 }

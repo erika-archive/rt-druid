@@ -144,6 +144,16 @@ public class MacrosForSharedData implements IMacrosForSharedData {
 					"#pragma section EE_SHARED_CONST_END /* pragma tail */\n";
 		}
 
+		@Override
+		public String getHeader() {
+			return "";
+		}
+
+		@Override
+		public String getFooter() {
+			return "";
+		}
+
 	}
 	
 	@Override
@@ -199,6 +209,16 @@ public class MacrosForSharedData implements IMacrosForSharedData {
 	@Override
 	public String constValueRom(String type, String valueName, String body) {
 		return type + "EE_SHARED_CDATA "+valueName + body;
+	}
+
+	@Override
+	public String getHeader() {
+		return "";
+	}
+
+	@Override
+	public String getFooter() {
+		return "";
 	}
 	
 }

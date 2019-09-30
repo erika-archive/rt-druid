@@ -465,6 +465,7 @@ public class SectionWriterCommonKernelDefs extends SectionWriter
 					}
 				}
 				buffer.append(IWritersKeywords.INDENT + "#define EE_MAX_ISR2   " + number + "\n"
+						    + IWritersKeywords.INDENT + "#define EE_MAX_ISR2_PRI " + SectionWriterIsr.getMaxIsr2PrioId(ool) +"\n"
 						    + IWritersKeywords.INDENT + "#define EE_MAX_ISR_ID " + SectionWriterIsr.getIsrByID(ool).size()+"\n\n");
 
 			}

@@ -2340,7 +2340,6 @@ public class CodeWriterMpc567Test extends AbstractCodeWriterTest {
 	}
 	
 	
-	
 	@Test public void testDoublez4_CW() {
 	    final String text = "CPU test_application {\n"+
 			"\n"+
@@ -2668,8 +2667,115 @@ public class CodeWriterMpc567Test extends AbstractCodeWriterTest {
 			"};\n";
 		commonWriterTest(text, 2);
 	}
-	
-	
+	@Test public void testDoublez4_HIGHTEC() {
+	    final String text = "CPU test_application {\n"+
+			"\n"+
+			"	OS EE {\n"+
+			"		EE_OPT = \"__ASSERT__\";\n"+
+			"		CFLAGS = \"-g2\";\n"+
+			"		ASFLAGS = \"\";\n"+
+			"		LDFLAGS = \"\";\n"+
+			"\n"+
+			"		EE_OPT = \"__E200ZX_EXECUTE_FROM_RAM__\";\n"+
+			"\n"+
+			"		MASTER_CPU = \"master\";\n"+
+			"\n"+
+			"		CPU_DATA = PPCE200ZX {\n"+
+			"			ID = \"master\";\n"+
+			"			MODEL = E200Z4;\n"+
+			"			APP_SRC = \"master.c\";\n"+
+			"			MULTI_STACK = FALSE;\n"+
+			"			VLE = TRUE;\n"+
+			"			SYS_STACK_SIZE = 4096;\n"+
+			"			COMPILER_TYPE = HIGHTEC;\n"+
+			"		};\n"+
+			"\n"+
+			"		CPU_DATA = PPCE200ZX {\n"+
+			"			MODEL = E200Z4;\n"+
+			"			ID = \"slave\";\n"+
+			"			APP_SRC = \"slave.c\";\n"+
+			"			MULTI_STACK = FALSE;\n"+
+			"			VLE = TRUE;\n"+
+			"			SYS_STACK_SIZE = 4096;\n"+
+			"			COMPILER_TYPE = HIGHTEC;\n"+
+			"		};\n"+
+			"\n"+
+			"		MCU_DATA = PPCE200ZX {\n"+
+			"			MODEL = MPC5643L;\n"+
+			"		};\n"+
+			"\n"+
+			"		STATUS = EXTENDED;\n"+
+			"		STARTUPHOOK = FALSE;\n"+
+			"		ERRORHOOK = FALSE;\n"+
+			"		SHUTDOWNHOOK = FALSE;\n"+
+			"		PRETASKHOOK = FALSE;\n"+
+			"		POSTTASKHOOK = FALSE;\n"+
+			"		USEGETSERVICEID = FALSE;\n"+
+			"		USEPARAMETERACCESS = FALSE;\n"+
+			"		USERESSCHEDULER = FALSE;\n"+
+			"\n"+
+			"		USEREMOTETASK = ALWAYS;\n"+
+			"		ORTI_SECTIONS = ALL;\n"+
+			"\n"+
+			"		KERNEL_TYPE = BCC1;\n"+
+			"	};\n"+
+			"\n"+
+			"	TASK TaskZ6 {\n"+
+			"		CPU_ID = \"master\";\n"+
+			"		PRIORITY = 1;\n"+
+			"		AUTOSTART = FALSE;\n"+
+			"		STACK = SHARED;\n"+
+			"		ACTIVATION = 1;\n"+
+			"		SCHEDULE = FULL;\n"+
+			"	};\n"+
+			"\n"+
+			"	TASK TaskZ6b {\n"+
+			"		CPU_ID = \"master\";\n"+
+			"		PRIORITY = 3;\n"+
+			"		AUTOSTART = FALSE;\n"+
+			"		STACK = SHARED;\n"+
+			"		ACTIVATION = 1;\n"+
+			"		SCHEDULE = FULL;\n"+
+			"	};\n"+
+			"\n"+
+			"	TASK TaskZ6c {\n"+
+			"		CPU_ID = \"master\";\n"+
+			"		PRIORITY = 2;\n"+
+			"		AUTOSTART = FALSE;\n"+
+			"		STACK = SHARED;\n"+
+			"		ACTIVATION = 1;\n"+
+			"		SCHEDULE = FULL;\n"+
+			"	};\n"+
+			"\n"+
+			"	TASK TaskZ0 {\n"+
+			"		CPU_ID = \"slave\";\n"+
+			"		PRIORITY = 1;\n"+
+			"		AUTOSTART = TRUE;\n"+
+			"		STACK = SHARED;\n"+
+			"		ACTIVATION = 1;\n"+
+			"		SCHEDULE = FULL;\n"+
+			"	};\n"+
+			"\n"+
+			"	TASK TaskZ0b {\n"+
+			"		CPU_ID = \"slave\";\n"+
+			"		PRIORITY = 2;\n"+
+			"		AUTOSTART = FALSE;\n"+
+			"		STACK = SHARED;\n"+
+			"		ACTIVATION = 1;\n"+
+			"		SCHEDULE = FULL;\n"+
+			"	};\n"+
+			"\n"+
+			"	TASK TaskZ0c {\n"+
+			"		CPU_ID = \"slave\";\n"+
+			"		PRIORITY = 3;\n"+
+			"		AUTOSTART = FALSE;\n"+
+			"		STACK = SHARED;\n"+
+			"		ACTIVATION = 1;\n"+
+			"		SCHEDULE = FULL;\n"+
+			"	};\n"+
+			"};\n";
+		commonWriterTest(text, 2);
+	}
 
 	@Test public void test32Priorities_BCC1() {
 	    final String text = "CPU test_application {\n"+
@@ -3045,4 +3151,1014 @@ public class CodeWriterMpc567Test extends AbstractCodeWriterTest {
 		commonWriterTest(text, 1);
 	}
 
+	@Test public void testDoublez7() {
+	    final String text = "CPU test_application {\n"+
+			"\n"+
+			"	OS EE {\n"+
+			"		EE_OPT = \"__ASSERT__\";\n"+
+			"		CFLAGS = \"-g2\";\n"+
+			"		ASFLAGS = \"\";\n"+
+			"		LDFLAGS = \"\";\n"+
+			"\n"+
+			"		EE_OPT = \"__E200ZX_EXECUTE_FROM_RAM__\";\n"+
+			"\n"+
+			"		MASTER_CPU = \"master\";\n"+
+			"\n"+
+			"		CPU_DATA = PPCE200ZX {\n"+
+			"			ID = \"master\";\n"+
+			"			MODEL = E200Z7;\n"+
+			"			APP_SRC = \"master.c\";\n"+
+			"			MULTI_STACK = FALSE;\n"+
+			"			VLE = TRUE;\n"+
+			"			SYS_STACK_SIZE = 4096;\n"+
+			"		};\n"+
+			"\n"+
+			"		CPU_DATA = PPCE200ZX {\n"+
+			"			MODEL = E200Z7;\n"+
+			"			ID = \"slave\";\n"+
+			"			APP_SRC = \"slave.c\";\n"+
+			"			MULTI_STACK = FALSE;\n"+
+			"			VLE = TRUE;\n"+
+			"			SYS_STACK_SIZE = 4096;\n"+
+			"		};\n"+
+			"\n"+
+			"		MCU_DATA = PPCE200ZX {\n"+
+			"			MODEL = MPC5777C;\n"+
+			"		};\n"+
+			"\n"+
+			"		STATUS = EXTENDED;\n"+
+			"		STARTUPHOOK = FALSE;\n"+
+			"		ERRORHOOK = FALSE;\n"+
+			"		SHUTDOWNHOOK = FALSE;\n"+
+			"		PRETASKHOOK = FALSE;\n"+
+			"		POSTTASKHOOK = FALSE;\n"+
+			"		USEGETSERVICEID = FALSE;\n"+
+			"		USEPARAMETERACCESS = FALSE;\n"+
+			"		USERESSCHEDULER = FALSE;\n"+
+			"\n"+
+			"		USEREMOTETASK = ALWAYS;\n"+
+			"		ORTI_SECTIONS = ALL;\n"+
+			"\n"+
+			"		KERNEL_TYPE = BCC1;\n"+
+			"	};\n"+
+			"\n"+
+			"	TASK TaskZ6 {\n"+
+			"		CPU_ID = \"master\";\n"+
+			"		PRIORITY = 1;\n"+
+			"		AUTOSTART = FALSE;\n"+
+			"		STACK = SHARED;\n"+
+			"		ACTIVATION = 1;\n"+
+			"		SCHEDULE = FULL;\n"+
+			"	};\n"+
+			"\n"+
+			"	TASK TaskZ6b {\n"+
+			"		CPU_ID = \"master\";\n"+
+			"		PRIORITY = 3;\n"+
+			"		AUTOSTART = FALSE;\n"+
+			"		STACK = SHARED;\n"+
+			"		ACTIVATION = 1;\n"+
+			"		SCHEDULE = FULL;\n"+
+			"	};\n"+
+			"\n"+
+			"	TASK TaskZ6c {\n"+
+			"		CPU_ID = \"master\";\n"+
+			"		PRIORITY = 2;\n"+
+			"		AUTOSTART = FALSE;\n"+
+			"		STACK = SHARED;\n"+
+			"		ACTIVATION = 1;\n"+
+			"		SCHEDULE = FULL;\n"+
+			"	};\n"+
+			"\n"+
+			"	TASK TaskZ0 {\n"+
+			"		CPU_ID = \"slave\";\n"+
+			"		PRIORITY = 1;\n"+
+			"		AUTOSTART = TRUE;\n"+
+			"		STACK = SHARED;\n"+
+			"		ACTIVATION = 1;\n"+
+			"		SCHEDULE = FULL;\n"+
+			"	};\n"+
+			"\n"+
+			"	TASK TaskZ0b {\n"+
+			"		CPU_ID = \"slave\";\n"+
+			"		PRIORITY = 2;\n"+
+			"		AUTOSTART = FALSE;\n"+
+			"		STACK = SHARED;\n"+
+			"		ACTIVATION = 1;\n"+
+			"		SCHEDULE = FULL;\n"+
+			"	};\n"+
+			"\n"+
+			"	TASK TaskZ0c {\n"+
+			"		CPU_ID = \"slave\";\n"+
+			"		PRIORITY = 3;\n"+
+			"		AUTOSTART = FALSE;\n"+
+			"		STACK = SHARED;\n"+
+			"		ACTIVATION = 1;\n"+
+			"		SCHEDULE = FULL;\n"+
+			"	};\n"+
+			"};\n";
+		commonWriterTest(text, 2);
+	}
+	
+
+	@Test public void testDoublez7_startup_func() {
+	    final String text = "CPU test_application {\n"+
+			"\n"+
+			"	OS EE {\n"+
+			"		EE_OPT = \"__ASSERT__\";\n"+
+			"		CFLAGS = \"-g2\";\n"+
+			"		ASFLAGS = \"\";\n"+
+			"		LDFLAGS = \"\";\n"+
+			"\n"+
+			"		EE_OPT = \"__E200ZX_EXECUTE_FROM_RAM__\";\n"+
+
+			"       CUSTOM_STARTUP_CODE = TRUE;\n" +
+			"\n"+
+			"		MASTER_CPU = \"master\";\n"+
+			"\n"+
+			"		CPU_DATA = PPCE200ZX {\n"+
+			"			ID = \"master\";\n"+
+			"			MODEL = E200Z7;\n"+
+			"			APP_SRC = \"master.c\";\n"+
+			"			MULTI_STACK = FALSE;\n"+
+			"			VLE = TRUE;\n"+
+			"			SYS_STACK_SIZE = 4096;\n"+
+			"			STARTUP_ADDRESS = \"master_startup\";\n"+			
+			"		};\n"+
+			"\n"+
+			"		CPU_DATA = PPCE200ZX {\n"+
+			"			MODEL = E200Z7;\n"+
+			"			ID = \"slave\";\n"+
+			"			APP_SRC = \"slave.c\";\n"+
+			"			MULTI_STACK = FALSE;\n"+
+			"			VLE = TRUE;\n"+
+			"			SYS_STACK_SIZE = 4096;\n"+
+			"			STARTUP_ADDRESS = \"slave_startup\";\n"+			
+			"		};\n"+
+			"\n"+
+			"		MCU_DATA = PPCE200ZX {\n"+
+			"			MODEL = MPC5777C;\n"+
+			"		};\n"+
+			"\n"+
+			"		STATUS = EXTENDED;\n"+
+			"		STARTUPHOOK = FALSE;\n"+
+			"		ERRORHOOK = FALSE;\n"+
+			"		SHUTDOWNHOOK = FALSE;\n"+
+			"		PRETASKHOOK = FALSE;\n"+
+			"		POSTTASKHOOK = FALSE;\n"+
+			"		USEGETSERVICEID = FALSE;\n"+
+			"		USEPARAMETERACCESS = FALSE;\n"+
+			"		USERESSCHEDULER = FALSE;\n"+
+			"\n"+
+			"		USEREMOTETASK = ALWAYS;\n"+
+			"		ORTI_SECTIONS = ALL;\n"+
+			"\n"+
+			"		KERNEL_TYPE = BCC1;\n"+
+			"	};\n"+
+			"\n"+
+			"	TASK TaskZ6 {\n"+
+			"		CPU_ID = \"master\";\n"+
+			"		PRIORITY = 1;\n"+
+			"		AUTOSTART = FALSE;\n"+
+			"		STACK = SHARED;\n"+
+			"		ACTIVATION = 1;\n"+
+			"		SCHEDULE = FULL;\n"+
+			"	};\n"+
+			"\n"+
+			"	TASK TaskZ6b {\n"+
+			"		CPU_ID = \"master\";\n"+
+			"		PRIORITY = 3;\n"+
+			"		AUTOSTART = FALSE;\n"+
+			"		STACK = SHARED;\n"+
+			"		ACTIVATION = 1;\n"+
+			"		SCHEDULE = FULL;\n"+
+			"	};\n"+
+			"\n"+
+			"	TASK TaskZ6c {\n"+
+			"		CPU_ID = \"master\";\n"+
+			"		PRIORITY = 2;\n"+
+			"		AUTOSTART = FALSE;\n"+
+			"		STACK = SHARED;\n"+
+			"		ACTIVATION = 1;\n"+
+			"		SCHEDULE = FULL;\n"+
+			"	};\n"+
+			"\n"+
+			"	TASK TaskZ0 {\n"+
+			"		CPU_ID = \"slave\";\n"+
+			"		PRIORITY = 1;\n"+
+			"		AUTOSTART = TRUE;\n"+
+			"		STACK = SHARED;\n"+
+			"		ACTIVATION = 1;\n"+
+			"		SCHEDULE = FULL;\n"+
+			"	};\n"+
+			"\n"+
+			"	TASK TaskZ0b {\n"+
+			"		CPU_ID = \"slave\";\n"+
+			"		PRIORITY = 2;\n"+
+			"		AUTOSTART = FALSE;\n"+
+			"		STACK = SHARED;\n"+
+			"		ACTIVATION = 1;\n"+
+			"		SCHEDULE = FULL;\n"+
+			"	};\n"+
+			"\n"+
+			"	TASK TaskZ0c {\n"+
+			"		CPU_ID = \"slave\";\n"+
+			"		PRIORITY = 3;\n"+
+			"		AUTOSTART = FALSE;\n"+
+			"		STACK = SHARED;\n"+
+			"		ACTIVATION = 1;\n"+
+			"		SCHEDULE = FULL;\n"+
+			"	};\n"+
+			"};\n";
+		commonWriterTest(text, 2);
+	}
+
+
+	@Test public void testDoublez7_startup_addr() {
+	    final String text = "CPU test_application {\n"+
+			"\n"+
+			"	OS EE {\n"+
+			"		EE_OPT = \"__ASSERT__\";\n"+
+			"		CFLAGS = \"-g2\";\n"+
+			"		ASFLAGS = \"\";\n"+
+			"		LDFLAGS = \"\";\n"+
+			"\n"+
+			"		EE_OPT = \"__E200ZX_EXECUTE_FROM_RAM__\";\n"+
+
+			"       CUSTOM_STARTUP_CODE = TRUE;\n" +
+			"\n"+
+			"		MASTER_CPU = \"master\";\n"+
+			"\n"+
+			"		CPU_DATA = PPCE200ZX {\n"+
+			"			ID = \"master\";\n"+
+			"			MODEL = E200Z7;\n"+
+			"			APP_SRC = \"master.c\";\n"+
+			"			MULTI_STACK = FALSE;\n"+
+			"			VLE = TRUE;\n"+
+			"			SYS_STACK_SIZE = 4096;\n"+
+			"			STARTUP_ADDRESS = \"54321\";\n"+			
+			"		};\n"+
+			"\n"+
+			"		CPU_DATA = PPCE200ZX {\n"+
+			"			MODEL = E200Z7;\n"+
+			"			ID = \"slave\";\n"+
+			"			APP_SRC = \"slave.c\";\n"+
+			"			MULTI_STACK = FALSE;\n"+
+			"			VLE = TRUE;\n"+
+			"			SYS_STACK_SIZE = 4096;\n"+
+			"			STARTUP_ADDRESS = \"12345\";\n"+			
+			"		};\n"+
+			"\n"+
+			"		MCU_DATA = PPCE200ZX {\n"+
+			"			MODEL = MPC5777C;\n"+
+			"		};\n"+
+			"\n"+
+			"		STATUS = EXTENDED;\n"+
+			"		STARTUPHOOK = FALSE;\n"+
+			"		ERRORHOOK = FALSE;\n"+
+			"		SHUTDOWNHOOK = FALSE;\n"+
+			"		PRETASKHOOK = FALSE;\n"+
+			"		POSTTASKHOOK = FALSE;\n"+
+			"		USEGETSERVICEID = FALSE;\n"+
+			"		USEPARAMETERACCESS = FALSE;\n"+
+			"		USERESSCHEDULER = FALSE;\n"+
+			"\n"+
+			"		USEREMOTETASK = ALWAYS;\n"+
+			"		ORTI_SECTIONS = ALL;\n"+
+			"\n"+
+			"		KERNEL_TYPE = BCC1;\n"+
+			"	};\n"+
+			"\n"+
+			"	TASK TaskZ6 {\n"+
+			"		CPU_ID = \"master\";\n"+
+			"		PRIORITY = 1;\n"+
+			"		AUTOSTART = FALSE;\n"+
+			"		STACK = SHARED;\n"+
+			"		ACTIVATION = 1;\n"+
+			"		SCHEDULE = FULL;\n"+
+			"	};\n"+
+			"\n"+
+			"	TASK TaskZ6b {\n"+
+			"		CPU_ID = \"master\";\n"+
+			"		PRIORITY = 3;\n"+
+			"		AUTOSTART = FALSE;\n"+
+			"		STACK = SHARED;\n"+
+			"		ACTIVATION = 1;\n"+
+			"		SCHEDULE = FULL;\n"+
+			"	};\n"+
+			"\n"+
+			"	TASK TaskZ6c {\n"+
+			"		CPU_ID = \"master\";\n"+
+			"		PRIORITY = 2;\n"+
+			"		AUTOSTART = FALSE;\n"+
+			"		STACK = SHARED;\n"+
+			"		ACTIVATION = 1;\n"+
+			"		SCHEDULE = FULL;\n"+
+			"	};\n"+
+			"\n"+
+			"	TASK TaskZ0 {\n"+
+			"		CPU_ID = \"slave\";\n"+
+			"		PRIORITY = 1;\n"+
+			"		AUTOSTART = TRUE;\n"+
+			"		STACK = SHARED;\n"+
+			"		ACTIVATION = 1;\n"+
+			"		SCHEDULE = FULL;\n"+
+			"	};\n"+
+			"\n"+
+			"	TASK TaskZ0b {\n"+
+			"		CPU_ID = \"slave\";\n"+
+			"		PRIORITY = 2;\n"+
+			"		AUTOSTART = FALSE;\n"+
+			"		STACK = SHARED;\n"+
+			"		ACTIVATION = 1;\n"+
+			"		SCHEDULE = FULL;\n"+
+			"	};\n"+
+			"\n"+
+			"	TASK TaskZ0c {\n"+
+			"		CPU_ID = \"slave\";\n"+
+			"		PRIORITY = 3;\n"+
+			"		AUTOSTART = FALSE;\n"+
+			"		STACK = SHARED;\n"+
+			"		ACTIVATION = 1;\n"+
+			"		SCHEDULE = FULL;\n"+
+			"	};\n"+
+			"};\n";
+		commonWriterTest(text, 2);
+	}
+
+	@Test public void testDoublez4AndZ2() {
+	    final String text = "CPU test_application {\n"+
+			"\n"+
+			"	OS EE {\n"+
+			"		EE_OPT = \"__ASSERT__\";\n"+
+			"		CFLAGS = \"-g2\";\n"+
+			"		ASFLAGS = \"\";\n"+
+			"		LDFLAGS = \"\";\n"+
+			"\n"+
+			"		EE_OPT = \"__E200ZX_EXECUTE_FROM_RAM__\";\n"+
+			"\n"+
+			"		MASTER_CPU = \"master\";\n"+
+			"\n"+
+			"		CPU_DATA = PPCE200ZX {\n"+
+			"			ID = \"master\";\n"+
+			"			MODEL = E200Z4;\n"+
+			"			APP_SRC = \"master.c\";\n"+
+			"			MULTI_STACK = FALSE;\n"+
+			"			VLE = TRUE;\n"+
+			"			SYS_STACK_SIZE = 4096;\n"+
+			"		};\n"+
+			"\n"+
+			"		CPU_DATA = PPCE200ZX {\n"+
+			"			MODEL = E200Z4;\n"+
+			"			ID = \"slave\";\n"+
+			"			APP_SRC = \"slave.c\";\n"+
+			"			MULTI_STACK = FALSE;\n"+
+			"			VLE = TRUE;\n"+
+			"			SYS_STACK_SIZE = 4096;\n"+
+			"		};\n"+
+			"\n"+
+			"		CPU_DATA = PPCE200ZX {\n"+
+			"			ID = \"slave2\";\n"+
+			"			MODEL = E200Z2;\n"+
+			"			APP_SRC = \"slave2.c\";\n"+
+			"			MULTI_STACK = FALSE;\n"+
+			"			VLE = TRUE;\n"+
+			"			SYS_STACK_SIZE = 4096;\n"+
+			"		};\n"+
+			"\n"+
+			"		MCU_DATA = PPCE200ZX {\n"+
+			"			MODEL = SPC574K;\n"+
+			"		};\n"+
+			"\n"+
+			"		STATUS = EXTENDED;\n"+
+			"		STARTUPHOOK = FALSE;\n"+
+			"		ERRORHOOK = FALSE;\n"+
+			"		SHUTDOWNHOOK = FALSE;\n"+
+			"		PRETASKHOOK = FALSE;\n"+
+			"		POSTTASKHOOK = FALSE;\n"+
+			"		USEGETSERVICEID = FALSE;\n"+
+			"		USEPARAMETERACCESS = FALSE;\n"+
+			"		USERESSCHEDULER = FALSE;\n"+
+			"\n"+
+			"		USEREMOTETASK = ALWAYS;\n"+
+			"		ORTI_SECTIONS = ALL;\n"+
+			"\n"+
+			"		KERNEL_TYPE = BCC1;\n"+
+			"	};\n"+
+			"\n"+
+			"	TASK TaskZ6 {\n"+
+			"		CPU_ID = \"master\";\n"+
+			"		PRIORITY = 1;\n"+
+			"		AUTOSTART = FALSE;\n"+
+			"		STACK = SHARED;\n"+
+			"		ACTIVATION = 1;\n"+
+			"		SCHEDULE = FULL;\n"+
+			"	};\n"+
+			"\n"+
+			"	TASK TaskZ6b {\n"+
+			"		CPU_ID = \"master\";\n"+
+			"		PRIORITY = 3;\n"+
+			"		AUTOSTART = FALSE;\n"+
+			"		STACK = SHARED;\n"+
+			"		ACTIVATION = 1;\n"+
+			"		SCHEDULE = FULL;\n"+
+			"	};\n"+
+			"\n"+
+			"	TASK TaskZ6c {\n"+
+			"		CPU_ID = \"master\";\n"+
+			"		PRIORITY = 2;\n"+
+			"		AUTOSTART = FALSE;\n"+
+			"		STACK = SHARED;\n"+
+			"		ACTIVATION = 1;\n"+
+			"		SCHEDULE = FULL;\n"+
+			"	};\n"+
+			"\n"+
+			"	TASK TaskZ0 {\n"+
+			"		CPU_ID = \"slave\";\n"+
+			"		PRIORITY = 1;\n"+
+			"		AUTOSTART = TRUE;\n"+
+			"		STACK = SHARED;\n"+
+			"		ACTIVATION = 1;\n"+
+			"		SCHEDULE = FULL;\n"+
+			"	};\n"+
+			"\n"+
+			"	TASK TaskZ0b {\n"+
+			"		CPU_ID = \"slave\";\n"+
+			"		PRIORITY = 2;\n"+
+			"		AUTOSTART = FALSE;\n"+
+			"		STACK = SHARED;\n"+
+			"		ACTIVATION = 1;\n"+
+			"		SCHEDULE = FULL;\n"+
+			"	};\n"+
+			"\n"+
+			"	TASK TaskZ0c {\n"+
+			"		CPU_ID = \"slave\";\n"+
+			"		PRIORITY = 3;\n"+
+			"		AUTOSTART = FALSE;\n"+
+			"		STACK = SHARED;\n"+
+			"		ACTIVATION = 1;\n"+
+			"		SCHEDULE = FULL;\n"+
+			"	};\n"+
+			"\n"+
+			"	TASK TaskZ2 {\n"+
+			"		CPU_ID = \"slave2\";\n"+
+			"		PRIORITY = 3;\n"+
+			"		AUTOSTART = FALSE;\n"+
+			"		STACK = SHARED;\n"+
+			"		ACTIVATION = 1;\n"+
+			"		SCHEDULE = FULL;\n"+
+			"	};\n"+
+			"};\n";
+		commonWriterTest(text, 3);
+	}
+	
+
+	@Test
+	public void testMpc567_Timer_STM_SPC574K() {
+	    final String text = "CPU test_application {\n" +
+			"\n" +
+			"	OS EE {		\n" +
+			"		EE_OPT = \"DEBUG_STACK\";\n" +
+			"\n" +
+			"		CFLAGS = \"-g2\";\n" +
+			"		ASFLAGS = \"\";\n" +
+			"		LDFLAGS = \"\"; \n" +
+			"\n" +
+			"		CPU_DATA = PPCE200ZX {\n" +
+			"			APP_SRC = \"main.c\";\n" +
+			"			MULTI_STACK = TRUE {\n" + 
+			"				IRQ_STACK = TRUE {\n" + 
+			"					SYS_SIZE=64;\n" + 
+			"				};\n" + 
+			"			};\n" + 
+			"			MODEL = E200Z420;\n" +
+			"			CPU_CLOCK = 98.5;\n" +
+			"			VLE = FALSE;\n" +
+			"		};\n" +
+			"		\n" +
+			"		MCU_DATA = PPCE200ZX {\n" +
+			"			MODEL = SPC574K;\n" + 
+			"		};\n" +
+			"\n" +
+			"		STATUS = EXTENDED;\n" +
+			"		STARTUPHOOK = FALSE;\n" +
+			"		ERRORHOOK = FALSE;\n" +
+			"		SHUTDOWNHOOK = FALSE;\n" +
+			"		PRETASKHOOK = FALSE;\n" +
+			"		POSTTASKHOOK = FALSE;\n" +
+			"		USEGETSERVICEID = FALSE;\n" +
+			"		USEPARAMETERACCESS = FALSE;\n" +
+			"		USERESSCHEDULER = FALSE;\n" +
+			"		\n" +
+			"    };\n" +
+			"    \n" +
+			"    /* this is the OIL part for the first task */\n" +
+			"    TASK Task1 {\n" +
+			"		PRIORITY = 0x01;   /* Low priority */\n" +
+			"		AUTOSTART = FALSE;\n" +
+			"		STACK = PRIVATE {\n" +
+			"			SYS_SIZE = 512;\n" +
+			"		};\n" +
+			"		ACTIVATION = 1;    /* only one pending activation */\n" +
+			"	};	\n" +
+			"\n" +
+			"    /* this is the OIL part for the second task */\n" +
+			"    TASK Task2 {\n" +
+			"		PRIORITY = 0x02;   /* High priority */\n" +
+			"		AUTOSTART = FALSE;\n" +
+			"		STACK = SHARED;\n" +
+			"		ACTIVATION = 1;    /* only one pending activation */\n" +
+			"	};	\n" +
+			"\n" +
+			"    OS EE { \n" +
+			"		KERNEL_TYPE = ECC2;\n" +
+			"		ORTI_SECTIONS = ALL;\n" +
+			"  }; 	\n" +
+			"	COUNTER myCounter0 {\n" +
+			"		MINCYCLE = 0;\n" +
+			"		MAXALLOWEDVALUE = 10;\n" +
+			"		TICKSPERBASE = 1;\n" +
+			"	};\n" +
+			"	COUNTER myCounter1 {\n" +
+			"		MINCYCLE = 0;\n" +
+			"		MAXALLOWEDVALUE = 20;\n" +
+			"		TICKSPERBASE = 2;\n" +
+			"	};\n" +
+			"	COUNTER myCounter {\n" +
+			"		MINCYCLE = 0;\n" +
+			"		MAXALLOWEDVALUE = 10;\n" +
+			"		TICKSPERBASE = 1;\n" +
+			"	};\n" +
+			"	COUNTER myCounter2 {\n" +
+			"		MINCYCLE = 0;\n" +
+			"		MAXALLOWEDVALUE = 10;\n" +
+			"		TICKSPERBASE = 1;\n" +
+			"		SECONDSPERTICK = 0.004;\n" +
+			"		TYPE = HARDWARE { DEVICE=\"STM\";};\n" +
+			"	};\n" +
+
+			"	ALARM AcquireAlarm {\n" +
+			"		COUNTER = myCounter;\n" +
+			"		ACTION = INCREMENTCOUNTER { COUNTER = myCounter1; };\n" +
+			"	};\n" +
+			"};";
+		commonWriterTest(text, 1);
+	}
+	
+	
+	@Test
+	public void testMpc567_ioc_1() {
+	    final String text = "CPU test_application {\n" +
+		"\n" +
+		"	OS EE {\n" +
+		"    EE_OPT = \"__ASSERT__\";\n" +
+		"    EE_OPT = \"DEBUG\";\n" +
+		"\n" +
+		"    EE_OPT = \"__E200ZX_EXECUTE_FROM_RAM__\";\n" +
+		"    EE_OPT = \"MPC5777C_STD_SW_MMU_CONFIG\";\n" +
+		"    EE_OPT = \"EE_MSRP_USE_SYNC_BARRIER\";\n" +
+		"	EE_OPT = \"USE_PRAGMAS\";\n" +
+		"\n" +
+		"\n" +
+		"    /* The following have to be generated by RT-Druid */\n" +
+		"    EE_OPT = \"EE_AS_IOC__\";\n" +
+		"\n" +
+		"    REMOTENOTIFICATION = USE_RPC;\n" +
+		"\n" +
+		"    MASTER_CPU = \"master\";\n" +
+		"\n" +
+		"    CPU_DATA = PPCE200ZX {\n" +
+		"      MODEL = E200Z7;\n" +
+		"      ID = \"master\";\n" +
+		"      APP_SRC = \"master.c\";\n" +
+		"      APP_SRC = \"ioc_common.c\";\n" +
+		"      MULTI_STACK = TRUE;\n" +
+		"      SYS_STACK_SIZE = 4096;\n" +
+		"    };\n" +
+		"\n" +
+		"    CPU_DATA = PPCE200ZX {\n" +
+		"      MODEL = E200Z7;\n" +
+		"      ID = \"slave\";\n" +
+		"      APP_SRC = \"slave.c\";\n" +
+		"      APP_SRC = \"ioc_slave.c\";\n" +
+		"      MULTI_STACK = TRUE;\n" +
+		"      SYS_STACK_SIZE = 4096;\n" +
+		"    };\n" +
+		"\n" +
+		"    MCU_DATA = PPCE200ZX {\n" +
+		"		MODEL = MPC5777C;\n" +
+		"	};\n" +
+		"\n" +
+		"    STATUS = EXTENDED;\n" +
+		"    USERESSCHEDULER = FALSE;\n" +
+		"\n" +
+		"    //USEREMOTETASK = ALWAYS;\n" +
+		"    ORTI_SECTIONS = ALL;\n" +
+		"\n" +
+		"    KERNEL_TYPE = BCC1;\n" +
+		"    };\n" +
+		"\n" +
+		"	TASK TaskSend1 {\n" +
+		"		CPU_ID = \"master\";\n" +
+		"		PRIORITY = 0x02;\n" +
+		"		AUTOSTART = TRUE;\n" +
+		"		STACK = PRIVATE {\n" +
+		"			SYS_SIZE = 1024;\n" +
+		"		};\n" +
+		"		ACTIVATION = 1;\n" +
+		"		SCHEDULE = FULL;\n" +
+		"	};\n" +
+		"\n" +
+		"    TASK TaskSend2 {\n" +
+		"		CPU_ID = \"master\";\n" +
+		"		PRIORITY = 0x04;\n" +
+		"		AUTOSTART = FALSE;\n" +
+		"		STACK = PRIVATE {\n" +
+		"			SYS_SIZE = 1024;\n" +
+		"		};\n" +
+		"		ACTIVATION = 1;\n" +
+		"		SCHEDULE = FULL;\n" +
+		"	};\n" +
+		"\n" +
+		"     TASK TaskSend3 {\n" +
+		"		CPU_ID = \"master\";\n" +
+		"		PRIORITY = 0x08;\n" +
+		"		AUTOSTART = FALSE;\n" +
+		"		STACK = PRIVATE {\n" +
+		"			SYS_SIZE = 1024;\n" +
+		"		};\n" +
+		"		ACTIVATION = 1;\n" +
+		"		SCHEDULE = FULL;\n" +
+		"	};\n" +
+		"\n" +
+		"    TASK TaskSend4 {\n" +
+		"		CPU_ID = \"master\";\n" +
+		"		PRIORITY = 0x10;\n" +
+		"		AUTOSTART = FALSE;\n" +
+		"		STACK = PRIVATE {\n" +
+		"			SYS_SIZE = 1024;\n" +
+		"		};\n" +
+		"		ACTIVATION = 1;\n" +
+		"		SCHEDULE = FULL;\n" +
+		"	};\n" +
+		"\n" +
+		"    TASK TaskSend5 {\n" +
+		"		CPU_ID = \"master\";\n" +
+		"		PRIORITY = 0x20;\n" +
+		"		AUTOSTART = FALSE;\n" +
+		"		STACK = PRIVATE {\n" +
+		"			SYS_SIZE = 1024;\n" +
+		"		};\n" +
+		"		ACTIVATION = 1;\n" +
+		"		SCHEDULE = FULL;\n" +
+		"	};\n" +
+		"\n" +
+		"	TASK TaskReceive1 {\n" +
+		"		CPU_ID = \"slave\";\n" +
+		"		PRIORITY = 0x02;\n" +
+		"		AUTOSTART = FALSE;\n" +
+		"		STACK = PRIVATE {\n" +
+		"			SYS_SIZE = 1024;\n" +
+		"		};\n" +
+		"		ACTIVATION = 1;\n" +
+		"		SCHEDULE = FULL;\n" +
+		"	};\n" +
+		"\n" +
+		"    TASK TaskReceive2 {\n" +
+		"		CPU_ID = \"slave\";\n" +
+		"		PRIORITY = 0x04;\n" +
+		"		AUTOSTART = FALSE;\n" +
+		"		STACK = PRIVATE {\n" +
+		"			SYS_SIZE = 1024;\n" +
+		"		};\n" +
+		"		ACTIVATION = 1;\n" +
+		"		SCHEDULE = FULL;\n" +
+		"	};\n" +
+		"\n" +
+		"    TASK TaskReceive3 {\n" +
+		"		CPU_ID = \"slave\";\n" +
+		"		PRIORITY = 0x08;\n" +
+		"		AUTOSTART = FALSE;\n" +
+		"		STACK = PRIVATE {\n" +
+		"			SYS_SIZE = 1024;\n" +
+		"		};\n" +
+		"		ACTIVATION = 1;\n" +
+		"		SCHEDULE = FULL;\n" +
+		"	};\n" +
+		"\n" +
+		"    TASK TaskReceive4 {\n" +
+		"		CPU_ID = \"slave\";\n" +
+		"		PRIORITY = 0x10;\n" +
+		"		AUTOSTART = FALSE;\n" +
+		"		STACK = PRIVATE {\n" +
+		"			SYS_SIZE = 1024;\n" +
+		"		};\n" +
+		"		ACTIVATION = 1;\n" +
+		"		SCHEDULE = FULL;\n" +
+		"	};\n" +
+		"\n" +
+		"    SPINLOCK spinlock_1 { };\n" +
+		"};\n";
+		commonWriterTest(text, 2);
+	}
+	
+	@Test
+	public void testMpc567_MPC5777C_pragma() {
+	    final String text = "CPU test_application {\n" +
+				"\n" +
+				"  OS EE {\n" +
+				"    EE_OPT = \"__ASSERT__\";\n" +
+				"    EE_OPT = \"DEBUG\";\n" +
+				"\n" +
+				"    EE_OPT = \"__E200ZX_EXECUTE_FROM_RAM__\";\n" +
+				"    EE_OPT = \"MPC5777C_STD_SW_MMU_CONFIG\";\n" +
+				"    EE_OPT = \"EE_MSRP_USE_SYNC_BARRIER\";\n" +
+				"	 EE_OPT = \"USE_PRAGMAS\";\n" +
+				"\n" +
+				"    REMOTENOTIFICATION = USE_RPC;\n" +
+				"\n" +
+				"    MASTER_CPU = \"master\";\n" +
+				"\n" +
+				"    CPU_DATA = PPCE200ZX {\n" +
+				"      MODEL = E200Z7;\n" +
+				"      ID = \"master\";\n" +
+				"      APP_SRC = \"master.c\";\n" +
+				"      MULTI_STACK = TRUE;\n" +
+				"      SYS_STACK_SIZE = 4096;\n" +
+				"    };\n" +
+				"\n" +
+				"    CPU_DATA = PPCE200ZX {\n" +
+				"      MODEL = E200Z7;\n" +
+				"      ID = \"slave\";\n" +
+				"      APP_SRC = \"slave.c\";\n" +
+				"      MULTI_STACK = TRUE;\n" +
+				"      SYS_STACK_SIZE = 4096;\n" +
+				"    };\n" +
+				"\n" +
+				"    MCU_DATA = PPCE200ZX {\n" +
+				"		MODEL = MPC5777C;\n" +
+				"	};\n" +
+				"\n" +
+				"    STATUS = EXTENDED;\n" +
+				"    STARTUPHOOK   = TRUE;\n" +
+				"    ERRORHOOK     = TRUE;\n" +
+				"    SHUTDOWNHOOK  = TRUE;\n" +
+				"\n" +
+				"    USEREMOTETASK = ALWAYS;\n" +
+				"    ORTI_SECTIONS = ALL;\n" +
+				"\n" +
+				"    KERNEL_TYPE = ECC1;\n" +
+				"  };\n" +
+				"\n" +
+				"  TASK TaskMaster {\n" +
+				"    CPU_ID = \"master\";\n" +
+				"    PRIORITY = 1;\n" +
+				"    AUTOSTART = TRUE;\n" +
+				"    STACK = PRIVATE {\n" +
+				"      SYS_SIZE = 1024;\n" +
+				"    };\n" +
+				"    ACTIVATION = 1;\n" +
+				"    SCHEDULE = FULL;\n" +
+				"    EVENT = Event1;\n" +
+				"    EVENT = Event2;\n" +
+				"  };\n" +
+				"\n" +
+				"  TASK TaskMaster2 {\n" +
+				"    CPU_ID = \"master\";\n" +
+				"    PRIORITY = 2;\n" +
+				"    AUTOSTART = FALSE;\n" +
+				"    STACK = PRIVATE {\n" +
+				"      SYS_SIZE = 1024;\n" +
+				"    };\n" +
+				"    ACTIVATION = 1;\n" +
+				"    SCHEDULE = FULL;\n" +
+				"    EVENT = Event1;\n" +
+				"    EVENT = Event2;\n" +
+				"  };\n" +
+				"\n" +
+				"  TASK TaskSlave1 {\n" +
+				"    CPU_ID = \"slave\";\n" +
+				"    PRIORITY = 1;\n" +
+				"    AUTOSTART = FALSE;\n" +
+				"    STACK = SHARED;\n" +
+				"    ACTIVATION = 1;\n" +
+				"    SCHEDULE = FULL;\n" +
+				"  };\n" +
+				"\n" +
+				"  TASK TaskSlave2 {\n" +
+				"    CPU_ID = \"slave\";\n" +
+				"    PRIORITY = 1;\n" +
+				"    AUTOSTART = FALSE;\n" +
+				"    STACK = SHARED;\n" +
+				"    ACTIVATION = 1;\n" +
+				"    SCHEDULE = FULL;\n" +
+				"  };\n" +
+				"\n" +
+				"  ISR isr_spin {\n" +
+				"    CPU_ID = \"master\";\n" +
+				"    CATEGORY = 2;\n" +
+				"    PRIORITY = 2;\n" +
+				"	ENTRY = \"0\";\n" +
+				"  };\n" +
+				"\n" +
+				"  SPINLOCK spinlock_1 { NEXT_SPINLOCK=spinlock_2; };\n" +
+				"  SPINLOCK spinlock_2 { NEXT_SPINLOCK=spinlock_3; };\n" +
+				"  SPINLOCK spinlock_3 {  };\n" +
+				"\n" +
+				"  EVENT Event1 { MASK = AUTO; };\n" +
+				"  EVENT Event2 { MASK = AUTO; };\n" +
+				"};\n";
+		commonWriterTest(text, 2);
+	}
+
+
+	@Test public void testStackMonitorPattern() {
+	    final String text = "CPU test_application {\n" + 
+			"  OS EE {\n" + 
+			"    EE_OPT = \"DEBUG\";\n" + 
+			"    EE_OPT = \"__ASSERT__\";\n" + 
+			"    EE_OPT = \"__E200ZX_EXECUTE_FROM_RAM__\";\n" + 
+			"    EE_OPT = \"EE_LAUTERBACH_DEMO_SIM\";\n" + 
+			"\n" + 
+			"    EE_OPT = \"__OO_STARTOS_OLD__\";\n" + 
+			"    STACKMONITORING = TRUE\n" + 
+			"    {\n" + 
+			"		PATTERN=0xC3A55A3C;\n" + 
+			"		PROTECTION_SIZE=8;\n" + 
+			"    };\n" + 
+			"\n" + 
+			"    CPU_DATA = PPCE200ZX {\n" + 
+			"      MODEL = E200Z7;\n" + 
+			"      APP_SRC = \"code.c\";\n" + 
+			"      APP_SRC = \"app.c\";\n" + 
+			"      MULTI_STACK = TRUE {\n" + 
+			"        IRQ_STACK = TRUE {\n" + 
+			"          SYS_SIZE=512;\n" + 
+			"        };\n" + 
+			"      };\n" + 
+			"      VLE = TRUE;\n" + 
+			"     };\n" + 
+			"\n" + 
+			"     MCU_DATA = PPCE200ZX {\n" + 
+			"       MODEL = MPC5674F;\n" + 
+			"     };\n" + 
+			"\n" + 
+			"     STATUS = EXTENDED;\n" + 
+			"     USERESSCHEDULER = FALSE;\n" + 
+			"     SHUTDOWNHOOK = TRUE;\n" + 
+			"\n" + 
+			"     PROTECTIONHOOK = TRUE {\n" + 
+			"		SYS_SIZE = 1024;\n" + 
+			"     };\n" + 
+			"     KERNEL_TYPE = BCC1;\n" + 
+			"\n" + 
+			"     ORTI_SECTIONS = ALL;\n" + 
+			"    };\n" + 
+			"\n" + 
+			"   TASK TaskPrio1 {\n" + 
+			"     PRIORITY = 1;\n" + 
+			"     ACTIVATION = 1;\n" + 
+			"     SCHEDULE = FULL;\n" + 
+			"     AUTOSTART = TRUE;\n" + 
+			"     STACK = PRIVATE {\n" + 
+			"       SYS_SIZE = 512;\n" + 
+			"     };\n" + 
+			"  };\n" + 
+			"\n" + 
+			"  TASK TaskPrio2 {\n" + 
+			"    PRIORITY = 2;\n" + 
+			"    ACTIVATION = 1;\n" + 
+			"    SCHEDULE = FULL;\n" + 
+			"    AUTOSTART = FALSE;\n" + 
+			"    STACK = SHARED;\n" + 
+			"  };\n" + 
+			"};\n";
+	    		
+	    		
+	    commonWriterTest(text, 1);
+	}
+	
+	
+	@Test public void tesMemProt1() {
+	    final String text =
+			"CPU PerfTestApp {\n" +
+			"  OS EE {\n" +
+			"    EE_OPT = \"EE_DEBUG\";\n" +
+			"    EE_OPT = \"__ASSERT__\";\n" +
+			"    EE_OPT = \"EE_SAVE_TEMP_FILES\";\n" +
+			"\n" +
+			"    STACKMONITORING = TRUE\n" + 
+			"    {\n" + 
+			"		PATTERN=0xC3A55A3C;\n" + 
+			"		PROTECTION_SIZE=8;\n" + 
+			"    };\n" + 
+			"\n" + 
+			"    CPU_DATA = PPCE200ZX {\n" + 
+			"      MODEL = E200Z7;\n" + 
+			"      APP_SRC = \"code.c\";\n" + 
+			"      APP_SRC = \"app.c\";\n" + 
+			"      MULTI_STACK = TRUE {\n" + 
+			"        IRQ_STACK = TRUE {\n" + 
+			"          SYS_SIZE=512;\n" + 
+			"        };\n" + 
+			"      };\n" + 
+			"      VLE = TRUE;\n" + 
+			"     };\n" + 
+			"\n" + 
+			"     MCU_DATA = PPCE200ZX {\n" + 
+			"       MODEL = MPC5674F;\n" + 
+			"     };\n" + 
+			"\n" + 
+			"\n" +
+			"    STATUS = EXTENDED;\n" +
+			"    USEPARAMETERACCESS = FALSE;\n" +
+			"    USERESSCHEDULER = FALSE;\n" +
+			"    SHUTDOWNHOOK = TRUE;\n" +
+			"\n" +
+			"    PROTECTIONHOOK = TRUE;\n" +
+			"    KERNEL_TYPE    = BCC1;\n" +
+			"    ORTI_SECTIONS  = ALL;\n" +
+			"  };\n" +
+			"\n" +
+			"  TASK TaskApp1Prio1 {\n" +
+			"    PRIORITY = 2;\n" +
+			"    ACTIVATION = 1;\n" +
+			"    SCHEDULE = FULL;\n" +
+			"    AUTOSTART = TRUE;\n" +
+			"    STACK = SHARED;\n" +
+			"  };\n" +
+			"\n" +
+			"  TASK TaskApp1Prio2 {\n" +
+			"    PRIORITY = 2;\n" +
+			"    ACTIVATION = 1;\n" +
+			"    SCHEDULE = FULL;\n" +
+			"    AUTOSTART = FALSE;\n" +
+			"    STACK = SHARED;\n" +
+			"  };\n" +
+			"\n" +
+			"};\n";
+		commonWriterTest(text, 1);
+	}
+
+	@Test public void tesMemProt2() {
+	    final String text =
+			"CPU PerfTestApp {\n" +
+			"  OS EE {\n" +
+			"    EE_OPT = \"EE_DEBUG\";\n" +
+			"    EE_OPT = \"__ASSERT__\";\n" +
+			"    EE_OPT = \"EE_SAVE_TEMP_FILES\";\n" +
+			"\n" +
+			"    STACKMONITORING = TRUE\n" + 
+			"    {\n" + 
+			"		PATTERN=0xC3A55A3C;\n" + 
+			"		PROTECTION_SIZE=8;\n" + 
+			"    };\n" + 
+			"\n" + 
+			"    CPU_DATA = PPCE200ZX {\n" + 
+			"      MODEL = E200Z7;\n" + 
+			"      APP_SRC = \"code.c\";\n" + 
+			"      APP_SRC = \"app.c\";\n" + 
+			"      MULTI_STACK = TRUE {\n" + 
+			"        IRQ_STACK = TRUE {\n" + 
+			"          SYS_SIZE=512;\n" + 
+			"        };\n" + 
+			"      };\n" + 
+			"      VLE = TRUE;\n" + 
+			"     };\n" + 
+			"\n" + 
+			"     MCU_DATA = PPCE200ZX {\n" + 
+			"       MODEL = MPC5674F;\n" + 
+			"     };\n" + 
+			"\n" + 
+			"\n" +
+			"    STATUS = EXTENDED;\n" +
+			"    USEPARAMETERACCESS = FALSE;\n" +
+			"    USERESSCHEDULER = FALSE;\n" +
+			"    SHUTDOWNHOOK = TRUE;\n" +
+			"\n" +
+			"    PROTECTIONHOOK = TRUE {\n" + 
+			"          SYS_SIZE=512;\n" + 
+			"        };\n" + 
+			"    KERNEL_TYPE    = BCC1;\n" +
+			"    ORTI_SECTIONS  = ALL;\n" +
+			"  };\n" +
+			"\n" +
+			"  TASK TaskApp1Prio1 {\n" +
+			"    PRIORITY = 2;\n" +
+			"    ACTIVATION = 1;\n" +
+			"    SCHEDULE = FULL;\n" +
+			"    AUTOSTART = TRUE;\n" +
+			"    STACK = SHARED;\n" +
+			"  };\n" +
+			"\n" +
+			"  TASK TaskApp1Prio2 {\n" +
+			"    PRIORITY = 2;\n" +
+			"    ACTIVATION = 1;\n" +
+			"    SCHEDULE = FULL;\n" +
+			"    AUTOSTART = FALSE;\n" +
+			"    STACK = SHARED;\n" +
+			"  };\n" +
+			"\n" +
+			"};\n";
+		commonWriterTest(text, 1);
+	}
 }

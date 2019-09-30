@@ -37,6 +37,7 @@ public class PpcConfigurator extends AbstractPage {
 	private Text paramCodeWarriorPath = null;
 	private Text paramDiabPath = null;
 	private Text paramGnuPath = null;
+	//private Text paramHightecPath = null;
     
 	/**
 	 * (non-Javadoc) Method declared on PreferencePage
@@ -93,6 +94,21 @@ public class PpcConfigurator extends AbstractPage {
 			}
 		});
 
+//		createLabel(composite_tab, "Hightech Compiler Path", 1); //$NON-NLS-1$
+//		paramHightecPath = createTextField(composite_tab); //$NON-NLS-1$
+//		Button hightechButton = createPushButton(composite_tab, "Browse"); //$NON-NLS-1$
+//		hightechButton.addSelectionListener(new SelectionListener() {
+//			public void widgetSelected(SelectionEvent e) {	work(e);	}
+//			public void widgetDefaultSelected(SelectionEvent e) {	work(e);	}
+//			protected void work(SelectionEvent e) {
+//				DirectoryDialog dia = new DirectoryDialog(getShell());
+//				String path = dia.open();
+//				if (path!=null) {
+//					paramHightecPath.setText(path);
+//				}
+//			}
+//		});
+
 		initializeValues();
 
 		return new Composite(parent, SWT.NULL);
@@ -130,6 +146,7 @@ public class PpcConfigurator extends AbstractPage {
 		paramCodeWarriorPath.setText(Options.INSTANCE.getUiDeafultValue(Options.Ppc_CODEWARRIOR_CONF_CC));
 		paramDiabPath.setText(Options.INSTANCE.getUiDeafultValue(Options.Ppc_DIAB_CONF_CC));
 		paramGnuPath.setText(Options.INSTANCE.getUiDeafultValue(Options.Ppc_GNU_CONF_CC));
+		//paramHightecPath.setText(Options.INSTANCE.getUiDeafultValue(Options.Ppc_HIGHTEC_CONF_CC));
 		
 		enableOk();
 	}
@@ -157,6 +174,12 @@ public class PpcConfigurator extends AbstractPage {
 				: PpcConstants.DEFAULT_PPC_GNU_CONF_GCC;
 
 		paramGnuPath.setText(gnuPath);
+		
+//		String hightechPath = values.containsKey(Options.Ppc_HIGHTEC_CONF_CC) ?
+//				values.get(Options.Ppc_HIGHTEC_CONF_CC) 
+//				: PpcConstants.DEFAULT_PPC_HIGHTEC_CONF_GCC;
+//
+//		paramHightecPath.setText(hightechPath);
 		
 		enableOk();
 	}
@@ -190,6 +213,7 @@ public class PpcConfigurator extends AbstractPage {
 		store.setValue(Options.Ppc_CODEWARRIOR_CONF_CC, paramCodeWarriorPath.getText());
 		store.setValue(Options.Ppc_DIAB_CONF_CC, paramDiabPath.getText());
 		store.setValue(Options.Ppc_GNU_CONF_CC, paramGnuPath.getText());
+//		store.setValue(Options.Ppc_HIGHTEC_CONF_CC, paramHightecPath.getText());
 	}
 
 }

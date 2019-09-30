@@ -26,6 +26,15 @@ class OsekOrtiConstants {
 	 */
 	public final static String OS_CPU_ORTI_ENABLED_SECTIONS = "_cpu_type_specifics_enabled_orti_sections_";
 	
+	/**
+	 * This keyword is used to signal that the orti has the stack section enabled.
+	 */
+	public final static String WK_ORTI_STACK = "_writer_keyword_orti_has_stack_";
+	
+	/**
+	 * Orti stack fill default value
+	 */
+	public final static String DEFAULT_ORTI_STACK_FILL = "0xA5A5A5A5";
 	
 	/***************************************************************************
 	 * ORTI Files

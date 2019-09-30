@@ -71,5 +71,15 @@ public class TricoreMacrosForSharedData implements IMacrosForSharedData {
 	public String constValueRom(String type, String valueName, String body) {
 		return type + "EE_SHARED_CDATA "+valueName + body;
 	}
+
+	@Override
+	public String getHeader() {
+		return "";
+	}
+
+	@Override
+	public String getFooter() {
+		return "";
+	}
 	
 }

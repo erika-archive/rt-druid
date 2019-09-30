@@ -30,6 +30,8 @@ public class Options extends UiOilBuilderOptions {
 	public static final String Ppc_DIAB_CONF_CC= Ppc_CONF_PREFIX+"diab_cc_path";
 	/** A String that identifies the Gnu Compiler Path */
 	public static final String Ppc_GNU_CONF_CC= Ppc_CONF_PREFIX+"gnu_cc_path";
+	/** A String that identifies the Hightec Compiler Path */
+//	public static final String Ppc_HIGHTEC_CONF_CC= Ppc_CONF_PREFIX+"hightec_cc_path";
 	
 	public static Options INSTANCE = new Options();
 	
@@ -49,6 +51,11 @@ public class Options extends UiOilBuilderOptions {
 				Ppc_GNU_CONF_CC,
 				PpcConstants.PREF_PPC_GNU_PATH,
 				PpcConstants.DEFAULT_PPC_GNU_CONF_GCC));
+		
+//		answer.add(new OptionElement(
+//				Ppc_HIGHTEC_CONF_CC,
+//				PpcConstants.PREF_PPC_HIGHTEC_PATH,
+//				PpcConstants.DEFAULT_PPC_HIGHTEC_CONF_GCC));
 		
 		return answer;
 	}

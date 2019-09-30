@@ -2061,8 +2061,9 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 	}
 	
 	protected void setIsrPriorities() throws OilCodeWriterException {
-		
+		int currentRtosId = -1;
 		for (IOilObjectList ool : parent.getOilObjects()) {
+			currentRtosId++;
 			
 			CpuHwDescription cpuDescr = ErikaEnterpriseWriter.getCpuHwDescription(ool);
 			final boolean packPriorities = cpuDescr == null ? true : cpuDescr.isPackIsrPriorities();
@@ -2112,7 +2113,7 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 				if (sgr.containsProperty(ISimpleGenResKeywords.COUNTER_TYPE) && 
 						ISimpleGenResKeywords.COUNTER_TYPE_HW.equalsIgnoreCase(sgr.getString(ISimpleGenResKeywords.COUNTER_TYPE))) {
 					
-					Integer tmp_priority = getCounterPrio(sgr, cpuDescr);
+					Integer tmp_priority = getCounterPrio(currentRtosId, sgr, cpuDescr);
 					if (tmp_priority != null ){// store the priority (if not already stored)
 						int pos = Collections.binarySearch(isr2PrioPres,
 								tmp_priority);
@@ -2162,7 +2163,7 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 						if (prioVal >= 0) {
 							prioVal+= base+startingPriority; // values starting from 1 (not 0)
 							sgr.setProperty(ISimpleGenResKeywords.ISR_GENERATED_PRIORITY_VALUE, "" + prioVal);
-							sgr.setProperty(ISimpleGenResKeywords.ISR_GENERATED_PRIORITY_STRING, "EE_ISR_PRI_" + prioVal);
+							sgr.setProperty(ISimpleGenResKeywords.ISR_GENERATED_PRIORITY_STRING, getPriorityString(prioVal));
 						}
 					}
 				}
@@ -2171,14 +2172,14 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 			for (ISimpleGenRes sgr: ool.getList(IOilObjectList.COUNTER)) {
 				if (sgr.containsProperty(ISimpleGenResKeywords.COUNTER_TYPE) && 
 						ISimpleGenResKeywords.COUNTER_TYPE_HW.equalsIgnoreCase(sgr.getString(ISimpleGenResKeywords.COUNTER_TYPE))) {
-					Integer integer_priority = getCounterPrio(sgr, cpuDescr);
+					Integer integer_priority = getCounterPrio(currentRtosId, sgr, cpuDescr);
 
 					if (integer_priority != null) {
 						int prioVal = packPriorities ? Collections.binarySearch(isr2PrioPres, integer_priority) : integer_priority.intValue();
 						if (prioVal >= 0) {
 							prioVal+=packPriorities ? 1 : 0;; // values starting from 1 (not 0)
 							sgr.setProperty(ISimpleGenResKeywords.COUNTER_GENERATED_PRIORITY_VALUE, "" + prioVal);
-							sgr.setProperty(ISimpleGenResKeywords.COUNTER_GENERATED_PRIORITY_STRING, "EE_ISR_PRI_" + prioVal);
+							sgr.setProperty(ISimpleGenResKeywords.COUNTER_GENERATED_PRIORITY_STRING, getPriorityString(prioVal));
 						}
 					}
 				}
@@ -2188,6 +2189,10 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 				ool.getList(IOilObjectList.OS).get(0).setProperty(ISimpleGenResKeywords.OS_ADD_IRQH, "true");
 			}
 		}
+	}
+	
+	public static String getPriorityString(int prioVal) {
+		return prioVal <0 ? "EE_ISR_UNMASKED" : "EE_ISR_PRI_" + prioVal;
 	}
 
 	
@@ -2227,9 +2232,9 @@ public class ErikaEnterpriseWriter extends DefaultRtosWriter implements IEEWrite
 	 * @param cpuDescr
 	 * @return
 	 */
-	private Integer getCounterPrio(ISimpleGenRes sgr, CpuHwDescription cpuDescr) {
+	private Integer getCounterPrio(final int currentRtosId, ISimpleGenRes sgr, CpuHwDescription cpuDescr) {
 		String deviceId = sgr.containsProperty(ISimpleGenResKeywords.COUNTER_DEVICE) ? sgr.getString(ISimpleGenResKeywords.COUNTER_DEVICE) : null;
-		CpuHwDescription.McuCounterDevice device = cpuDescr == null ? null : cpuDescr.getMcuDevice(deviceId);
+		CpuHwDescription.McuCounterDevice device = cpuDescr == null ? null : cpuDescr.getMcuDevice(deviceId, currentRtosId);
 		// priority
 		Integer integer_priority = device == null ? null : device.getPrio();
 		if (sgr.containsProperty(ISimpleGenResKeywords.COUNTER_ISR_PRIORITY)) {

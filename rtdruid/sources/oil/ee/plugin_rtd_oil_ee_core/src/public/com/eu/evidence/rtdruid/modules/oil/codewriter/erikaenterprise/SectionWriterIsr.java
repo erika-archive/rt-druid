@@ -555,4 +555,83 @@ public class SectionWriterIsr implements IEEWriterKeywords, IExtractObjectsExten
 
 		return answer;
 	}
+	
+
+	/**
+	 * This method computes the max priority value for isr (and other objects that requires an isr, like hw counters).
+	 * This method uses only isr with categories 2.
+	 * 
+	 * @param isrs
+	 * @return the max isr priority ID 
+	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public static String getMaxIsr2PrioId(IOilObjectList ool) {
+		//List<ISimpleGenRes> answer = new ArrayList<ISimpleGenRes>();
+		
+		int maxPrio = -1;
+		
+		Object obj = AbstractRtosWriter.getOsObject(ool, ISimpleGenResKeywords.OS_CPU__ISR2_ADDITIONAL_SGR_LIST);
+		if (obj != null) {
+			ArrayList<ISimpleGenRes> isrList = (ArrayList) obj;
+			for (ISimpleGenRes isr : isrList) {
+				String category = isr.containsProperty(ISimpleGenResKeywords.ISR_CATEGORY) ? isr.getString(ISimpleGenResKeywords.ISR_CATEGORY) : "";
+				boolean isIsr2 = "2".equals(category);
+				if ( isIsr2 && isr.containsProperty(ISimpleGenResKeywords.ISR_GENERATED_PRIORITY_VALUE)) {
+					int prio = isr.getInt(ISimpleGenResKeywords.ISR_GENERATED_PRIORITY_VALUE);
+					if (prio > maxPrio) {
+						maxPrio = prio;
+					}
+					//answer.add(isr);
+				}
+			}
+		}
+		
+		for (ISimpleGenRes isr : ool.getList(IOilObjectList.ISR)) {
+			String category = isr.containsProperty(ISimpleGenResKeywords.ISR_CATEGORY) ? isr.getString(ISimpleGenResKeywords.ISR_CATEGORY) : "";
+			boolean isIsr2 = "2".equals(category);
+			if ( isIsr2 && isr.containsProperty(ISimpleGenResKeywords.ISR_GENERATED_PRIORITY_VALUE)) {
+				int prio = isr.getInt(ISimpleGenResKeywords.ISR_GENERATED_PRIORITY_VALUE);
+				if (prio > maxPrio) {
+					maxPrio = prio;
+				}
+				//answer.add(isr);
+			}
+		}
+		
+		for (ISimpleGenRes sgr: ool.getList(IOilObjectList.COUNTER)) {
+			if (sgr.containsProperty(ISimpleGenResKeywords.COUNTER_TYPE) && 
+					ISimpleGenResKeywords.COUNTER_TYPE_HW.equalsIgnoreCase(sgr.getString(ISimpleGenResKeywords.COUNTER_TYPE)) &&
+					sgr.containsProperty(ISimpleGenResKeywords.COUNTER_GENERATED_PRIORITY_VALUE)) {
+				int prio = sgr.getInt(ISimpleGenResKeywords.COUNTER_GENERATED_PRIORITY_VALUE);
+				if (prio > maxPrio) {
+					maxPrio = prio;
+				}
+				//answer.add(sgr);
+			}
+		}
+//		
+//		Collections.sort(answer, new Comparator<ISimpleGenRes>() {
+//			
+//			private int getPrio(ISimpleGenRes sgr) {
+//				
+//				if (sgr.containsProperty(ISimpleGenResKeywords.ISR_GENERATED_PRIORITY_VALUE)) {
+//					return sgr.getInt(ISimpleGenResKeywords.ISR_GENERATED_PRIORITY_VALUE);
+//					
+//				} else if (sgr.containsProperty(ISimpleGenResKeywords.COUNTER_GENERATED_PRIORITY_VALUE)) {
+//					return sgr.getInt(ISimpleGenResKeywords.COUNTER_GENERATED_PRIORITY_VALUE);
+//				} 
+//				
+//				return 0;
+//			} 
+//			
+//			@Override
+//			public int compare(ISimpleGenRes arg0, ISimpleGenRes arg1) {
+//				return getPrio(arg0) - getPrio(arg1);
+//			}
+//		});
+//
+//		return answer;
+		return ErikaEnterpriseWriter.getPriorityString(maxPrio);
+	}
+	
 }

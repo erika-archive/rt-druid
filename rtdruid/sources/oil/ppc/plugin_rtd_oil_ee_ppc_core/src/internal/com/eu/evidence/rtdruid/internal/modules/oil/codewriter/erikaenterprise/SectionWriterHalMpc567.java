@@ -41,11 +41,15 @@ import com.eu.evidence.rtdruid.modules.oil.codewriter.common.comments.ICommentWr
 import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.SectionWriterIsr;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.SectionWriterIsr.ShareType;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.SectionWriterKernelCounterHw;
+import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.hw.CpuHwDescription;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.hw.EEStackData;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.hw.EEStacks;
+import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.hw.EmptyMacrosForSharedData;
 import com.eu.evidence.rtdruid.modules.oil.erikaenterprise.constants.IEEWriterKeywords;
 import com.eu.evidence.rtdruid.modules.oil.erikaenterprise.interfaces.IExtractKeywordsExtentions;
 import com.eu.evidence.rtdruid.modules.oil.erikaenterprise.interfaces.IExtractObjectsExtentions;
+import com.eu.evidence.rtdruid.modules.oil.erikaenterprise.interfaces.IGetEEOPTExtentions;
+import com.eu.evidence.rtdruid.modules.oil.erikaenterprise.interfaces.IMacrosForSharedData;
 import com.eu.evidence.rtdruid.vartree.ITreeInterface;
 import com.eu.evidence.rtdruid.vartree.IVarTree;
 import com.eu.evidence.rtdruid.vartree.IVariable;
@@ -72,8 +76,17 @@ public class SectionWriterHalMpc567 extends SectionWriter
 	 * 
 	 */
 	public static final String MCU_MPC5643L = "MPC5643L";
+	/**
+	 * 
+	 */
+	public static final String MCU_MPC5777C = "MPC5777C";
+	/**
+	 * 
+	 */
+	public static final String MCU_SPC574K = "SPC574K";
 	
 	private static final String EE_E200ZX_SYSTEM_TIMER_HANDLER = "EE_e200zx_system_timer_handler";
+	private static final String SGR_OS_APPL_STARTUP_ADDRESS = "sgr__os_application__startup_address";
 	final String indent1 = IWritersKeywords.INDENT;
 	final String indent2 = indent1 + IWritersKeywords.INDENT;
 
@@ -101,9 +114,10 @@ public class SectionWriterHalMpc567 extends SectionWriter
 	public static final String EEOPT_CODEWARRIOR = "__CODEWARRIOR__";
 	public static final String EEOPT_DIAB = "__DIAB__";
 	public static final String EEOPT_GNU = "EE_GNU__";
+	public static final String EEOPT_HIGHTEC = "EE_HIGHTEC__";
 	
 	enum CompilerType {
-		diab, gnu, codewarrior
+		diab, gnu, codewarrior, hightec;
 	};
 	
 	
@@ -205,6 +219,30 @@ public class SectionWriterHalMpc567 extends SectionWriter
 				}
     		}
         }
+        
+        /***********************************************************************
+		 * 
+		 * Startup Address
+		 *  
+		 **********************************************************************/
+		{
+			boolean master = true;
+			for (IOilObjectList ool : oilObjects) {
+		        final List<String> currentCpuPrefixes = AbstractRtosWriter.getOsProperties(ool, SGRK_OS_CPU_DATA_PREFIX);
+		        prefix_loop:
+		        for (String currentCpuPrefix: currentCpuPrefixes) {
+					String[] tmp1 = CommonUtils.getValue(vt, currentCpuPrefix + "STARTUP_ADDRESS");
+					if (tmp1 != null && tmp1.length > 0) {
+						ool.getList(IOilObjectList.OS).get(0).setProperty(SGR_OS_APPL_STARTUP_ADDRESS, tmp1[0]);
+						if (master) {
+							Messages.sendWarningNl("Startup address is ignored for core master. Instead enable Custom Startup Code flag.");
+						}
+						break prefix_loop;
+					}
+		        }
+		        master = false;
+			}
+		}
 		
 		for (int currentRtosId = 0; currentRtosId < oilObjects.length; currentRtosId++) {
 			final IOilObjectList ool = oilObjects[currentRtosId];
@@ -222,8 +260,17 @@ public class SectionWriterHalMpc567 extends SectionWriter
 					if (IWritersKeywords.CPU_PPCE200Z0.equals(hw_type)) {
 						tmp_eeopts.add("__PPCE200Z0__");
 						
+					} else if (IWritersKeywords.CPU_PPCE200Z2.equals(hw_type)) {
+						tmp_eeopts.add("EE_PPCE200Z2");
+						
+					} else if (IWritersKeywords.CPU_PPCE200Z225.equals(hw_type)) {
+						tmp_eeopts.add("EE_PPCE200Z225");
+						
 					} else if (IWritersKeywords.CPU_PPCE200Z4.equals(hw_type)) {
 						tmp_eeopts.add("EE_PPCE200Z4");
+						
+					} else if (IWritersKeywords.CPU_PPCE200Z420.equals(hw_type)) {
+						tmp_eeopts.add("EE_PPCE200Z420");
 						
 					} else if (IWritersKeywords.CPU_PPCE200Z6.equals(hw_type)) {
 						tmp_eeopts.add("__PPCE200Z6__");
@@ -279,13 +326,12 @@ public class SectionWriterHalMpc567 extends SectionWriter
 			        	
 			        	String tmpCompiler = null;
 			        	String tmp1 = null;
-			        	String gnuExpFile = null;
 			        	String[] childName = new String[1];
 			    		for (String currentCpuPrefix: AbstractRtosWriter.getOsProperties(ool, SGRK_OS_CPU_DATA_PREFIX)) {
 			    			String lPath = currentCpuPrefix + S + "COMPILER_TYPE";
 			    			tmp1 = CommonUtils.getFirstChildEnumType(vt, lPath, childName);
 			    			if (tmp1 != null &&
-			    					("DIAB".equals(tmp1) || "GNU".equals(tmp1) || "CODEWARRIOR".equals(tmp1))
+			    					("DIAB".equals(tmp1) || "GNU".equals(tmp1) || "CODEWARRIOR".equals(tmp1) || "HIGHTEC".equals(tmp1))
 			    			) {
 			    					if (tmpCompiler == null) {
 					    				tmpCompiler = tmp1;
@@ -305,6 +351,9 @@ public class SectionWriterHalMpc567 extends SectionWriter
 						} else if ("CODEWARRIOR".equals(tmpCompiler)) {
 							tmp_eeopts.add(EEOPT_DIAB);
 							tmp_eeopts.add(EEOPT_CODEWARRIOR);
+						} else if ("HIGHTEC".equals(tmpCompiler)) {
+							tmp_eeopts.add(EEOPT_GNU);
+							tmp_eeopts.add(EEOPT_HIGHTEC);
 						}
 
 						sgrCpu.setObject(SGR_OS_CPU_USER_COMPILER, tmpCompiler);
@@ -451,6 +500,9 @@ public class SectionWriterHalMpc567 extends SectionWriter
 			
 			//  ------------- MORE FILES ---------------
 			
+			if (currentRtosId == 0 && parent.getOilObjects().length>1) {
+				writeMulticoreCommon(currentRtosId, cpuBuffs);
+			}
 			
 			// isr
 			isrWriter.writeIsr(oilObjects, currentRtosId, ool, cpuBuffs);
@@ -477,7 +529,9 @@ public class SectionWriterHalMpc567 extends SectionWriter
 		List<ISimpleGenRes> taskNames = ool.getList(IOilObjectList.TASK);
 		List<ISimpleGenRes> osApplications = ool.getList(IOilObjectList.OSAPPLICATION);
 		boolean binaryDistr = parent.checkKeyword(IEEWriterKeywords.DEF__EE_USE_BINARY_DISTRIBUTION__);
-		
+		final boolean osApplication_enabled = parent.checkKeyword(IWritersKeywords.KERNEL_OS_APPLICATION);
+		final boolean needStackMonitoring = parent.checkKeyword(ISimpleGenResKeywords.OS_STACK_MONITORING);
+
 		final String cpu_type = checkOrDefault(getOsProperty(ool, ISimpleGenResKeywords.OS_CPU_TYPE), PPC_MCU);
 		final String mcu_type;
 		{
@@ -495,17 +549,26 @@ public class SectionWriterHalMpc567 extends SectionWriter
 		String post = "";
 		final String indent = IWritersKeywords.INDENT;
 		
+		
+		final boolean isMMEnabled = Arrays.asList( parent.extractEE_Opts(IGetEEOPTExtentions.EE_OPT_USER_ONLY, -1) ).contains("EE_MM_OPT");
+		
+		// Needed by orti
+		ArrayList<EEStackData> stackTmp = new ArrayList<EEStackData>();
 		EEStackData sys_stack = new EEStackData(0,
 				new long[] { Long.decode(checkOrDefault(getOsProperty(ool, SGR_OS_CPU_SYS_STACK_SIZE), "" + DEFAULT_SYS_STACK_SIZE))},
 				new long[] {0},
-				new String[] {" (int)&EE_e200zx_sys_stack "}, true);
-
+				new String[] { isMMEnabled ? " (int)&__SP_REAL_END " : " (int)&EE_e200zx_sys_stack "}, true);
+		stackTmp.add(sys_stack);
 		
 		/***********************************************************************
 		 * MULTI STACK
 		 **********************************************************************/
+		final boolean usePragma = parent.checkPragma(currentRtosId);
+		int size[][] = null;
+		String[] descrStack = null;
+		BitSet is_irq_stack = new BitSet();
 		if (DEF__MULTI_STACK__.equals(stackType)) {
-			ArrayList<EEStackData> stackTmp = new ArrayList<EEStackData>();
+			
 //			final String DELTA = "-2";
 
 			// ------------- Buffers --------------------
@@ -515,7 +578,7 @@ public class SectionWriterHalMpc567 extends SectionWriter
 			/* A buffer about declarations of stacks  */
 			StringBuffer sbStackDecl = new StringBuffer();
 			StringBuffer sbStackDeclSize = new StringBuffer();
-			final boolean usePragma = parent.checkPragma(currentRtosId);
+			
 			LinkedHashMap<String, StringBuffer> sbStackPragma = new LinkedHashMap<String, StringBuffer>();
 //			StringBuffer stackPatternFill = new StringBuffer();
 			
@@ -661,14 +724,14 @@ public class SectionWriterHalMpc567 extends SectionWriter
 				int pos[] = elStack.taskStackLink(tList
 						.toArray(new String[1]));
 				/* get the size of each stack. */
-				int size[][] = elStack.stackSize(tList
+				size = elStack.stackSize(tList
 						.toArray(new String[1]));
 				/* get the memory section id of each stack. */
 				String memoryId[] = elStack.stackMemoryId(tList
 						.toArray(new String[1]));
 				
 				/* descrStack contains a description for each stack. */ 
-				String[] descrStack = new String[size.length];
+				descrStack = new String[size.length];
 				sbStack.append(indent
 						+ "const EE_UREG EE_std_thread_tos["+MAX_TASK+"+1] = {\n");
 				
@@ -723,11 +786,6 @@ public class SectionWriterHalMpc567 extends SectionWriter
 				pre = "";
 				post = "";
 
-				
-				// USED BY ORTI
-				stackTmp.add(sys_stack);
-				
-
 //				 DECLARE STACK SIZE && STACK (ARRAY)
 				for (int j = 1; j < size.length; j++) {
 				    long value = size[j][0];
@@ -744,7 +802,17 @@ public class SectionWriterHalMpc567 extends SectionWriter
 				    if (usePragma) {
 				    	addPragmaSections(sbStackPragma, decl, memId);
 				    } else {
+				    	
+				    	sbStackDecl.append("\n" +
+				    			"#define OS_START_SEC_STACK\n" +
+				    			"#define SEC_STACK_NAME \".stack"+j+"\"\n" +
+				    			"#include \"MemMap.h\"\n");
+				    	
 				    	sbStackDecl.append(indent1 + decl + "\n");
+
+				    	sbStackDecl.append(
+				    			"#define OS_STOP_SEC_STACK\n" +
+				    			"#include \"MemMap.h\"\n");
 				    }
 					
 					// USED BY ORTI
@@ -795,13 +863,25 @@ public class SectionWriterHalMpc567 extends SectionWriter
 					    if (usePragma) {
 					    	addPragmaSections(sbStackPragma, decl, null);
 					    } else {
+					    	sbStackDecl.append("\n" +
+					    			"#define OS_START_SEC_STACK\n" +
+					    			"#define SEC_STACK_NAME \".stack"+j+"\"\n" +
+					    			"#include \"MemMap.h\"\n");
+					    	
 					    	sbStackDecl.append(indent1 + decl + "\n");
+
+					    	sbStackDecl.append(
+					    			"#define OS_STOP_SEC_STACK\n" +
+					    			"#include \"MemMap.h\"\n");
 					    }
 
 						sbStack
 								.append(indent+"/* stack used only by IRQ handlers */\n"
-										+ indent+"struct EE_TOS EE_e200z7_IRQ_tos = {\n"
-										+ indent+indent+"(EE_ADDR)(&"+STACK_BASE_NAME+j+"[EE_STACK_INITP(STACK_"+j+"_SIZE)])\n" // DELTA
+										+ indent+"struct EE_SD const EE_e200z7_IRQ_tos = {\n"
+										+ indent+indent+"(EE_ADDR)(&"+STACK_BASE_NAME+j+"[EE_STACK_INITP(STACK_"+j+"_SIZE)])"
+										+ (osApplication_enabled || needStackMonitoring ?
+												",\n" + indent+indent+ "(EE_ADDR)(&"+STACK_BASE_NAME+j+"[0])"
+												: "") + "\n"
 										+ indent+"};\n\n");
 						
 						// REQUIRED By ORTI's STACK
@@ -811,6 +891,55 @@ public class SectionWriterHalMpc567 extends SectionWriter
 
 						ISimpleGenRes sgrCpu = ool.getList(IOilObjectList.OS).get(0);
 						sgrCpu.setProperty(ISimpleGenResKeywords.OS_IRQ_STACK_ID, ""+eesdID);
+					}
+				}
+				
+				{
+					// Add protection hook stack
+					String stringValue = AbstractRtosWriter.getOsProperty(ool, ISimpleGenResKeywords.OS_PROTECTION_HOOK_STACK);
+					if (stringValue != null) {
+						long value = -1;
+						try {
+							value = Long.decode(stringValue);
+						} catch (NumberFormatException e) {
+							value = -1;
+						}
+						
+						if (value >=0) {
+							int j = size.length+1;
+							
+
+							sbStack
+									.append(indent+"/* stack used only by Protection Hook handler */\n"
+											+ indent+"struct EE_SD const EE_e200z7_prot_hook_tos = {\n"
+											+ indent+indent+"(EE_ADDR)(&"+STACK_BASE_NAME+j+"[EE_STACK_INITP(STACK_"+j+"_SIZE)])" // DELTA
+											+ (osApplication_enabled || needStackMonitoring ?
+												",\n" + indent+indent+ "(EE_ADDR)(&"+STACK_BASE_NAME+j+"[0])"
+												: "") + "\n"
+											+ indent+"};\n\n");
+						    
+							sbStackDeclSize.append(indent1 + "#define STACK_"+j+"_SIZE "+value+ " " + commentWriterC.writerSingleLineComment("size = "+value+" bytes"));
+							
+							final String decl = "static EE_STACK_T "+( usePragma ? "" : "EE_STACK_ATTRIB ")+STACK_BASE_NAME+j+"[EE_STACK_WLEN(STACK_"+j+"_SIZE)];\t/* Protection hook stack */";
+						    if (usePragma) {
+						    	addPragmaSections(sbStackPragma, decl, null);
+						    } else {
+						    	sbStackDecl.append("\n" +
+						    			"#define OS_START_SEC_STACK\n" +
+						    			"#define SEC_STACK_NAME \".stack"+j+"\"\n" +
+						    			"#include \"MemMap.h\"\n");
+						    	
+						    	sbStackDecl.append(indent1 + decl + "\n");
+
+						    	sbStackDecl.append(
+						    			"#define OS_STOP_SEC_STACK\n" +
+						    			"#include \"MemMap.h\"\n");
+						    }
+						    
+							
+							stackTmp.add(new EEStackData(j, new long[] {value}, new long[] {value},
+									new String[] {" (int)(&"+STACK_BASE_NAME+j+")"}, true)); // Orti Protection Hook Stack
+						}
 					}
 				}
 
@@ -843,16 +972,225 @@ public class SectionWriterHalMpc567 extends SectionWriter
 			        sbStack
 //			        +stackPatternFill
 			        );
-
 		} else {
+
+			size = new int[][] { {(int) sys_stack.size[0]} };
+			descrStack = new String[] {"kernel"};
+			{
+				// ------------- Buffers --------------------
+				/* A buffer about stack  */
+				StringBuffer sbStack = new StringBuffer();
+
+				/* A buffer about declarations of stacks  */
+				StringBuffer sbStackDecl = new StringBuffer();
+				StringBuffer sbStackDeclSize = new StringBuffer();
+				
+				LinkedHashMap<String, StringBuffer> sbStackPragma = new LinkedHashMap<String, StringBuffer>();
+
+				
+				// Add protection hook stack
+				String stringValue = AbstractRtosWriter.getOsProperty(ool, ISimpleGenResKeywords.OS_PROTECTION_HOOK_STACK);
+				if (stringValue != null) {
+					long value = -1;
+					try {
+						value = Long.decode(stringValue);
+					} catch (NumberFormatException e) {
+						value = -1;
+					}
+					
+					if (value >=0) {
+						int j = 1;
+						
+						sbStack
+							.append(indent+"/* stack used only by Protection Hook handler */\n"
+									+ indent+"struct EE_SD const EE_e200z7_prot_hook_tos = {\n"
+									+ indent+indent+"(EE_ADDR)(&"+STACK_BASE_NAME+j+"[EE_STACK_INITP(STACK_"+j+"_SIZE)])" // DELTA
+									+ (osApplication_enabled || needStackMonitoring ?
+										",\n" + indent+indent+ "(EE_ADDR)(&"+STACK_BASE_NAME+j+"[0])"
+										: "") + "\n"
+									+ indent+"};\n\n");
+					    
+						sbStackDeclSize.append(indent1 + "#define STACK_"+j+"_SIZE "+value+ " " + commentWriterC.writerSingleLineComment("size = "+value+" bytes"));
+						
+						final String decl = "static EE_STACK_T "+( usePragma ? "" : "EE_STACK_ATTRIB ")+STACK_BASE_NAME+j+"[EE_STACK_WLEN(STACK_"+j+"_SIZE)];\t/* Protection hook stack */";
+					    if (usePragma) {
+					    	addPragmaSections(sbStackPragma, decl, null);
+					    } else {
+					    	sbStackDecl.append("\n" +
+					    			"#define OS_START_SEC_STACK\n" +
+					    			"#define SEC_STACK_NAME \".stack"+j+"\"\n" +
+					    			"#include \"MemMap.h\"\n");
+					    	
+					    	sbStackDecl.append(indent1 + decl + "\n");
+
+					    	sbStackDecl.append(
+					    			"#define OS_STOP_SEC_STACK\n" +
+					    			"#include \"MemMap.h\"\n");
+					    }
+						stackTmp.add(new EEStackData(j, new long[] {value}, new long[] {value},
+								new String[] {" (int)(&"+STACK_BASE_NAME+j+")"}, true)); // Orti Protection Hook Stack
+
+					}
+				}
+				
+				// add stack sizes
+				sbInithal_c.append(sbStackDeclSize+"\n");
+
+				//  add pragma sections
+				closePragmaSections(sbStackPragma);
+				for (StringBuffer buff: sbStackPragma.values()) {
+					sbInithal_c.append(buff+"\n\n");
+				}
+
+				// add other stack declarations
+				sbInithal_c.append(sbStackDecl + "\n" +
+				        sbStack
+//				        +stackPatternFill
+				        );
+			}
 			
 			ISimpleGenRes sgrCpu = ool.getList(IOilObjectList.OS).get(0);
-			sgrCpu.setObject(SGRK_OS_STACK_LIST, new EEStackData[] {sys_stack});
+			sgrCpu.setObject(SGRK_OS_STACK_LIST, stackTmp.toArray(new EEStackData[0]));
 		}
 
+		
+		if (osApplication_enabled || needStackMonitoring) {
+			sbInithal_c.append(indent + "struct EE_SD const EE_e200zx_system_bos["
+					+ ErikaEnterpriseWriter.addVectorSizeDefine(ool, "EE_e200z7_system_tos", size.length /* - is_irq_stack.cardinality()*/)
+					+ "] = {\n"
+					+ writeSystemTos(commentWriterC, size, descrStack,
+							new String[] {
+									"EE_SYS_SP_BEGIN",
+									"EE_SYS_SP_END",
+//									"EE_STACK_INITP("+STACK_BASE_NAME+size.length+")",
+//									"EE_STACK_ENDP("+STACK_BASE_NAME+size.length+")"
+							},
+							is_irq_stack, "",
+							true /*needStackMonitoring*/, true));
+		}
+		
 		return sbInithal_c;
 	}
+	
+	/**
+	 * @param indent
+	 * @param commentC
+	 * @param sbStack
+	 * @param pre
+	 * @param post
+	 * @param size
+	 * @param descrStack
+	 * @param is_irq_stack
+	 * @param additional_elements
+	 */
+	private String writeSystemTos(ICommentWriter commentC, 
+				int[][] size, String[] descrStack, String[] globalStackNames, BitSet is_irq_stack, final String additional_elements, final boolean needStackMonitoring, final boolean needKernelStack) {
+		
+		final StringBuilder sbStack = new StringBuilder();
+		final String indent = IWritersKeywords.INDENT;
+		String pre = "";
+		String post = "";
+		for (int j = 0; j < size.length; j++) {
+		    //if (!is_irq_stack.get(j))
+		    {
+		        String value = "{" + 
+		        			(j == 0 ? (globalStackNames == null ? "0" : globalStackNames[0]) : "(EE_ADDR)(&"+STACK_BASE_NAME+j+"[EE_STACK_INITP(STACK_"+j+"_SIZE)])")
+		        			+ (needStackMonitoring ? (j == 0 ? (globalStackNames == null ? ", 0" : ", " +globalStackNames[1]) : ", (EE_ADDR)(&"+STACK_BASE_NAME+j+"[0])") : "")
+//		        			+ (needKernelStack     ? (j == 0 ? (globalStackNames == null ? ", 0" : ", " +globalStackNames[2]) : ", EE_STACK_INITP("+STACK_SYS_BASE_NAME+j+")") : "")
+//		        			+ (needKernelStack && needStackMonitoring ? (j == 0 ? (globalStackNames == null ? ", 0" : ", " +globalStackNames[3]) : ", EE_STACK_ENDP("+STACK_SYS_BASE_NAME+j+")") : "")
+//		        			+ additional_elements
+		        			+"}";
 
+				sbStack.append(pre
+						+ post
+						+ indent
+						+ indent
+						+ value);
+
+				// set new values for size
+				pre = ",";
+				post = "\t" + commentC.writerSingleLineComment(descrStack[j]);
+		    }
+		}
+
+		// complete the stack's buffer
+		sbStack.append(" " + post + indent + "};\n");
+		
+		return sbStack.toString();
+	}
+
+	/**
+	 * @param buffers
+	 */
+	private void writeMulticoreCommon(final int currentRtosId, final IOilWriterBuffer buffers) {
+		final String indent = IWritersKeywords.INDENT;
+		boolean binaryDistr = parent.checkKeyword(IEEWriterKeywords.DEF__EE_USE_BINARY_DISTRIBUTION__);
+		boolean customBoot = parent.checkKeyword(IEEWriterKeywords.DEF__CUSTOM_STARTUP_CODE__);
+		final String MAX_CPU = (binaryDistr ? "RTD_" : "EE_") + "MAX_CPU";
+		final IOilObjectList[] objects = parent.getOilObjects();
+		
+		ICommentWriter commentWriter = SectionWriter.getCommentWriter(objects[0], FileTypes.C);
+		IMacrosForSharedData macros = new EmptyMacrosForSharedData();
+		CpuHwDescription currentStackDescription = ErikaEnterpriseWriter.getCpuHwDescription(objects[0]);
+		if (currentStackDescription != null) {
+			macros =currentStackDescription.getShareDataMacros();
+		}
+		if (parent.checkPragma(0)) {
+			macros = macros.getPragma();
+		}
+		StringBuffer sbCommon_c = buffers.get(FILE_EE_COMMON_C);
+		{
+			sbCommon_c.append(macros.getHeader());
+			sbCommon_c.append(commentWriter.writerBanner("Slave core StartUp Address"));
+			StringBuilder buff = new StringBuilder(" = {\n");
+			StringBuilder decl = new StringBuilder();
+		
+			String pre = "";
+			for (int index = 1; index<objects.length; index++) {
+				IOilObjectList ool = objects[index];
+				String addr = AbstractRtosWriter.getOsProperty(ool, SGR_OS_APPL_STARTUP_ADDRESS);
+				boolean isNumber = true;
+				if (addr == null) {
+					addr = "EE_CPU"+index + "_START_ADDR";
+					isNumber = false;
+					
+					if (customBoot) {
+						Messages.sendWarningNl("Even if the option USE CUSTOM STARTUP is enabled, the core " + index + " is using the default startup address/symbol.");
+					}
+				} else {
+					if (!customBoot) {
+						Messages.sendWarningNl("The core " + index + " tries to defines a custom startup address/symbol without setting the option USE CUSTOM STARTUP.");
+
+						addr = "EE_CPU"+index + "_START_ADDR";
+						isNumber = false;
+					}
+					try {
+						Integer.decode(addr);
+					} catch (NumberFormatException e) {
+						isNumber = false;
+					}
+				}
+				
+				if (!isNumber) {
+					// add symbol declaration
+					decl.append(indent + "extern void "+addr+" ( void );\n");
+				}
+				
+				buff.append(pre + indent+indent+ (isNumber ? "(EE_ADDR)" : "&") +addr);
+				pre = ",\n";
+			}
+		
+			sbCommon_c.append(
+					decl.toString() + "\n" +
+					macros.constVectorRom(
+								IWritersKeywords.INDENT + "EE_ADDR const ",
+			    				"EE_as_core_start_addresses",
+			    				"["+MAX_CPU+" -1]",
+			    				buff + "\n"+indent +"};\n\n"));
+			sbCommon_c.append(macros.getFooter());
+		}
+	}
+	
 	private void addPragmaSections(
 			LinkedHashMap<String, StringBuffer> sbStackPragma, String stack_def,
 			final String memId) {
@@ -890,6 +1228,7 @@ public class SectionWriterHalMpc567 extends SectionWriter
 		
 		final IOilObjectList[] oilObjects = parent.getOilObjects();
 		int z0 = 0;
+		int z2 = 0;
 		int z4 = 0;
 		int z6 = 0;
 		int z7 = 0;
@@ -907,7 +1246,9 @@ public class SectionWriterHalMpc567 extends SectionWriter
 
 				if (IWritersKeywords.CPU_PPCE200Z0.equals(hw_type)) {
 					z0++;
-				} else if (IWritersKeywords.CPU_PPCE200Z4.equals(hw_type)) {
+				} else if (IWritersKeywords.CPU_PPCE200Z2.equals(hw_type) || IWritersKeywords.CPU_PPCE200Z225.equals(hw_type)) {
+					z2++;
+				} else if (IWritersKeywords.CPU_PPCE200Z4.equals(hw_type) || IWritersKeywords.CPU_PPCE200Z420.equals(hw_type)) {
 					z4++;
 				} else if (IWritersKeywords.CPU_PPCE200Z6.equals(hw_type)) {
 					z6++;
@@ -921,7 +1262,7 @@ public class SectionWriterHalMpc567 extends SectionWriter
 		String mcu_ee_opt = null;
 		if (MCU_MPC5668G.equals(mcu_model)) {
 			
-			if (z0>1 || z6>1 || z4 >0 || z7 >0) {
+			if (z0>1 || z6>1 || z2 >0 || z4 >0 || z7 >0) {
 				Messages.sendWarningNl("MPC5668G mcu supports not more than one z0 and not more than one z6");
 			}
 			mcu_ee_opt = "__MPC5668G__";
@@ -929,16 +1270,28 @@ public class SectionWriterHalMpc567 extends SectionWriter
 			updateSharedIntControllerPrio();
 		} else if (MCU_MPC5674F.equals(mcu_model)) {
 			
-			if (z0>0 || z6>0 || z4 >0 || z7 !=1) {
+			if (z0>0 || z6>0 || z2 >0 || z4 >0 || z7 !=1) {
 				Messages.sendWarningNl("MPC5674F mcu supports only a single Z7 cpu");
 			}
 			mcu_ee_opt = "__MPC5674F__";
 		} else if (MCU_MPC5643L.equals(mcu_model)) {
 			
-			if (z0>0 || z6>0 || z7 >0 || z4 > 2) {
+			if (z0>0 || z2 >0 || z6>0 || z7 >0 || z4 > 2) {
 				Messages.sendWarningNl("MPC5643L mcu supports one or two Z4 cpu");
 			}
 			mcu_ee_opt = "EE_MPC5643L";
+		} else if (MCU_MPC5777C.equals(mcu_model)) {
+			
+			if (z0>0 || z2 >0 || z6>0 || z7 >2 || z4 > 0) {
+				Messages.sendWarningNl("MPC5777C mcu supports up to two Z7 cpu");
+			}
+			mcu_ee_opt = "EE_MPC5777C";
+		} else if (MCU_SPC574K.equals(mcu_model)) {
+			
+			if (z0>0 || z2 >1 || z6>0 || z7 >0 || z4 > 2) {
+				Messages.sendWarningNl("SPC574K mcu supports up to two Z4 cpu and one Z2");
+			}
+			mcu_ee_opt = "EE_SPC574K";
 			
 		} else {
 			Messages.sendWarningNl("Unsupported MCU");
@@ -1118,6 +1471,8 @@ public class SectionWriterHalMpc567 extends SectionWriter
 	        			type = CompilerType.codewarrior;
 	        		} else if ("GNU".equals(userComp)) {
 	        			type = CompilerType.gnu;
+	        		} else if ("HIGHTEC".equals(userComp)) {
+	        			type = CompilerType.hightec;
 	        		}
 			        
 					String compiler_define = "";
@@ -1137,6 +1492,7 @@ public class SectionWriterHalMpc567 extends SectionWriter
 					        break;
 					        
 				    case gnu:
+				    case hightec:
 					        {
 					    		gcc = PpcConstants.DEFAULT_PPC_GNU_CONF_GCC;
 						    	if (options.containsKey(PpcConstants.PREF_PPC_GNU_PATH) ) {
@@ -1146,6 +1502,17 @@ public class SectionWriterHalMpc567 extends SectionWriter
 					    		compiler_define = CommonUtils.compilerMakefileDefines(gcc, "PPC_GNU_BASEDIR", wrapper);
 					    	}
 					        break;
+					        
+//				    case hightech:
+//					        {
+//					    		gcc = PpcConstants.DEFAULT_PPC_HIGHTEC_CONF_GCC;
+//						    	if (options.containsKey(PpcConstants.PREF_PPC_HIGHTEC_PATH) ) {
+//									String tmp = (String) options.get(PpcConstants.PREF_PPC_HIGHTEC_PATH);
+//									if (tmp.length()>0) gcc = tmp;
+//								}
+//					    		compiler_define = CommonUtils.compilerMakefileDefines(gcc, "PPC_HIGHTEC_BASEDIR", wrapper);
+//					    	}
+//					        break;
 			        
 			        default:
 			        case diab:

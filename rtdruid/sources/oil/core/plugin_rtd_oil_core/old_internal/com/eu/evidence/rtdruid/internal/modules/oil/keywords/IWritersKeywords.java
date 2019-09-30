@@ -53,8 +53,13 @@ public interface IWritersKeywords {
 	/** Identifies a PPC architecture (Z0) */
 	public final static String CPU_PPCE200Z0 = "E200Z0";
 
+	/** Identifies a PPC architecture (Z2) */
+	public final static String CPU_PPCE200Z2 = "E200Z2";
+	public final static String CPU_PPCE200Z225 = "E200Z225";
+
 	/** Identifies a PPC architecture (Z4) */
 	public final static String CPU_PPCE200Z4 = "E200Z4";
+	public final static String CPU_PPCE200Z420 = "E200Z420";
 
 	/** Identifies a PPC architecture (Z6) */
 	public final static String CPU_PPCE200Z6 = "E200Z6";

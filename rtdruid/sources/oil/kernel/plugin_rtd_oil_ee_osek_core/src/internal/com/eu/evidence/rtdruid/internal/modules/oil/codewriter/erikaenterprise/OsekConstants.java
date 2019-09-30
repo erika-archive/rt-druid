@@ -53,5 +53,19 @@ class OsekConstants {
 
 	/** Enable orti's res-locked option */
 	//public final static String DEF__OSEK_ORTI_RESLOCKED__ = "__OO_ORTI_RESLOCKED__";
+
+
+	/** Set the stack fill pattern */
+	public final static String DEF__OSEKOS_FILL_PATTERN__ = "EE_STACK_FILL_PATTERN";
+
+	/** Identifies the property that contains the pattern used to fill the stack */
+	public final static String SGRK__OSEKOS_FILL_PATTERN__ = "EE_STACK_FILL_PATTERN";
+
 	
+	/** Set the number of words to be checked to understand if the stack is full */
+	public final static String DEF__OSEKOS_STACK_WORDS_CHECK__ = "EE_STACK_WORDS_CHECK";
+	
+	/** Identifies the property that contains the number of words to be checked to understand if the stack is full */
+	public final static String SGRK__OSEKOS_STACK_WORDS_CHECK__ = "EE_STACK_WORDS_CHECK";
+
 }

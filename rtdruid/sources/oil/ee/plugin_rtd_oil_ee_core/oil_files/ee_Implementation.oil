@@ -25,9 +25,20 @@ IMPLEMENTATION ee {
         BOOLEAN USEPARAMETERACCESS = FALSE;
         BOOLEAN USERESSCHEDULER = TRUE;
         
-        BOOLEAN STACKMONITORING = TRUE;
+        BOOLEAN [
+        	TRUE {
+	        	UINT64 PATTERN : "The pattern to fill an empty stack";
+	        	UINT32 PROTECTION_SIZE : "Number of words to be checked";
+	       	},
+	       	FALSE
+        ] STACKMONITORING = TRUE;
                 
-        BOOLEAN PROTECTIONHOOK = FALSE;
+        BOOLEAN [
+        	TRUE {
+        		UINT32 SYS_SIZE;
+        	},
+        	FALSE
+        ] PROTECTIONHOOK = FALSE;
         BOOLEAN TIMEFRAMERECLAMATION = TRUE;
         
         

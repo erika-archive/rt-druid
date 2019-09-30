@@ -72,4 +72,11 @@ public class MacrosForSharedData implements IMacrosForSharedData {
 		return type + "EE_SHARED_CDATA "+valueName + body;
 	}
 
+	public String getHeader() {
+		return "";
+	}
+
+	public String getFooter() {
+		return "";
+	}
 }

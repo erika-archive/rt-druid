@@ -167,6 +167,7 @@ public class SectionWriterSimpleSpinlock extends SectionWriter implements IEEWri
 				sbCommon_c.append("#ifndef " + MAX_CPU + "\n" + "#define " + MAX_CPU + " " + rtosNumber + "\n"
 						+ "#endif\n\n");
 			}
+			sbCommon_c.append(macros.getHeader());
 
 			// add a spin lock for each global resources
 			String pre = "";
@@ -275,6 +276,7 @@ public class SectionWriterSimpleSpinlock extends SectionWriter implements IEEWri
 		    				SPINLOCK_STATUS_ARRAY,
 		    				"[EE_MAX_SPINLOCK]",
 		    				";\n") +"\n");
+			sbCommon_c.append(macros.getFooter());
 
 			sbCfg_h.append(sbSpinID + indent1 + "#define EE_MAX_SPINLOCK " + spinlockIndex + "\n"
 						+indent1 + "#define EE_MAX_SPINLOCK_OS "	+ spinlockIndex + "\n\n");

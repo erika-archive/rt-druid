@@ -65,4 +65,14 @@ public class EmptyMacrosForSharedData implements IMacrosForSharedData {
 		return type + valueName + body;
 	}
 
+	@Override
+	public String getHeader() {
+		return "";
+	}
+
+	@Override
+	public String getFooter() {
+		return "";
+	}
+
 }

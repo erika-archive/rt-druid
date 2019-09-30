@@ -1,5 +1,6 @@
 package com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.hw;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -21,6 +22,10 @@ import com.eu.evidence.rtdruid.vartree.IVarTree;
  */
 public class CpuHwDescription {
 	
+	public enum CpuType {
+		all, master_only, all_slavers;
+	}
+	
 	public static class McuCounterDevice {
 		protected final String id;
 		protected final String mcu_id;
@@ -28,6 +33,7 @@ public class CpuHwDescription {
 		protected final String entry;
 		protected final String handler;
 		protected final String isrDefine;
+		protected final CpuType cpu;
 		
 		
 		public McuCounterDevice(final String id, final String mcu_id, final int prio, final String entry, final String handler) {
@@ -37,15 +43,21 @@ public class CpuHwDescription {
 			this.entry = entry;
 			this.handler = handler;
 			this.isrDefine = null;
+			this.cpu = null;
 		}
 		
-		public McuCounterDevice(final String id, final String mcu_id, final int prio, final String entry, final String handler, final String isrDefine) {
+		public McuCounterDevice(final String id, final String mcu_id, final int prio, final String entry, final String handler, final String custom_define) {
+			this(id, mcu_id, prio, entry, handler, custom_define, CpuType.all);			
+		}
+		
+		public McuCounterDevice(final String id, final String mcu_id, final int prio, final String entry, final String handler, final String isrDefine, final CpuType cpu) {
 			this.id = id;
 			this.mcu_id = mcu_id;
 			this.prio = prio;
 			this.entry = entry;
 			this.handler = handler;
 			this.isrDefine = isrDefine;
+			this.cpu = cpu;
 		}
 		
 		/**
@@ -81,6 +93,10 @@ public class CpuHwDescription {
 		
 		public String getIsrDefine() {
 			return isrDefine;
+		}
+		
+		public CpuType getCpu() {
+			return cpu;
 		}
 	}
 
@@ -217,7 +233,7 @@ public class CpuHwDescription {
 
 	protected int startingIsrPriority = 0;
 
-	protected Map<String, McuCounterDevice> mcuCounterDevices = new HashMap<String, CpuHwDescription.McuCounterDevice>();
+	protected Map<String, List<McuCounterDevice>> mcuCounterDevices = new HashMap<String, List<CpuHwDescription.McuCounterDevice>>();
 
 	/**
 	 * Pack isr priorities
@@ -313,13 +329,39 @@ public class CpuHwDescription {
 		return maxIsrPriority;
 	}
 	
-	public McuCounterDevice getMcuDevice(String deviceId) {
-		return mcuCounterDevices.get(deviceId);
+	public McuCounterDevice getMcuDevice(String deviceId, int rtosId) {
+		List<McuCounterDevice> devices = mcuCounterDevices.get(deviceId);
+
+		if (devices == null || devices.isEmpty())
+			return null;
+		
+		for (McuCounterDevice device : devices) {
+			if (rtosId < 0 )
+				return device;
+			
+			if (rtosId == 0 && (device.getCpu() == CpuType.all || device.getCpu() == CpuType.master_only))
+				return device;
+				
+			if (/* else rtosId == 0 && */ (device.getCpu() == CpuType.all || device.getCpu() == CpuType.all_slavers))
+				return device;
+		}
+		
+		return null;
 	}
 	
 	protected void addMcuDevices(Collection<McuCounterDevice> devices) {
+		if (devices == null)
+			return;
+		
 		for (McuCounterDevice device : devices) {
-			mcuCounterDevices.put(device.getDeviveId(), device);
+			List<McuCounterDevice> list = null;
+			if (mcuCounterDevices.containsKey(device.getDeviveId())) {
+				list = mcuCounterDevices.get(device.getDeviveId());
+			} else {
+				list = new ArrayList<McuCounterDevice>();
+				mcuCounterDevices.put(device.getDeviveId(), list);
+			}
+			list.add(device);
 		}
 	}
 	
@@ -343,5 +385,9 @@ public class CpuHwDescription {
 	 */
 	public int getStartingIsrPriorities() {
 		return startingIsrPriority;
+	}
+	
+	public String getCpuType() {
+		return cpuType;
 	}
 }

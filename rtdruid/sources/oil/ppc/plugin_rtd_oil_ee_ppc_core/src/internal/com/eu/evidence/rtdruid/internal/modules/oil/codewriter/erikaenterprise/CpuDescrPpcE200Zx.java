@@ -16,6 +16,7 @@ import com.eu.evidence.rtdruid.modules.oil.codewriter.common.AbstractRtosWriter;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.common.CommonUtils;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.hw.CpuHwDescription;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.hw.EECpuDescriptionManager;
+import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.hw.CpuHwDescription.CpuType;
 import com.eu.evidence.rtdruid.modules.oil.erikaenterprise.constants.IEEWriterKeywords;
 import com.eu.evidence.rtdruid.vartree.IVarTree;
 
@@ -71,8 +72,17 @@ public class CpuDescrPpcE200Zx extends CpuHwDescription implements CpuHwDescript
 				if ("E200Z0".equals(cpu_model)) {
 					hw_type = IWritersKeywords.CPU_PPCE200Z0;
 					
+				} else if ("E200Z2".equals(cpu_model)) {
+					hw_type = IWritersKeywords.CPU_PPCE200Z2;
+					
+				} else if ("E200Z225".equals(cpu_model)) {
+					hw_type = IWritersKeywords.CPU_PPCE200Z225;
+					
 				} else if ("E200Z4".equals(cpu_model)) {
 					hw_type = IWritersKeywords.CPU_PPCE200Z4;
+					
+				} else if ("E200Z420".equals(cpu_model)) {
+					hw_type = IWritersKeywords.CPU_PPCE200Z420;
 					
 				} else if ("E200Z6".equals(cpu_model)) {
 					hw_type = IWritersKeywords.CPU_PPCE200Z6;
@@ -101,8 +111,16 @@ public class CpuDescrPpcE200Zx extends CpuHwDescription implements CpuHwDescript
 
 		if (SectionWriterHalMpc567.MCU_MPC5643L.equals(mcuModel)) {
 			addMcuDevices(Arrays.asList(new McuCounterDevice[] {
-					new McuCounterDevice("STM", "MPC5643L", 0, "30", "EE_mpc5643l_system_timer_handler")
+					new McuCounterDevice("STM", "PPCE200ZX", 0, "30", "EE_mpc5643l_system_timer_handler", "EE_PPCE200ZX_30_ISR")
 			}));
+		} else if (SectionWriterHalMpc567.MCU_SPC574K.equals(mcuModel)) {
+			addMcuDevices(Arrays.asList(new McuCounterDevice[] {
+					new McuCounterDevice("STM", "SPC574K", 0, "44", "EE_spc574k_system_timer_handler", "EE_PPCE200ZX_44_ISR", CpuType.master_only),
+					new McuCounterDevice("STM", "SPC574K", 0, "36", "EE_spc574k_system_timer_handler", "EE_PPCE200ZX_36_ISR", CpuType.all_slavers)
+			}));
+			macros = new MacrosForMPC5777C_SharedData();
+		} else if (SectionWriterHalMpc567.MCU_MPC5777C.equals(mcuModel)) {
+			macros = new MacrosForMPC5777C_SharedData();
 		}
 
 	}

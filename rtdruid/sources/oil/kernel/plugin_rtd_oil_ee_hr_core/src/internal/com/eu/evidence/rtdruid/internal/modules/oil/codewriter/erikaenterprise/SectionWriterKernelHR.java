@@ -39,9 +39,11 @@ import com.eu.evidence.rtdruid.modules.oil.codewriter.common.comments.ICommentWr
 import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.hw.CpuHwDescription;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.hw.CpuUtility;
 import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.hw.EEStacks;
+import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.hw.EmptyMacrosForSharedData;
 import com.eu.evidence.rtdruid.modules.oil.erikaenterprise.constants.IEEWriterKeywords;
 import com.eu.evidence.rtdruid.modules.oil.erikaenterprise.constants.IRemoteNotificationsConstants;
 import com.eu.evidence.rtdruid.modules.oil.erikaenterprise.interfaces.IExtractObjectsExtentions;
+import com.eu.evidence.rtdruid.modules.oil.erikaenterprise.interfaces.IMacrosForSharedData;
 import com.eu.evidence.rtdruid.modules.oil.implementation.OilObjectType;
 import com.eu.evidence.rtdruid.modules.oil.implementation.OilPath;
 import com.eu.evidence.rtdruid.vartree.IVarTree;
@@ -1337,15 +1339,35 @@ public class SectionWriterKernelHR extends SectionWriter implements
 		if (enable_rn) {
 			
         	final ICommentWriter commentWriterC = getCommentWriter(oilObjects[0], FileTypes.C);
-
+        	IMacrosForSharedData macros = new EmptyMacrosForSharedData();
+			CpuHwDescription currentStackDescription_master = ErikaEnterpriseWriter.getCpuHwDescription(oilObjects[0]);
+			if (currentStackDescription_master != null) {
+				macros = currentStackDescription.getShareDataMacros();
+			}
+			if (parent.checkPragma(0)) {
+				macros = macros.getPragma();
+			}
 			
 			final String MAX_RN = (binaryDistr ? "RTD_" : "EE_") + "MAX_RN";
 			
 			StringBuffer sbCommon_c = answer[0].get(FILE_EE_COMMON_C);
-			sbCommon_c.append(commentWriterC.writerBanner("FRSH Remote Notification")
-					+ indent1 + "EE_TYPECONTRACT "+
-					parent.sharedData("EE_rn_vres","["+MAX_RN+"][2]", Boolean.FALSE) + ";\n\n"
-				);	
+			sbCommon_c.append(macros.getHeader());
+			if (parent.checkKeyword(IWritersKeywords.CPU_NIOSII)) {
+				sbCommon_c.append(commentWriterC.writerBanner("FRSH Remote Notification")
+						+ indent1 + "EE_TYPECONTRACT "+
+						parent.sharedData("EE_rn_vres","["+MAX_RN+"][2]", Boolean.FALSE) + ";\n\n"
+				);
+			} else {
+				sbCommon_c.append(commentWriterC.writerBanner("FRSH Remote Notification") +
+						macros.vectorRam(
+									IWritersKeywords.INDENT + "EE_TYPECONTRACT ",
+				    				"EE_rn_vres",
+				    				"["+MAX_RN+"][2]",
+				    				"")
+						 + ";\n\n"
+				);
+			}
+			sbCommon_c.append(macros.getFooter());
 		}
 		
 	

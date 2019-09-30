@@ -65,6 +65,10 @@ IMPLEMENTATION ee {
                 UINT32 SYS_STACK_SIZE;
                 UINT32 SYS_CSA_SIZE : "Size of Context Save Area";
                 FLOAT CPU_CLOCK : "The cpu clock, expressed as MHz.";
+                
+                STRING STARTOS_1ST_SYNC_BARRIER_CB;
+                STRING STARTOS_2ND_SYNC_BARRIER_CB;
+                STRING SHUTDOWNOS_SYNC_BARRIER_CB;
             }
         ] CPU_DATA[];
 
@@ -76,7 +80,8 @@ IMPLEMENTATION ee {
 					TC27x,
 					TC27xA,
 					TC27xB,
-					TC27xC
+					TC27xC,
+					TC29x
 				] MODEL;
 
 				STRING LINKERSCRIPT : "A custom linker-script that is used for each cpu, unless a cpu-specific linker-script is defined.";
@@ -84,7 +89,8 @@ IMPLEMENTATION ee {
 		] MCU_DATA;
 		
 		ENUM [
-			TRIBOARD_TC2X5
+			TRIBOARD_TC2X5,
+			TRIBOARD_TC2XN
 		] BOARD_DATA = NO_BOARD;
     };
 };

@@ -346,6 +346,7 @@ public class SectionWriterRemoteProcedureCall extends SectionWriter implements
 						+ "#define " + MAX_CPU + " "+ oilObjects.length +"\n"
 						+ "#endif\n\n");
 			}
+			sbCommon_c.append(macros.getHeader());
 			
 			StringBuilder sbTable = new StringBuilder();
 			sbCommon_c.append(
@@ -422,6 +423,8 @@ public class SectionWriterRemoteProcedureCall extends SectionWriter implements
 							+indent2 +  sbTable.toString() + "\n"+indent1+ "};\n\n") + 
 					macros.vectorRam(indent1 + "EE_TYPEASRPC volatile ", "EE_as_rpc_RAM","["+MAX_CPU+"]", " = {\n" + indent2+sbCommonRpc_ram + "\n"+indent1 +"};\n") + "\n"
 			);
+			
+			sbCommon_c.append(macros.getFooter());
 		}
 		
 		

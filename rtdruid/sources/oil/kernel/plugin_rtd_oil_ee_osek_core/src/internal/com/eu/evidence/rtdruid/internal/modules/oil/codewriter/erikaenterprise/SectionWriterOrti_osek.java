@@ -5,6 +5,7 @@
  */
 package com.eu.evidence.rtdruid.internal.modules.oil.codewriter.erikaenterprise;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -553,6 +554,8 @@ public class SectionWriterOrti_osek extends SectionWriter implements
 				 * STACK
 				 **************************************************************/
 				if (stacks.length >0) {
+					final String stack_fill_pattern = SectionWriterKernelOsek.getStackFillPattern(ool);
+					
 					eeortiBuffer.append("\n"+indent2+"/* Stacks */\n");
 					
 					for (int i=0; i<stacks.length; i++) {
@@ -564,7 +567,7 @@ public class SectionWriterOrti_osek extends SectionWriter implements
 								"    SIZE = \""+s.size[0]+"\";\n" + 
 								"    STACKDIRECTION = \""+(s.directDown ? "DOWN" : "UP" )+"\";\n" + 
 								"    BASEADDRESS = \"(unsigned int *)("+s.baseAddressTxt[0]+")\";\n" + 
-								"    FILLPATTERN = \"0xA5A5A5A5\";\n" + 
+								"    FILLPATTERN = \""+stack_fill_pattern+"\";\n" + 
 								"};\n"); 
 						
 							//"(unsigned int *)((unsigned int*)((int)(&__alt_stack_pointer) - 4096))
@@ -728,6 +731,9 @@ public class SectionWriterOrti_osek extends SectionWriter implements
 		}
 		if ( (EE_ORTI_current & OsekOrtiConstants.EE_ORTI_ISR2) != 0 && !keywords.contains(IWritersKeywords.ENABLE_ORTI_ISR2)) {
 			keywords.add(IWritersKeywords.ENABLE_ORTI_ISR2);
+		}
+		if ( (EE_ORTI_current & OsekOrtiConstants.EE_ORTI_STACK) != 0 && !keywords.contains(IWritersKeywords.ENABLE_ORTI_ISR2)) {
+			keywords.add(IWritersKeywords.ENABLE_ORTI);
 		}
 	}	
 

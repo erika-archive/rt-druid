@@ -83,11 +83,11 @@ import com.eu.evidence.rtdruid.vartree.Vt2StringUtilities;
 @SuiteClasses({ AutosarCodeWriterArm7Test.class, AutosarCodeWriterAvr5Test.class, AutosarCodeWriterAvr8Test.class, AutosarCodeWriterComTest.class, 
 	AutosarCodeWriterCortexTest.class,
 		AutosarCodeWriterCosmicS12Test.class, AutosarCodeWriterDsPicTest.class, AutosarCodeWriterMico32Test.class,
-		AutosarCodeWriterMisraTest.class, AutosarCodeWriterMpc567Test.class, AutosarCodeWriterMpc5Test.class,
+		AutosarCodeWriterMisraTest.class, /* AutosarCodeWriterMpc567Test.class, */ AutosarCodeWriterMpc5Test.class,
 		AutosarCodeWriterMultiEcuTest.class,
 		AutosarCodeWriterMultiPic30Test.class, AutosarCodeWriterNiosIITest.class, AutosarCodeWriterPic32Test.class,
 		AutosarCodeWriterPpcMultiCoreTest.class, AutosarCodeWriterResourcesTest.class, 
-		AutosarCodeWriterRx200Test.class, AutosarCodeWritertMPTest.class, AutosarCodeWriterTricore1Test.class,
+		AutosarCodeWriterRx200Test.class, AutosarCodeWritertMPTest.class, //AutosarCodeWriterTricore1Test.class,
 		AutosarCodeWritertTest.class })
 public class AutosarOilWriterTests {
 	

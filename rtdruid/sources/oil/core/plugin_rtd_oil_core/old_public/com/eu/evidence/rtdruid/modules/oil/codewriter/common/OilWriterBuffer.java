@@ -215,7 +215,7 @@ public class OilWriterBuffer implements IOilWriterBuffer {
 				i = next_newline+1;
 			}
 			
-			if (one_line.trim().startsWith(IMPORT_START)) {
+			if (one_line.trim().startsWith(IMPORT_START) && !one_line.trim().equalsIgnoreCase("#include \"MemMap.h\"")) {
 				String new_line = one_line.trim() 
 						+ (one_line.endsWith("\n\r") ? "\n\r" 
 								: (one_line.endsWith("\r\n") ? "\r\n" 

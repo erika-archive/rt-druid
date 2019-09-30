@@ -409,10 +409,12 @@ public class SectionWriterRemoteNotification extends SectionWriter implements
 					//+"#endif /* __RN__ */"
 			);
 			
+			sbCommon_c.append(macros.getHeader());
 			if (macros instanceof IMacrosForSharedData.IPragma) {
 				sbCommon_c.append(((IMacrosForSharedData.IPragma) macros).getPragmaSections());
 			}
 			sbCommon_c.append(tmpCommon_c);
+			sbCommon_c.append(macros.getFooter());
 			
 		}
 		return answer;

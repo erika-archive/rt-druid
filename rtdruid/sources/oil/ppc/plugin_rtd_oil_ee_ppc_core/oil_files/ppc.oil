@@ -73,7 +73,10 @@ IMPLEMENTATION ee {
                 
                 ENUM [
                 	E200Z0,
+                	E200Z2,
+                	E200Z225,
                 	E200Z4,
+                	E200Z420,
                 	E200Z6,
                 	E200Z7
                 ] MODEL; 
@@ -81,11 +84,14 @@ IMPLEMENTATION ee {
                 ENUM [
                 	DIAB,
                 	GNU,
-                	CODEWARRIOR
+                	CODEWARRIOR,
+                	HIGHTEC
                 ] COMPILER_TYPE;
                 
                 BOOLEAN VLE;
                 STRING LINKERSCRIPT : "A custom linker-script that is used for the current cpu. This option override the mcu-level custom linker-script, if defined.";
+
+                STRING STARTUP_ADDRESS : "Address of startup code. Used only for slave cores. The master address is set through the boot and likerscript files.";
             }
             
         ] CPU_DATA;
@@ -96,7 +102,9 @@ IMPLEMENTATION ee {
 				ENUM [
 					MPC5668G, /* Z6+Z0 */
 					MPC5674F, /* (mono Z7) */
-					MPC5643L  /* (one or two Z4) */
+					MPC5643L, /* (one or two Z4) */
+					MPC5777C, /* (dual Z7) */
+					SPC574K   /* (two Z4 + one Z2*/
 				] MODEL;
 				STRING LINKERSCRIPT : "A custom linker-script that is used for each cpu, unless a cpu-specific linker-script is defined.";
 			}

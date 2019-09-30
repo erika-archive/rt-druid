@@ -5,7 +5,6 @@
  */
 package com.eu.evidence.rtdruid.internal.modules.oil.codewriter.erikaenterprise;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -39,10 +38,12 @@ import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.hw.CpuUtil
 import com.eu.evidence.rtdruid.modules.oil.codewriter.erikaenterprise.hw.EmptyMacrosForSharedData;
 import com.eu.evidence.rtdruid.modules.oil.erikaenterprise.constants.IEEWriterKeywords;
 import com.eu.evidence.rtdruid.modules.oil.erikaenterprise.interfaces.IExtractKeywordsExtentions;
+import com.eu.evidence.rtdruid.modules.oil.erikaenterprise.interfaces.IExtractObjectsExtentions;
 import com.eu.evidence.rtdruid.modules.oil.erikaenterprise.interfaces.IGetEEOPTExtentions;
 import com.eu.evidence.rtdruid.modules.oil.erikaenterprise.interfaces.IMacrosForSharedData;
 import com.eu.evidence.rtdruid.modules.oil.implementation.OilObjectType;
 import com.eu.evidence.rtdruid.modules.oil.implementation.OilPath;
+import com.eu.evidence.rtdruid.oil.xtext.services.IOilTypesHelper;
 import com.eu.evidence.rtdruid.vartree.IVarTree;
 
 /**
@@ -51,12 +52,15 @@ import com.eu.evidence.rtdruid.vartree.IVarTree;
  * @author Nicola Serreli
  */
 public class SectionWriterKernelOsek extends SectionWriter implements
-		IEEWriterKeywords, IExtractKeywordsExtentions, IGetEEOPTExtentions {
+		IEEWriterKeywords, IExtractKeywordsExtentions, IGetEEOPTExtentions,
+		IExtractObjectsExtentions {
 	
 	private static final String EE_MAX_ISR2_WITH_RESOURCES = "EE_MAX_ISR2_WITH_RESOURCES";
 	
 	public final static String SGR_OS_MEM_PROTECTION_HOOK = "sgr_os_has_memory_protection_hook";
+	public final static String SGR_OS_MEM_PROTECTION_HOOK_STACK_SIZE = ISimpleGenResKeywords.OS_PROTECTION_HOOK_STACK;
 	public final static String EE_OPT_MEMORY_PROTECTION_HOOK = "EE_AS_HAS_PROTECTIONHOOK__";
+	public final static String EE_OPT_MEMORY_PROTECTION_HOOK_STACK = "EE_AS_PROTECTIONHOOK_HAS_STACK__";
 
 	public final static String EE_OPT_STACK_MONITORING = "EE_STACK_MONITORING__";
 	
@@ -2476,6 +2480,28 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 				}
 		
 			}
+			
+			{
+				/// STACK MONITORING
+				
+				final String stack_fill_pattern = getStackFillPattern(ool);
+				final Integer checkSize;
+				{
+					Object o = AbstractRtosWriter.getOsObject(ool, OsekConstants.SGRK__OSEKOS_STACK_WORDS_CHECK__);
+					if (o != null && o instanceof Integer) {
+						checkSize = (Integer) o;
+					} else {
+						checkSize = null;
+					}
+				}
+				
+				buffer_h.append(commentWriterH.writerBanner("Stack monitoring defines") +
+						indent1 + "#define EE_STACK_FILL_PATTERN " + stack_fill_pattern + "\n");
+				if (checkSize != null) {
+					buffer_h.append(
+						indent1 + "#define EE_STACK_WORDS_CHECK " + checkSize + "\n");
+				}
+			}
 		
 			// add a new line
 			buffer.append("\n");
@@ -2503,6 +2529,9 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 					CpuHwDescription currentStackDescription = ErikaEnterpriseWriter.getCpuHwDescription(oilObjects[0]);
 					if (currentStackDescription != null) {
 						macros = currentStackDescription.getShareDataMacros();
+					}
+					if (parent.checkPragma(0)) {
+						macros = macros.getPragma();
 					}
 					
 					int size = 0;
@@ -2541,6 +2570,7 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 					body_locker_task_isr.append("\n"+indent1+"};\n");
 	
 					StringBuffer bufferCommon = buffers[rtosId].get(FILE_EE_COMMON_C);
+					bufferCommon.append(macros.getHeader());
 					bufferCommon.append(
 							commentWriterC.writerBanner("Spin locks") + 
 							macros.vectorRam(
@@ -2563,6 +2593,7 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 				    				"EE_as_spinlocks_locker_task_or_isr2",
 				    				"[EE_MAX_SPINLOCK_USER]",
 				    				body_locker_task_isr.toString())+ "\n");
+					bufferCommon.append(macros.getFooter());
 				}
 			}
 		}
@@ -2930,6 +2961,10 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 			{
 				if (parent.checkKeyword(SGR_OS_MEM_PROTECTION_HOOK)) {
 					answer.add(EE_OPT_MEMORY_PROTECTION_HOOK);
+					
+					if (AbstractRtosWriter.getOsProperty(ool, ISimpleGenResKeywords.OS_PROTECTION_HOOK_STACK) != null) {
+						answer.add(EE_OPT_MEMORY_PROTECTION_HOOK_STACK);
+					}
 				}
 			}
 			
@@ -2951,4 +2986,168 @@ public class SectionWriterKernelOsek extends SectionWriter implements
 			throw new OilCodeWriterException(msg + " (" + val + ")"); 
 		}
 	}
+
+	@Override
+	public void updateObjects() throws OilCodeWriterException {
+		final IOilObjectList[] oilObjects = parent.getOilObjects();
+		
+		/*******************************************************************
+		 * Memory protection stack
+		 *******************************************************************/
+		if (parent.checkKeyword(SGR_OS_MEM_PROTECTION_HOOK)) {
+			IVarTree vt = parent.getVt();
+			
+			String stackSize = null;
+			
+			outBreak:
+			for (IOilObjectList ool : oilObjects) {
+				List<String> child = new ArrayList<String>();
+				List<String> types = parent.getRtosCommonChildType(ool, "PROTECTIONHOOK", child);
+				
+				for (int i=0; i<types.size(); i++) {
+					if (types.get(i).equalsIgnoreCase("true")) {
+						String[] values = CommonUtils.getValue(vt, child.get(i) + S + "SYS_SIZE");
+						if (values != null && values.length > 0) {
+							stackSize = values[0];
+							break outBreak;
+						}
+					}
+					
+				}
+				
+			}
+			
+			if (stackSize != null) {
+				for (IOilObjectList ool : oilObjects) {
+					for (ISimpleGenRes oo : ool.getList(IOilObjectList.OS)) {
+						oo.setProperty(ISimpleGenResKeywords.OS_PROTECTION_HOOK_STACK, stackSize);
+					}
+				}
+			}
+		}
+		
+		/*******************************************************************
+		 * Stack monitoring : pattern and size
+		 *******************************************************************/
+		BigInteger pattern = null;
+		Integer size = null;
+		if (parent.checkKeyword(ISimpleGenResKeywords.OS_STACK_MONITORING)) {
+			IVarTree vt = parent.getVt();
+			
+			for (IOilObjectList ool : oilObjects) {
+				List<String> child = new ArrayList<String>();
+				List<String> types = parent.getRtosCommonChildType(ool, "STACKMONITORING", child);
+				
+				for (int i=0; i<types.size(); i++) {
+					if (types.get(i).equalsIgnoreCase("true")) {
+						{
+							String[] values = CommonUtils.getValue(vt, child.get(i) + S + "PATTERN");
+							if (values != null && values.length > 0) {
+								String tmpValue = values[0];
+								
+								BigInteger decimal = null;
+								try {
+									if (tmpValue.startsWith("0x")) {
+										decimal = new BigInteger(tmpValue.substring(2), 16);
+									} else {
+										decimal = new BigInteger(tmpValue);
+									}
+								} catch (NumberFormatException e) {
+									throw new OilCodeWriterException("Invalid value for STACKMONITORING's PATTERN " + tmpValue);
+								}
+								if (decimal != null) {
+									if (decimal.signum() == -1) {
+										throw new OilCodeWriterException("STACKMONITORING's PATTERN must be positive");
+									} else {
+										if (decimal.bitLength() > 64) {
+											throw new OilCodeWriterException("STACKMONITORING's PATTERN has more than 64 bit");
+										}
+									}
+									
+									if (pattern == null) {
+										pattern = decimal;
+									} else if (!pattern.equals(decimal)) {
+										throw new OilCodeWriterException("Found different values for STACKMONITORING's PATTERN");
+									}
+								}
+								
+							}
+						}
+						{
+							String[] values = CommonUtils.getValue(vt, child.get(i) + S + "PROTECTION_SIZE");
+							if (values != null && values.length > 0) {
+								try {
+									Integer tmpValue = Integer.decode(values[0]);
+									
+									if (tmpValue <=0) {
+										throw new OilCodeWriterException("PROTECTION_SIZE must be greater than 0");
+									}
+									
+									if (size == null) {
+										size = tmpValue;
+									} else if (size != tmpValue) {
+										throw new OilCodeWriterException("Found different values for PROTECTION_SIZE");
+									}
+									
+								} catch (NumberFormatException e) {
+									throw new OilCodeWriterException("Invalid value for PROTECTION_SIZE " + values[0]);
+								}
+							}
+						}
+					}
+				}
+				
+			}
+		}
+		
+		if (pattern == null && parent.checkKeyword(OsekOrtiConstants.WK_ORTI_STACK)) {
+			pattern = new BigInteger(OsekOrtiConstants.DEFAULT_ORTI_STACK_FILL);
+		}
+		
+		for (IOilObjectList ool : oilObjects) {
+			for (ISimpleGenRes oo : ool.getList(IOilObjectList.OS)) {
+				if (pattern != null) {
+					oo.setObject(OsekConstants.SGRK__OSEKOS_FILL_PATTERN__, pattern);
+				}
+				if (size != null) {
+					oo.setObject(OsekConstants.SGRK__OSEKOS_STACK_WORDS_CHECK__, size);
+				}
+			}
+		}
+	}
+
+	
+	public static String getStackFillPattern(IOilObjectList ool) throws OilCodeWriterException {
+		
+
+		int stack_byte_size = 4; // 4 byte, default
+		{
+			CpuHwDescription descr = ErikaEnterpriseWriter.getCpuHwDescription(ool);
+			if (descr != null) {
+				stack_byte_size = descr.stackAddress;
+			}
+		}
+		int stack_size = stack_byte_size*8;
+		int stack_char = stack_byte_size*2;
+		
+		final String stack_fill_pattern;
+		{
+			Object o = AbstractRtosWriter.getOsObject(ool, OsekConstants.SGRK__OSEKOS_FILL_PATTERN__);
+			if (o != null && o instanceof BigInteger) {
+				BigInteger decimal = (BigInteger) o;
+				
+				if (decimal.bitLength() > stack_size) {
+					throw new OilCodeWriterException("STACKMONITORING's PATTERN requires more than " + stack_size + " bits");
+				}
+				
+				String tmp = "0000000000000000" + decimal.toString(16).toUpperCase();
+				
+				stack_fill_pattern = "0x" + tmp.substring(tmp.length()-stack_char);
+			} else {
+				stack_fill_pattern = OsekOrtiConstants.DEFAULT_ORTI_STACK_FILL;
+			}
+		}
+		return stack_fill_pattern;
+	}
+	
 }

@@ -295,6 +295,7 @@ public class SectionWriterQueuedSpinlock extends SectionWriter implements
 			}
 
 			sbCommon_c.append(
+					macros.getHeader() +
 					sbSpinShare.toString() + "\n" +
 //					indent1 + "#define RTD_MAX_SPIN_LOCK "+(spinNumber)+"\n\n" +
 //					sbSpinArrays.toString() + "\n\n" +
@@ -311,7 +312,9 @@ public class SectionWriterQueuedSpinlock extends SectionWriter implements
 						" = {\n" +
 						sbSpinValuesArray.toString() + "\n" +
 						indent1 + "};") +
-					"\n\n");
+					"\n\n" +
+					macros.getFooter()
+						);
 			
 			
 			sbCfg_h.append(sbSpinID + indent1 +"#define EE_MAX_SPINLOCK " + spinlockIndex + "\n"+

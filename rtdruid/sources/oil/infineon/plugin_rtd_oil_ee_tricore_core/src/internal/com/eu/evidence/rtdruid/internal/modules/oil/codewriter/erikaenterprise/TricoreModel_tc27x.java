@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import com.eu.evidence.modules.oil.tricore.constants.TricoreConstants;
@@ -372,8 +373,12 @@ public class TricoreModel_tc27x extends TricoreAbstractModel implements IEEWrite
 		if (currentStackDescription != null) {
 			macros =currentStackDescription.getShareDataMacros();
 		}
+		if (parent.checkPragma(0)) {
+			macros = macros.getPragma();
+		}
 		StringBuffer sbCommon_c = buffers.get(FILE_EE_COMMON_C);
 		{
+			sbCommon_c.append(macros.getHeader());
 			sbCommon_c.append(commentWriter.writerBanner("Slave core StartUp Address"));
 			StringBuilder buff = new StringBuilder(" = {\n");
 			StringBuilder decl = new StringBuilder();
@@ -414,6 +419,8 @@ public class TricoreModel_tc27x extends TricoreAbstractModel implements IEEWrite
 			    				"EE_as_core_start_addresses",
 			    				"["+MAX_CPU+" -1]",
 			    				buff + "\n"+indent +"};\n\n"));
+			
+			sbCommon_c.append(macros.getFooter());
 		}
 	}
 
@@ -422,7 +429,9 @@ public class TricoreModel_tc27x extends TricoreAbstractModel implements IEEWrite
 	 */
 	protected void writeMultistack(final int currentRtosId, final IOilObjectList ool, final IOilWriterBuffer answer) throws OilCodeWriterException {
 		final String indent = IWritersKeywords.INDENT;
-
+		ICommentWriter commentC = SectionWriter.getCommentWriter(ool, FileTypes.C);
+		StringBuffer sbInithal_c = answer.get(FILE_EE_CFG_C);
+		
 		{
 			/***********************************************************************
 			 * SYSTEM STACK SIZE
@@ -505,8 +514,11 @@ public class TricoreModel_tc27x extends TricoreAbstractModel implements IEEWrite
 				new long[] {0},
 				new String[] {" (int)(&"+stackSymbol+")"}, true);
 
+		// USED BY ORTI
+		ArrayList<EEStackData> stackTmp = new ArrayList<EEStackData>();
+		stackTmp.add(sys_stack);
+		
 		if (DEF__MULTI_STACK__.equals(parent.getStackType())) {
-			ICommentWriter commentC = SectionWriter.getCommentWriter(ool, FileTypes.C);
 			final boolean needStackMonitoring = parent.checkKeyword(ISimpleGenResKeywords.OS_STACK_MONITORING);
 	
 			/*
@@ -521,7 +533,6 @@ public class TricoreModel_tc27x extends TricoreAbstractModel implements IEEWrite
 	
 			
 			// ------------- Buffers --------------------
-			StringBuffer sbInithal_c = answer.get(FILE_EE_CFG_C);
 			
 			/* A buffer about stack  */
 			final StringBuffer sbStack = new StringBuffer();
@@ -529,9 +540,7 @@ public class TricoreModel_tc27x extends TricoreAbstractModel implements IEEWrite
 			/* A buffer about declarations of stacks  */
 			final StringBuffer sbStackDecl = new StringBuffer();
 			final StringBuffer sbStackDeclSize = new StringBuffer();
-			
-			
-			ArrayList<EEStackData> stackTmp = new ArrayList<EEStackData>();
+
 	
 			// ------------- Buffers --------------------
 			
@@ -762,9 +771,6 @@ public class TricoreModel_tc27x extends TricoreAbstractModel implements IEEWrite
 				pre = "";
 				post = "";
 				
-				// USED BY ORTI
-				stackTmp.add(sys_stack);
-				
 	//			 DECLARE STACK SIZE && STACK (ARRAY)
 				for (int j = 1; j < size.length; j++) {
 			    	final String memId = memoryId[j];
@@ -820,7 +826,7 @@ public class TricoreModel_tc27x extends TricoreAbstractModel implements IEEWrite
 	
 						sbStack
 								.append(indent+commentC.writerSingleLineComment("stack used only by IRQ handlers")
-										+ indent+"struct EE_TOS EE_tc_IRQ_tos = {\n"
+										+ indent+"struct EE_TOS const EE_tc_IRQ_tos = {\n"
 										+ indent+indent+"EE_STACK_INITP("+STACK_BASE_NAME+j+")"
 //										+ (needStackMonitoring ? ", EE_STACK_ENDP("+STACK_BASE_NAME+j+")" : "")
 										+ "\n" + indent+"};\n\n");
@@ -838,6 +844,36 @@ public class TricoreModel_tc27x extends TricoreAbstractModel implements IEEWrite
 						// USED BY ORTI
 //						stackTmp.add(new EEStackData(j, new long[] {sys_size}, new long[] {sys_size},
 //								new String[] {" (int)(&"+STACK_SYS_BASE_NAME+j+")"}, true)); // DELTA
+
+					}
+				}
+				
+				// Add protection hook stack
+				String stringValue = AbstractRtosWriter.getOsProperty(ool, ISimpleGenResKeywords.OS_PROTECTION_HOOK_STACK);
+				if (stringValue != null) {
+					long value = -1;
+					try {
+						value = Long.decode(stringValue);
+					} catch (NumberFormatException e) {
+						value = -1;
+					}
+					
+					if (value >=0) {
+						int j = size.length +1;
+						
+						
+						sbStackDecl.append(indent + "EE_STACK_T EE_STACK_ATTRIB "+STACK_BASE_NAME+j+"[EE_STACK_WLEN(STACK_"+j+"_SIZE)] EE_TC_FILL_STACK("+STACK_BASE_NAME+j+");\t" + commentC.writerSingleLineComment("Protection hook stack"));
+						sbStackDeclSize.append(indent + "#define STACK_"+j+"_SIZE "+value+" " + commentC.writerSingleLineComment("size = "+irqSize[0]+" bytes"));
+	
+						sbStack
+								.append(indent+commentC.writerSingleLineComment("stack used only by Protection Hook handlers")
+										+ indent+"struct EE_TOS const EE_tc_prot_hook_tos = {\n"
+										+ indent+indent+"EE_STACK_INITP("+STACK_BASE_NAME+j+")"
+//										+ (needStackMonitoring ? ", EE_STACK_ENDP("+STACK_BASE_NAME+j+")" : "")
+										+ "\n" + indent+"};\n\n");
+
+						stackTmp.add(new EEStackData(j, new long[] {value}, new long[] {value},
+								new String[] {" (int)(&"+STACK_BASE_NAME+j+")"}, true)); // Orti Protection Hook Stack
 
 					}
 				}
@@ -861,9 +897,58 @@ public class TricoreModel_tc27x extends TricoreAbstractModel implements IEEWrite
 			        sbStackDecl + "\n" +
 			        sbStack);
 		} else {
+			{
+				// ------------- Buffers --------------------
+				/* A buffer about stack  */
+				StringBuffer sbStack = new StringBuffer();
+
+				/* A buffer about declarations of stacks  */
+				StringBuffer sbStackDecl = new StringBuffer();
+				StringBuffer sbStackDeclSize = new StringBuffer();
+
+				// Add protection hook stack
+				String stringValue = AbstractRtosWriter.getOsProperty(ool, ISimpleGenResKeywords.OS_PROTECTION_HOOK_STACK);
+				if (stringValue != null) {
+					long value = -1;
+					try {
+						value = Long.decode(stringValue);
+					} catch (NumberFormatException e) {
+						value = -1;
+					}
+					
+					if (value >=0) {
+						int j = 1;
+						
+						
+						sbStackDecl.append(indent + "EE_STACK_T EE_STACK_ATTRIB "+STACK_BASE_NAME+j+"[EE_STACK_WLEN(STACK_"+j+"_SIZE)] EE_TC_FILL_STACK("+STACK_BASE_NAME+j+");\t" + commentC.writerSingleLineComment("Protection hook stack"));
+						sbStackDeclSize.append(indent + "#define STACK_"+j+"_SIZE "+value+" " + commentC.writerSingleLineComment("size = "+value+" bytes"));
+	
+						sbStack
+								.append(indent+commentC.writerSingleLineComment("stack used only by Protection Hook handlers")
+										+ indent+"struct EE_TOS const EE_tc_prot_hook_tos = {\n"
+										+ indent+indent+"EE_STACK_INITP("+STACK_BASE_NAME+j+")"
+//										+ (needStackMonitoring ? ", EE_STACK_ENDP("+STACK_BASE_NAME+j+")" : "")
+										+ "\n" + indent+"};\n\n");
+
+						stackTmp.add(new EEStackData(j, new long[] {value}, new long[] {value},
+								new String[] {" (int)(&"+STACK_BASE_NAME+j+")"}, true)); // Orti Protection Hook Stack
+
+					}
+				}
+				
+				// add stack sizes
+				sbInithal_c.append(sbStackDeclSize+"\n");
+
+
+				// add other stack declarations
+				sbInithal_c.append(sbStackDecl + "\n" +
+				        sbStack
+//				        +stackPatternFill
+				        );
+			}
 			
 			ISimpleGenRes sgrCpu = ool.getList(IOilObjectList.OS).get(0);
-			sgrCpu.setObject(SGRK_OS_STACK_LIST, new EEStackData[] {sys_stack});
+			sgrCpu.setObject(SGRK_OS_STACK_LIST, stackTmp.toArray(new EEStackData[0]));
 		}
 	}
 
