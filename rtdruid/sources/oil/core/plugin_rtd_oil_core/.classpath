@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src_xtext/model-edit"/>
+	<classpathentry kind="src" path="src_xtext/model-model"/>
+	<classpathentry kind="src" path="src_xtext/src"/>
+	<classpathentry kind="src" path="src_xtext/src-gen"/>
+	<classpathentry kind="src" path="src_xtext/xtend-gen"/>
+	<classpathentry excluding="**/.svn/|**/CVS/*" kind="src" output="bin_ant" path="src_ant"/>
+	<classpathentry excluding="**/.svn/|**/CVS/*" kind="src" path="src/internal"/>
+	<classpathentry excluding="**/.svn/|**/CVS/*" kind="src" path="src/public"/>
+	<classpathentry kind="src" path="old_internal"/>
+	<classpathentry kind="src" path="old_public"/>
+	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="var" path="ANT_HOME/lib/ant.jar"/>
+	<classpathentry kind="output" path="bin/"/>
+</classpath>

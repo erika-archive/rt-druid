@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: RT-Druid Oil Plug-in (tests)
+Bundle-SymbolicName: com.eu.evidence.rtdruid.oil.core.tests
+Bundle-Version: 2.8.0.qualifier
+Fragment-Host: com.eu.evidence.rtdruid.oil.core
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Bundle-Vendor: Evidence S.r.l.
+Require-Bundle: com.eu.evidence.rtdruid.tests,
+ org.eclipse.core.runtime,
+ org.eclipse.xtext,
+ org.eclipse.xtext.junit4,
+ org.eclipselabs.xtext.utils.unittesting;bundle-version="0.9.3",
+ org.hamcrest.library;bundle-version="1.1.0"

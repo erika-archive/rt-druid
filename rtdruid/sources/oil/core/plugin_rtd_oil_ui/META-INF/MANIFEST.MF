@@ -1,0 +1,24 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: RT-Druid Oil Plug-in (UI)
+Bundle-SymbolicName: com.eu.evidence.rtdruid.oil.ui;singleton:=true
+Bundle-Version: 2.8.0.qualifier
+Bundle-Activator: com.eu.evidence.rtdruid.modules.oil.ui.Rtd_oil_uiPlugin
+Require-Bundle: com.eu.evidence.rtdruid.core,
+ com.eu.evidence.rtdruid.core.ui,
+ com.eu.evidence.rtdruid.oil.core,
+ org.eclipse.ui.ide,
+ org.eclipse.ui.forms,
+ org.eclipse.ui.workbench.texteditor,
+ org.eclipse.xtext.ui,
+ org.eclipse.xtext.ui.shared,
+ org.eclipse.compare,
+ org.eclipse.ui.editors,
+ org.eclipse.ui,
+ org.antlr.runtime
+Bundle-Vendor: Evidence S.r.l.
+Bundle-ActivationPolicy: lazy
+Export-Package: com.eu.evidence.rtdruid.modules.oil.ui.views,
+ com.eu.evidence.rtdruid.oil.xtext.ui.contentassist,
+ com.eu.evidence.rtdruid.oil.xtext.ui.contentassist.antlr
+Import-Package: org.apache.log4j

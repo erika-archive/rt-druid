@@ -1,0 +1,37 @@
+OIL_VERSION = "2.4";
+
+IMPLEMENTATION ee {
+    OS {
+        ENUM [STANDARD, EXTENDED] STATUS = STANDARD;
+
+        BOOLEAN STARTUPHOOK = FALSE;
+        BOOLEAN ERRORHOOK = FALSE;
+        BOOLEAN SHUTDOWNHOOK = FALSE;
+        BOOLEAN PRETASKHOOK = FALSE;
+        BOOLEAN POSTTASKHOOK = FALSE;
+        BOOLEAN USEGETSERVICEID = FALSE;
+        BOOLEAN USEPARAMETERACCESS = FALSE;
+ 
+ 		ENUM [USE_RPC] REMOTENOTIFICATION;
+        ENUM [
+           	BCC1,
+           	BCC2,
+           	ECC1,
+           	ECC2
+        ] KERNEL_TYPE;
+/*
+	Deprecated. it has not to be used         
+        ENUM [
+           	SC1,
+           	SC2,
+           	SC3,
+           	SC4
+        ] SCALABILITYCLASS;
+*/
+    };
+
+	TASK {
+		UINT32 PRIORITY;
+        ENUM [NON, FULL] SCHEDULE;
+	};
+};

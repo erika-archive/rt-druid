@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="com.eu.evidence.rtdruid.oil.core" default="build.jars" basedir=".">
+
+	<property file="RT_Druid_configurator_number.properties"/>
+
+
+<!--
+******************************************
+                 COMMON
+******************************************
+-->
+	<import file="../../../../products/tool_build_scripts/ant_parameters.xml" optional="false"/>
+
+	<import file="../../../../products/tool_build_scripts/manual_build_plugins.xml" optional="false"/>
+	
+	<property name="bundleId" value="com.eu.evidence.rtdruid.oil.core"/>
+	<property name="bundleVersion" value="${rtd_oil_core_v}.${build_number}"/>
+
+
+<!--
+******************************************
+                 SPECIFIC
+******************************************
+-->
+	<target name="build.update.jar" description="Build the plug-in: ${bundleId} for an update site.">
+		<antcall target="common_build.update.jar">
+			<param name="plugin_id" value="${bundleId}"/>
+			<param name="plugin_vers" value="${bundleVersion}"/>
+		</antcall>
+	</target>
+
+	<target name="rtdruid_oil_core.jar" unless="rtdruid_oil_core.jar" description="Create jars: ${bundleId} rtdruid_oil_core.jar.">
+		<path id="common_build_classpath">
+			<fileset dir="${eclipsePlugins}/" includes="**/*.jar"			/>
+			
+			<pathelement path="${plugin.temp.folder}/com.eu.evidence.rtdruid.core_${rtd_core_v}.${build_number}/rtdruid_core.jar"/>
+			<pathelement path="${plugin.temp.folder}/*/rtdruid_core.jar"/>
+			
+			<pathelement path="${plugin.temp.folder}/com.eu.evidence.templates.core_${rtd_templates_v}.${build_number}/"/>
+			<pathelement path="${plugin.temp.folder}/com.eu.evidence.templates.core_*/"/>
+
+		</path>
+		<resources id="common_build_binary_files">
+			<fileset dir="src/internal" >
+				<include name="**/*"/>
+				<exclude name="**/.svn/"/>
+					<exclude name="**/*.java"/>
+				<exclude name="**/package.htm*"/>
+			</fileset>
+			<fileset dir="src/public" >
+				<include name="**/*"/>
+				<exclude name="**/.svn/"/>
+					<exclude name="**/*.java"/>
+				<exclude name="**/package.htm*"/>
+			</fileset>
+			<fileset dir="old_internal" >
+				<include name="**/*"/>
+				<exclude name="**/.svn/"/>
+					<exclude name="**/*.java"/>
+				<exclude name="**/package.htm*"/>
+			</fileset>
+			<fileset dir="old_public" >
+				<include name="**/*"/>
+				<exclude name="**/.svn/"/>
+					<exclude name="**/*.java"/>
+				<exclude name="**/package.htm*"/>
+			</fileset>
+			<fileset dir="src_xtext/model-model" >
+				<include name="**/*"/>
+				<exclude name="**/.svn/"/>
+					<exclude name="**/*.java"/>
+				<exclude name="**/package.htm*"/>
+			</fileset>
+			<fileset dir="src_xtext/model-edit" >
+				<include name="**/*"/>
+				<exclude name="**/.svn/"/>
+					<exclude name="**/*.java"/>
+				<exclude name="**/package.htm*"/>
+			</fileset>
+			<fileset dir="src_xtext/src" >
+				<include name="**/*"/>
+				<exclude name="**/.svn/"/>
+					<exclude name="**/*.java"/>
+				<exclude name="**/package.htm*"/>
+			</fileset>
+			<fileset dir="src_xtext/src-gen" >
+				<include name="**/*"/>
+				<exclude name="**/.svn/"/>
+					<exclude name="**/*.java"/>
+				<exclude name="**/package.htm*"/>
+			</fileset>
+			<fileset dir="src_xtext/xtend-gen" >
+				<include name="**/*"/>
+				<exclude name="**/.svn/"/>
+					<exclude name="**/*.java"/>
+				<exclude name="**/package.htm*"/>
+			</fileset>
+		</resources>	
+
+		<antcall target="common_build.jar">
+			<param name="plugin_id" value="${bundleId}"/>
+			<param name="plugin_vers" value="${bundleVersion}"/>
+			<param name="jar_name" value="rtdruid_oil_core"/>
+			<param name="common_build_sources" value="src/internal/:src/public/:old_internal/:old_public/:src_xtext/model-model/:src_xtext/model-edit/:src_xtext/src/:src_xtext/src-gen/:src_xtext/xtend-gen/"/>
+			<reference refid="common_build_classpath"/>
+			<reference refid="common_build_binary_files"/>
+		</antcall>
+	</target>
+
+	<target name="rtdruid_oil_core_ant.jar" unless="rtdruid_oil_core_ant.jar" description="Create jars: ${bundleId} rtdruid_oil_core.jar.">
+		<path id="common_build_classpath">
+			<fileset dir="${eclipsePlugins}/" includes="**/*.jar"			/>
+			
+			<pathelement path="${plugin.temp.folder}/com.eu.evidence.rtdruid.core_${rtd_core_v}.${build_number}/rtdruid_core.jar"/>
+			<pathelement path="${plugin.temp.folder}/*/rtdruid_core.jar"/>
+
+			<pathelement path="${plugin.temp.folder}/com.eu.evidence.rtdruid.core_${rtd_core_v}.${build_number}/rtdruid_core_ant.jar"/>
+			<pathelement path="${plugin.temp.folder}/*/rtdruid_core_ant.jar"/>
+
+			<pathelement path="${plugin.temp.folder}/com.eu.evidence.templates.core_${rtd_templates_v}.${build_number}/"/>
+			<pathelement path="${plugin.temp.folder}/com.eu.evidence.templates.core_*/"/>
+			
+			<pathelement path="${plugin.temp.folder}/com.eu.evidence.rtdruid.oil.core_${rtd_oil_core_v}.${build_number}/rtdruid_oil_core.jar"/>
+			<pathelement path="${plugin.temp.folder}/*/rtdruid_oil_core.jar"/>
+
+		</path>
+		<resources id="common_build_binary_files">
+			<fileset dir="src_ant" >
+				<include name="**/*"/>
+				<exclude name="**/.svn/"/>
+					<exclude name="**/*.java"/>
+				<exclude name="**/package.htm*"/>
+			</fileset>
+		</resources>	
+
+		<antcall target="common_build.jar">
+			<param name="plugin_id" value="${bundleId}"/>
+			<param name="plugin_vers" value="${bundleVersion}"/>
+			<param name="jar_name" value="rtdruid_oil_ant"/>
+			<param name="common_build_sources" value="src_ant/"/>
+			<reference refid="common_build_classpath"/>
+			<reference refid="common_build_binary_files"/>
+		</antcall>
+	</target>
+
+	
+	<target name="publish.bin.parts">
+		<antcall target="common_publish.bin.parts">
+			<param name="plugin_id" value="${bundleId}"/>
+			<param name="plugin_vers" value="${bundleVersion}"/>
+			<param name="jar_name" value="rtdruid_oil_core"/>
+		</antcall>
+	</target>
+
+	
+
+	<target name="gather.bin.parts.update.rtd.configurator.number" if="current_configurator_number">
+		<!-- Update RTD version -->
+		<replaceregexp byline="true">
+		  <regexp pattern="0=(.*)"/>
+		  <substitution expression="0=${current_configurator_number}"/>
+		  <fileset dir="${destination.temp.folder}">
+		    <include name="about.mappings"/>
+		  </fileset>
+		</replaceregexp>
+	</target>
+	<target name="gather.bin.parts.update.rtd.svn.version" if="rtd.svn.number">
+		<replaceregexp byline="true">
+		  <regexp pattern="1=(.*)"/>
+		  <substitution expression="1=${rtd.svn.number}"/>
+		  <fileset dir="${destination.temp.folder}">
+		    <include name="about.mappings"/>
+		  </fileset>
+		</replaceregexp>
+	</target>
+	<target name="gather.bin.parts.update.rtd.build.version" if="rtd.build.number">
+		<replaceregexp byline="true">
+		  <regexp pattern="2=(.*)"/>
+		  <substitution expression="2=${rtd.build.number}"/>
+		  <fileset dir="${destination.temp.folder}">
+		    <include name="about.mappings"/>
+		  </fileset>
+		</replaceregexp>
+	</target>
+	
+	<target name="gather.bin.parts" if="destination.temp.folder">
+		<fileset dir="${basedir}" id="common_gather_binary">
+			<include name="plugin.xml"/>
+			<include name="plugin.properties"/>
+			<include name="icons/"/>
+			<include name="META-INF/"/>
+			<include name="epl-v10.html/"/>
+			<include name="about.ini"/>
+			<include name="about.properties"/>
+			<include name="about.mappings"/>
+			<include name="rtdruid.png"/>
+			<include name="rtdruid_oil_core.jar"/>
+			<include name="rtdruid_oil_ant.jar"/>
+		</fileset>
+
+		<antcall target="common_gather.bin.parts">
+			<param name="plugin_id" value="${bundleId}"/>
+			<param name="plugin_vers" value="${bundleVersion}"/>
+			<param name="jar_name" value="rtdruid_oil_core"/>
+			<reference refid="common_gather_binary"/>
+		</antcall>
+		
+		<echo> RTD Number ${current_configurator_number}, svn ${rtd.svn.number} --- ${destination.temp.folder} </echo>
+		<antcall target="gather.bin.parts.update.rtd.configurator.number"/>
+		<antcall target="gather.bin.parts.update.rtd.svn.version"/>
+		<antcall target="gather.bin.parts.update.rtd.build.version"/>
+	</target>
+
+	<!---->
+	<target name="build.jars" description="Compile classes and build nested jars for the plug-in: ${bundleId}.">
+		<delete file="${compilation.problem.marker}" quiet="true"/>
+		<available property="rtdruid_oil_core.jar" file="${build.result.folder}/rtdruid_oil_core.jar"/>
+		<antcall target="rtdruid_oil_core.jar"/>
+		<available property="rtdruid_oil_core_ant.jar" file="${build.result.folder}/rtdruid_oil_core_ant.jar"/>
+		<antcall target="rtdruid_oil_core_ant.jar"/>		
+	</target>
+
+	<target name="runtime_ant.jar">
+		<eclipse.convertPath property="bin_path" resourcepath="plugin_rtd_oil_core/bin_ant"/>
+		<jar destfile="rtdruid_oil_ant.jar" basedir="${bin_path}"/>
+	</target>
+</project>

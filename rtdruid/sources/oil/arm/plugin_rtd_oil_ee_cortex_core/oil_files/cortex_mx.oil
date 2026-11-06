@@ -1,0 +1,98 @@
+OIL_VERSION = "2.4";
+
+IMPLEMENTATION ee {
+    OS {
+        ENUM [
+            CORTEX_MX {
+                STRING ID = "default_cpu";
+                STRING APP_SRC[];
+                BOOLEAN [
+                    TRUE {
+                        BOOLEAN [
+                            TRUE {
+                                UINT32 SYS_SIZE;
+                            },
+                            FALSE
+                        ] IRQ_STACK;
+                    },
+                    FALSE
+                ] MULTI_STACK = FALSE;
+                
+                BOOLEAN JLINK = FALSE;
+                ENUM [
+                	IAR,
+                	CCS,
+                	GNU {
+                		BOOLEAN GECKO_SDK;
+                	},
+                	KEIL
+                ] COMPILER_TYPE;
+                
+                ENUM [
+                	M0,
+                	// M1,
+                	// M2,
+                	M3,
+                	M4
+                ] MODEL; 
+                FLOAT CPU_CLOCK;
+                
+                UINT32 SYS_STACK_SIZE;
+            }
+            
+        ] CPU_DATA[];
+
+        ENUM [
+        	LPCXPRESSO {
+                ENUM [
+                    CUSTOM {
+                        STRING MODEL;
+						STRING LINKERSCRIPT;
+						STRING INCLUDE_C;
+						STRING INCLUDE_S;
+						STRING STARTUP;
+                    },
+                    LPC12xx
+             	] MODEL;
+       		},
+       		STELLARIS {
+                ENUM [
+                    CUSTOM {
+                        STRING MODEL;
+						STRING LINKERSCRIPT;
+						STRING INCLUDE_C;
+						STRING INCLUDE_S;
+						STRING STARTUP;
+                    },
+                    LM4F232xxxx
+             	] MODEL;
+       		},
+       		STM32 {
+                ENUM [
+                    CUSTOM {
+                        STRING MODEL;
+						STRING LINKERSCRIPT;
+						STRING INCLUDE_C;
+						STRING INCLUDE_S;
+						STRING STARTUP;
+                    },
+                    STM32F4xx
+             	] MODEL;
+       		},
+       		EFM32 {
+                ENUM [
+                    CUSTOM {
+                        STRING MODEL;
+						STRING LINKERSCRIPT;
+						STRING INCLUDE_C;
+						STRING INCLUDE_S;
+						STRING STARTUP;
+                    },
+                    EFM32G232F128,
+                    EFM32TG110F32
+             	] MODEL;
+       		}
+       		
+     	] MCU_DATA[];
+   };
+};

@@ -1,0 +1,18 @@
+OIL_VERSION = "2.4";
+
+IMPLEMENTATION ee {
+    OS {
+
+   		ENUM [
+			NONE,
+			ALL,
+			OS_SECTION,
+			TASK_SECTION,
+			ISR2_SECTION,
+			RESOURCE_SECTION,
+			STACK_SECTION,
+			ALARM_SECTION
+		] ORTI_SECTIONS[];
+        
+    };
+};

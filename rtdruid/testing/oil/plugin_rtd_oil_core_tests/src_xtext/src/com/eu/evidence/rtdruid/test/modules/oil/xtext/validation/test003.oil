@@ -1,0 +1,24 @@
+IMPLEMENTATION a {
+	OS {
+		BOOLEAN [
+			TRUE {
+				INT32 b1;
+				BOOLEAN d;
+			},
+			FALSE
+		] a;
+		ALARM_TYPE at;
+	};
+	ALARM {
+	};
+};
+CPU s {
+	OS aa {
+		at = aaa;
+		
+		a = TRUE {
+			b1 = 1222123;
+		} : " aa ";
+	};
+	ALARM aaa;
+};

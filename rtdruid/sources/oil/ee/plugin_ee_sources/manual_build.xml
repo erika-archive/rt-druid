@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="com.eu.evidence.ee" default="build.jars" basedir=".">
+
+
+
+	<!--
+	******************************************
+	                 COMMON
+	******************************************
+	-->
+		<import file="../../../../products/tool_build_scripts/ant_parameters.xml" optional="false"/>
+
+		<import file="../../../../products/tool_build_scripts/manual_build_plugins.xml" optional="false"/>
+		
+		<property name="bundleId" value="com.eu.evidence.ee"/>
+		<property name="bundleVersion" value="${ee_code_v}.${build_number}"/>
+
+	
+		<fileset dir="${ee.base.location}" id="ee_sources">
+			<include name="pkg/**/*"/>
+			<include name="contrib/**/*"/>
+		</fileset>
+
+
+	<!--
+	******************************************
+	                 SPECIFIC
+	******************************************
+	-->
+		<target name="build.update.jar" description="Build the plug-in: ${bundleId} for an update site.">
+			<antcall target="common_build.update.jar">
+				<param name="plugin_id" value="${bundleId}"/>
+				<param name="plugin_vers" value="${bundleVersion}"/>
+			</antcall>
+		</target>
+
+		<target name="ee_core.jar" unless="ee_core.jar" description="Create jars: ${bundleId} ee_core.jar.">
+<!--			<path id="common_build_classpath">
+				<fileset dir="${eclipsePlugins}/" includes="**/*.jar"			/>
+				
+				<pathelement path="${plugin.temp.folder}/com.eu.evidence.rtdruid.oil.core_${rtd_oil_core_v}.${build_number}/rtdruid_oil_core.jar"/>
+				<pathelement path="${plugin.temp.folder}/*/rtdruid_oil_core.jar"/>
+
+				<pathelement path="${plugin.temp.folder}/com.eu.evidence.rtdruid.oil.ee.core_${rtd_oil_ee_core_v}.${build_number}/rtdruid_oil_ee_core.jar"/>
+				<pathelement path="${plugin.temp.folder}/com.eu.evidence.rtdruid.oil.ee.core_*/rtdruid_oil_ee_core.jar"/>
+				
+				<pathelement path="${plugin.temp.folder}/com.eu.evidence.templates.core_${rtd_templates_v}.${build_number}/"/>
+				<pathelement path="${plugin.temp.folder}/com.eu.evidence.templates.core_*/"/>
+				
+			</path>
+			<resources id="common_build_binary_files">
+				<fileset dir="java_src" >
+					<include name="**/*"/>
+					<exclude name="**/.svn/"/>
+					<exclude name="**/*.java"/>
+					<exclude name="**/package.htm*"/>
+				</fileset>
+			</resources>	
+
+			<antcall target="common_build.dir">
+				<param name="plugin_id" value="${bundleId}"/>
+				<param name="plugin_vers" value="${bundleVersion}"/>
+				<param name="jar_name" value="ee_core"/>
+				<param name="common_build_sources" value="java_src/"/>
+				<reference refid="common_build_classpath"/>
+				<reference refid="common_build_binary_files"/>
+			</antcall>-->
+		</target>
+
+		<target name="publish.bin.parts">
+			<antcall target="common_publish.bin.parts">
+				<param name="plugin_id" value="${bundleId}"/>
+				<param name="plugin_vers" value="${bundleVersion}"/>
+				<param name="jar_name" value="ee_core"/>
+			</antcall>
+		</target>
+	
+		<target name="gather.bin.parts.update.ee.version" if="ee.svn.number">
+			<!-- Update EE version -->
+			<replaceregexp byline="true">
+			  <regexp pattern="0=(.*)"/>
+			  <substitution expression="0=${ee.svn.number}"/>
+			  <fileset dir="${destination.temp.folder}">
+			    <include name="about.mappings"/>
+			  </fileset>
+			</replaceregexp>
+		</target>
+
+		<target name="gather.bin.parts" if="destination.temp.folder">
+			
+			<antcall target="common_gather.bin.files">
+				<param name="subfolder" value="ee_files"/>
+				<reference refid="ee_sources" torefid="common_gather_binary"/>
+			</antcall>
+			
+			
+			<fileset dir="${basedir}" id="common_gather_binary">
+				<include name="META-INF/"/>
+			<include name="epl-v10.html/"/>
+				<include name="plugin.xml"/>
+				<include name="rtdruid.png"/>
+				<include name="about.ini"/>
+				<include name="about.properties"/>
+				<include name="about.mappings"/>
+			</fileset>
+
+			<antcall target="common_gather.bin.parts">
+				<param name="plugin_id" value="${bundleId}"/>
+				<param name="plugin_vers" value="${bundleVersion}"/>
+				<param name="jar_name" value="ee_core"/>
+				<reference refid="common_gather_binary"/>
+			</antcall>
+			
+			<!-- Update EE version -->
+			<antcall target="gather.bin.parts.update.ee.version"/>
+		</target>
+
+		<!---->
+		<target name="build.jars" description="Compile classes and build nested jars for the plug-in: ${bundleId}.">
+			<delete file="${compilation.problem.marker}" quiet="true"/>
+			<available property="ee_core.jar" file="${build.result.folder}/ee_core.jar"/>
+			<antcall target="ee_core.jar"/>
+		</target>
+	
+	
+
+	<!-- Update EE source code -->
+		<target name="update.ee.files" if="ee.base.location">
+			<antcall target="clean"/>
+
+			<mkdir dir="${basedir}/ee_files"/>
+			<copy todir="${basedir}/ee_files">
+				<fileset refid="ee_sources"/>
+			</copy>
+		</target>
+	
+		<target name="clean">
+			<delete dir="ee_files"/>
+		</target>
+</project>

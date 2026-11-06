@@ -1,0 +1,113 @@
+OIL_VERSION = "2.4";
+
+IMPLEMENTATION ee {
+	OS {
+		UINT32 MAX_NESTING_LEVEL;
+		
+    	ENUM [
+    		MPC5 {
+                STRING ID = "default_cpu";
+                STRING APP_SRC[];
+                
+                BOOLEAN [
+                        TRUE {
+                            BOOLEAN [
+                                TRUE {
+                                    UINT32 SYS_SIZE;
+                                },
+                                FALSE
+                            ] IRQ_STACK;
+                            ENUM [
+                                SHARED,
+                                PRIVATE {
+                                    UINT32 SYS_SIZE;
+                                }
+                            ] DUMMY_STACK;
+                    },
+                FALSE
+                ] MULTI_STACK = FALSE;
+                
+                UINT32 STACK_BOTTOM;
+
+                UINT32 SYS_SIZE;    // available space for all user stacks
+                UINT32 SHARED_MIN_SYS_SIZE;    // size of shared stack
+                
+                // Irq Handlers
+                STRING HANDLER_IRQ0;
+                STRING HANDLER_LVL0;
+                STRING HANDLER_IRQ1;
+                STRING HANDLER_LVL1;
+                STRING HANDLER_IRQ2;
+                STRING HANDLER_LVL2;
+                STRING HANDLER_IRQ3;
+                STRING HANDLER_LVL3;
+                STRING HANDLER_IRQ4;
+                STRING HANDLER_LVL4;
+                STRING HANDLER_IRQ5;
+                STRING HANDLER_LVL5;
+                STRING HANDLER_IRQ6;
+                STRING HANDLER_LVL6;
+                STRING HANDLER_IRQ7;
+                STRING HANDLER_LVL7;
+
+            },
+       		//MPC5674F
+       		PPCE200ZX {
+                STRING ID = "default_cpu";
+                STRING APP_SRC[];
+                
+                BOOLEAN [
+                        TRUE {
+                            BOOLEAN [
+                                TRUE {
+                                    UINT32 SYS_SIZE;
+                                },
+                                FALSE
+                            ] IRQ_STACK;
+                    },
+                FALSE
+                ] MULTI_STACK = FALSE;
+                
+                UINT32 SYS_STACK_SIZE;
+                FLOAT CPU_CLOCK;
+                
+                ENUM [
+                	E200Z0,
+                	E200Z2,
+                	E200Z225,
+                	E200Z4,
+                	E200Z420,
+                	E200Z6,
+                	E200Z7
+                ] MODEL; 
+                
+                ENUM [
+                	DIAB,
+                	GNU,
+                	CODEWARRIOR,
+                	HIGHTEC
+                ] COMPILER_TYPE;
+                
+                BOOLEAN VLE;
+                STRING LINKERSCRIPT : "A custom linker-script that is used for the current cpu. This option override the mcu-level custom linker-script, if defined.";
+
+                STRING STARTUP_ADDRESS : "Address of startup code. Used only for slave cores. The master address is set through the boot and likerscript files.";
+            }
+            
+        ] CPU_DATA;
+        
+        
+        ENUM [
+			PPCE200ZX {
+				ENUM [
+					MPC5668G, /* Z6+Z0 */
+					MPC5674F, /* (mono Z7) */
+					MPC5643L, /* (one or two Z4) */
+					MPC5777C, /* (dual Z7) */
+					SPC574K   /* (two Z4 + one Z2*/
+				] MODEL;
+				STRING LINKERSCRIPT : "A custom linker-script that is used for each cpu, unless a cpu-specific linker-script is defined.";
+			}
+		] MCU_DATA;
+    };
+};

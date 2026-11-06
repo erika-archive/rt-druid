@@ -1,0 +1,35 @@
+				
+<project default="main">
+
+	<dirname property="priv_ant_param.file.basedir" file="${ant.file.imported}"/>
+	<property name="custom.properties" value="${priv_ant_param.file.basedir}/empty.properties" />
+	<property file="${custom.properties}" />
+	
+	<property name="base.build.dir" value="${basedir}" />
+
+	<property name="builder" value="${base.build.dir}/mini" />
+	<property file="build_mini.properties"/>
+	<import file="build_common.xml"/>
+	
+	
+	<target name="main" depends="-init">
+			
+		<!-- copy the product file (it is expected to be there) -->
+		<mkdir dir="${buildDirectory}/features/product_standalone_rtd_oil"/>
+		<copy todir="${buildDirectory}/features/product_standalone_rtd_oil" file="com_eu_evidence_rtdruid_oil_standalone_mini.product"/>
+		
+		<ant antfile="${eclipse.pdebuild.scripts}/productBuild/productBuild.xml" />
+
+		<antcall target="complete_all">
+			<param name="input.file.dir" value="${buildDirectory}/${buildLabel}"/>
+		</antcall>
+		
+		<antcall target="saveSpace"/>
+		
+	</target>
+</project>
+
+
+
+
+

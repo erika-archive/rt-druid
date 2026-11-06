@@ -1,0 +1,27 @@
+IMPLEMENTATION a {
+	OS {
+		ENUM [
+			t_string {
+				STRING a1 = 1;
+				STRING a2 = -1;
+				STRING a3 = 1.0; // ERROR
+				STRING a4 = -1.0; // ERROR
+				STRING a5 = 0x1;
+				STRING a6 = -0x1; // ERROR
+				STRING a7 = 0xFFFFFFFFFFFF; // ERROR
+				STRING a8 = 0x7fffffff;
+				STRING a9 = AUTO ; // ERROR
+				STRING WITH_AUTO a10 = AUTO ;
+				STRING a11 = a1;
+				STRING a12 = alarm;
+				STRING a13 = "abc";
+			}
+		] types;
+		ALARM_TYPE at;
+	};
+	ALARM {
+	};
+};
+CPU s {
+	ALARM alarm1;
+};

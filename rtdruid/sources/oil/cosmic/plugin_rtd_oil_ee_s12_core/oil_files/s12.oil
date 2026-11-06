@@ -1,0 +1,107 @@
+OIL_VERSION = "2.4";
+
+IMPLEMENTATION ee {
+    OS {
+
+        ENUM [
+            MC9S12XS { // still HERE for back-compatibility
+                STRING ID = "default_cpu";
+                STRING APP_SRC[];
+                
+                BOOLEAN [
+                        TRUE {
+                            BOOLEAN [
+                                TRUE {
+                                    UINT32 SYS_SIZE;
+                                },
+                                FALSE
+                            ] IRQ_STACK;
+                        },
+                        FALSE
+                ] MULTI_STACK = FALSE;
+                
+                BOOLEAN ICD = FALSE;	
+            },
+            MC9S12 { // all S12 cpus (like, s12xs and s12g)
+                STRING ID = "default_cpu";
+                STRING APP_SRC[];
+                
+                BOOLEAN [
+                        TRUE {
+                            BOOLEAN [
+                                TRUE {
+                                    UINT32 SYS_SIZE;
+                                },
+                                FALSE
+                            ] IRQ_STACK;
+                        },
+                        FALSE
+                ] MULTI_STACK = FALSE;
+            }
+        ] CPU_DATA[];
+
+        ENUM [
+			S12XS { // still HERE for back-compatibility
+				BOOLEAN SERIAL = FALSE;
+				BOOLEAN TIMER = FALSE;			
+			
+				ENUM [
+					CUSTOM {
+						STRING MODEL;
+						STRING LINKERSCRIPT;
+						STRING INCLUDE_H;
+						STRING INCLUDE_C;
+						STRING INCLUDE_S;
+					},
+					MC9S12XS128,
+					MC9S12G128,
+					MC9S12GN16,
+					MC9S12GN32,
+					MC9S12G48,
+					MC9S12GN48
+				] MODEL;
+			},
+			MC9S12 {
+				BOOLEAN SERIAL = FALSE;
+				BOOLEAN TIMER = FALSE;			
+			
+				ENUM [
+					CUSTOM {
+						STRING MODEL;
+						STRING LINKERSCRIPT;
+						STRING INCLUDE_H;
+						STRING INCLUDE_C;
+						STRING INCLUDE_S;
+					},
+					MC9S12XS128,
+					MC9S12G128
+				] MODEL;
+			}
+		] MCU_DATA;
+
+		ENUM [
+			// ----- FREESCALE S12XS -----
+			DEMO9S12XSFAME {	
+						
+				ENUM [
+						POTENTIOMETEER,
+						ADC,
+						BUTTONS,
+						LEDS,
+						LIGHT_SENSOR,
+						ALL
+				] OPTIONS[];
+			},
+			// ----- FREESCALE S12G -----
+			TWRS12G128 {	
+						
+				ENUM [
+						SCI,
+						BUTTONS,
+						LEDS,
+						ALL
+				] OPTIONS[];
+			}
+		] BOARD_DATA = NO_BOARD;
+    };
+};

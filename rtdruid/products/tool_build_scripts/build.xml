@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="rtdruid" default="help" basedir=".">
+
+	
+	<import file="ant_parameters.xml" optional="false"/>
+	
+			
+<!--
+*******************************
+	All plugins
+*******************************
+-->
+			
+	<!-- Maybe is better to autogenerate this target, inside ant or outside and then import here -->
+	<target name="oil_core.features" if="enable_oil_core_features">
+		<ant antfile="manual_build.xml" target="${target}" dir="../../sources/oil/core/feature_rtd_oil_core"/>
+	</target>
+
+	<target name="oil_ee.features" if="enable_oil_ee_features">
+		<ant antfile="manual_build.xml" target="${target}" dir="../../sources/oil/ee/feature_rtd_oil_ee"/>
+
+		<ant antfile="manual_build.xml" target="${target}" dir="../../sources/oil/core/feature_rtd_oil_cdt"/>
+
+		<ant antfile="manual_build.xml" target="${target}" dir="../../sources/oil/arm/feature_rtd_oil_ee_cortex"/>
+		<ant antfile="manual_build.xml" target="${target}" dir="../../sources/oil/arm/feature_rtd_oil_ee_cortex_rx"/>
+		<ant antfile="manual_build.xml" target="${target}" dir="../../sources/oil/arm/feature_rtd_oil_ee_arm"/>
+		<ant antfile="manual_build.xml" target="${target}" dir="../../sources/oil/arm/feature_rtd_oil_contrib_st_core"/>
+		<ant antfile="manual_build.xml" target="${target}" dir="../../sources/oil/atmel/feature_rtd_oil_ee_avr"/>
+		<ant antfile="manual_build.xml" target="${target}" dir="../../sources/oil/microchip/feature_rtd_oil_ee_dspic"/>
+		<ant antfile="manual_build.xml" target="${target}" dir="../../sources/oil/kernel/feature_rtd_oil_ee_fp"/>
+		<ant antfile="manual_build.xml" target="${target}" dir="../../sources/oil/kernel/feature_rtd_oil_ee_iris"/>
+		<ant antfile="manual_build.xml" target="${target}" dir="../../sources/oil/kernel/feature_rtd_oil_ee_hr"/>
+		<ant antfile="manual_build.xml" target="${target}" dir="../../sources/oil/kernel/feature_rtd_oil_ee_osek"/>
+		<ant antfile="manual_build.xml" target="${target}" dir="../../sources/oil/altera/feature_rtd_oil_ee_nios2"/>
+		<ant antfile="manual_build.xml" target="${target}" dir="../../sources/oil/ppc/feature_rtd_oil_ee_ppc"/>
+		<ant antfile="manual_build.xml" target="${target}" dir="../../sources/oil/cosmic/feature_rtd_oil_ee_s12"/>
+		<ant antfile="manual_build.xml" target="${target}" dir="../../sources/oil/lattice/feature_rtd_oil_ee_mico32"/>
+		<ant antfile="manual_build.xml" target="${target}" dir="../../sources/oil/infineon/feature_rtd_oil_ee_tricore"/>
+		<ant antfile="manual_build.xml" target="${target}" dir="../../sources/oil/renesas/feature_rtd_oil_ee_renesas"/>
+		<ant antfile="manual_build.xml" target="${target}" dir="../../sources/oil/intel/feature_rtd_oil_ee_x86"/>
+			
+		<ant antfile="manual_build.xml" target="${target}" dir="../../sources/oil/ensilica/feature_rtd_oil_ee_esirisc"/>
+		<ant antfile="manual_build.xml" target="${target}" dir="../../sources/oil/ti/feature_rtd_oil_ee_msp430"/>
+
+		<ant antfile="manual_build.xml" target="${target}" dir="../../sources/oil/ee/feature_ee"/>
+		<ant antfile="manual_build.xml" target="${target}" dir="../../sources/oil/atmel/feature_ee_templates_avr"/>
+		<ant antfile="manual_build.xml" target="${target}" dir="../../sources/oil/microchip/feature_ee_templates_dspic"/>
+		<ant antfile="manual_build.xml" target="${target}" dir="../../sources/oil/arm/feature_ee_templates_cortex"/>
+		<ant antfile="manual_build.xml" target="${target}" dir="../../sources/oil/cosmic/feature_ee_templates_s12"/>
+		<ant antfile="manual_build.xml" target="${target}" dir="../../sources/oil/ppc/feature_ee_templates_ppc"/>
+		<ant antfile="manual_build.xml" target="${target}" dir="../../sources/oil/infineon/feature_ee_templates_tricore"/>
+		<ant antfile="manual_build.xml" target="${target}" dir="../../sources/oil/lattice/feature_ee_templates_mico32"/>
+	</target>
+
+	<target name="sched_analysis.features" if="enable_sched_analysis_features">
+		<ant antfile="manual_build.xml" target="${target}" dir="../../sources/analysis/feature_rtd_sched_analysis"/>
+	</target>
+
+	<target name="rtdruid_tests.features" if="enable_tests_features">
+		<ant antfile="manual_build.xml" target="${target}" dir="../../testing/core/feature_rtd_tests"/>
+		<ant antfile="manual_build.xml" target="${target}" dir="../../testing/core/feature_rtd_ui_tests"/>
+	</target>
+
+	<target name="all.features">
+		<!-- Check if we have to enable all features-->
+		<condition property="enable_all_rtdruid_features" value="true">
+			<and>
+				<not><isset property="enable_only_core_features"/></not>
+
+				<not><isset property="enable_oil_core_features"/></not>
+				<not><isset property="enable_oil_ee_features"/></not>
+				<not><isset property="enable_sched_analysis_features"/></not>
+				<not><isset property="enable_tests_features"/></not>
+			</and>
+		</condition>
+		<condition property="enable_oil_core_features" value="true">
+			<isset property="enable_all_rtdruid_features"/>
+		</condition>
+		<condition property="enable_oil_ee_features" value="true">
+			<isset property="enable_all_rtdruid_features"/>
+		</condition>
+		<condition property="enable_sched_analysis_features" value="true">
+			<isset property="enable_all_rtdruid_features"/>
+		</condition>
+		
+		
+		<ant antfile="manual_build.xml" target="${target}" dir="../../sources/core/feature_rtd_core" />
+		<antcall target="oil_core.features"/>
+		<antcall target="oil_ee.features"/>
+		<antcall target="sched_analysis.features"/>
+		<antcall target="rtdruid_tests.features"/>
+	</target>
+			
+<!--
+*******************************
+	step 1 : CLEAN  
+*******************************
+-->
+	
+	<target name="lazy.clean" depends="import" description="Clean the plug-in: rtdruid of all the zips, jars and logs created.">
+			
+		<delete dir="${product.temp.folder}"/>
+		<delete file="${output.folder}"/>
+		
+	</target>
+	
+	<target name="clean" depends="import" description="Clean the plug-in: rtdruid of all the zips, jars and logs created.">
+		
+		<delete dir="${temp.folder}"/>
+		<delete file="${output.folder}/${outputFile}.zip"/>
+		
+		<antcall target="all.features">
+			<param name="target" value="clean"/>
+		</antcall>
+		
+	</target>
+
+			
+<!--
+*******************************
+	step 2 : build all plugins  
+*******************************
+-->
+	
+	<target name="build.features" depends="import" description="Build all features and their plugins (compile jars and prepare all file required by each plugin and features).">
+		
+		<antcall target="all.features">
+			<param name="target" value="build.update.jar"/>
+		</antcall>
+	
+	</target>
+	
+
+<!--
+*******************************
+	step 3 : Add sources
+*******************************
+-->
+	
+	<target name="build.sources" depends="import" description="Build all source features and plugins.">
+<!--		
+		<antcall target="all.features">
+			<param name="target" value="build.sources"/>
+		</antcall>
+-->	
+	</target>
+
+
+<!--
+*******************************
+	optional step 4 : Sign jars
+*******************************
+-->
+	
+	<target name="sign.jars" depends="import" description="Sign all features and plugins.">
+<!--		
+		each jar is signed during the build
+-->	
+	</target>
+
+
+<!--
+*******************************
+	step 5 : Fix categories
+*******************************
+-->
+	
+	<target name="add.p2.categories" depends="import" description="Add p2 categories to website">
+		<p2.publish.featuresAndBundles
+		    metadataRepository="file:${site.output}"
+		    artifactRepository="file:${site.output}"
+		    publishArtifacts="true"
+		    compress="true"
+		    source="${site.output}"
+		/>
+
+		<eclipse.publish.featuresAndBundles
+		    metadataRepository="file:${site.output}"
+		    artifactRepository="file:${site.output}"
+		    compress="true"
+			category="file:${basedir}/category.xml"
+		>
+			<features dir="${site.output}"/>
+			<bundles dir="${site.output}"/>
+		</eclipse.publish.featuresAndBundles>
+				
+	</target>
+
+
+	
+<!--
+*******************************
+	step 6 : Zip all things
+*******************************
+-->
+	
+	<target name="zip.plugin" depends="import" description="Make all zip files">
+		<property name="outputFile" value="rtdruid_tux_website_${build_number}"/>
+		<zip
+				destfile="${output.folder}/${outputFile}.zip"
+				basedir="${site.output}"
+				filesonly="true"
+				whenempty="skip"
+				update="false"/>
+	</target>
+
+<!--
+*******************************
+	Make a zip file that contains the plugin
+*******************************
+-->
+
+	<target name="zip.distribution" depends="import" description="Make a zip file that contains the plugin.">
+		<antcall target="build.features"/>
+		<antcall target="sign.jars"/>
+		<antcall target="add.p2.categories"/>
+		<antcall target="zip.plugin"/>
+	</target>
+
+<!--
+*******************************
+	Make a zip file that contains the plugin with all sources
+*******************************
+-->
+<!--	
+	<target name="zip.distribution.with.sources" depends="import" description="Make a zip file that contains the plugin with all sources.">
+
+		<antcall target="build.features"/>
+		<antcall target="build.sources"/>
+		<antcall target="sign.jars"/>
+		<antcall target="add.p2.categories"/>
+		<antcall target="zip.plugin"/>
+	</target>
+-->	
+	
+
+<!--
+*******************************
+	Update EE files inside RT-Druid plugins.
+	Note: dis step is not required during the build
+*******************************
+-->
+	<target name="update.ee.files">
+		<antcall target="all.features">
+			<param name="target" value="update.ee.files"/>
+		</antcall>
+	</target>
+	
+<!--
+*******************************
+	HELP
+*******************************
+-->
+	
+	<target name="help">
+		
+		<echo>
+===================================		
+This little Ant scritp has 4 target:
+	* zip.distribution = make a .zip that contains all plugins and
+	                     features
+	* zip.distribution.with.sources = make a .zip that contains all plugins and
+	                     theirs sources (NOT fully working jet)
+	* clean      = remove all previous results (EE sources and templates, temp files, jars
+	               and zips)
+	* update.ee.files = fill RT-Druid sources with all files of EE distributed with RT-Druid
+						(useful at debug time)
+
+
+===================================
+Also there are few important variables:
+	* ee.base.location = where EE sources are located. If present, build scripts will update
+                             EE sources and templates inside RT-Druid plugins before build them
+	* temp.folder      = where put partial results
+	* destination      = where put the result of "zip.distribution"
+	                         Default value = current directory
+	* outputFile       = the name of "web site" zip file
+			
+	* ee.svn.number    = is used to set a valid version number for EE source plugin
+	* rtd.svn.number   = is used to set a valid version number for RT-Druid plugins (like Oil Configuration plugin)
+	* rtd.build.number = is used to set a valid build number for RT-Druid plugins (like Oil Configuration plugin)
+	
+
+To enable a sub set of RT-Druid plugin you should enable one or more of these variables	
+		enable_oil_core_features
+		enable_oil_ee_features
+		enable_sched_analysis_features
+
+
+===================================
+Each jar is signed during the build, if sign.key.location variable is set.
+			All these variables are required during the sign procedure:
+	* sign.key.location  = the file that contains the key
+	* sign.key.alias     = the alias to use
+	* sign.key.storepass = the password of key storage
+	* sign.key.keypass   = the password of private key
+
+
+===================================
+Build can be run using start_ant_builder.sh script, 
+directly invoking ant or through eclipse ant "external tool"
+			
+	sh start_ant_builder.sh [ant options] [target1 [...[targetN]]]
+	
+	option to set a variable:
+		-DvarName=value
+			
+	note: start_ant_builder.sh need ECLIPSE_HOME environment variable set to eclipse location 
+		
+===================================
+examples
+	
+	To produce a zip file named "RT_Druid" contains a website (without source), 
+			adding EE sources and templates from "D:\work\Evidence\Erika\ee",
+			saving temp files in "e:\work\temp_folder" and
+			saving outputs (website) in "e:\work\output_folder" :
+		sh start_ant_builder.sh \
+		   -Denable_oil_core_features=true \
+		   -Denable_oil_ee_features=true \
+		   -Denable_sched_analysis_features=true \
+		   -Dee.base.location=D:\work\Evidence\Erika\ee \
+		   -Dtemp.folder=E:\work\temp_folder \
+		   -Ddestination=E:\work\output_folder \
+		   -DoutputFile=RT_Druid \
+		   zip.distribution
+
+===================================	
+
+NB
+	Ant with eclipse may build a "workspace" subdirectory
+		</echo>
+	</target>
+
+</project>

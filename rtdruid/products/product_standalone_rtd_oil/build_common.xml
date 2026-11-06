@@ -1,0 +1,231 @@
+				
+<project>
+
+	<property name="rtdruid.iu" value="com.eu.evidence.rtdruid.core,com.eu.evidence.rtdruid.jscan.core,com.eu.evidence.rtdruid.oil.arm.core,com.eu.evidence.rtdruid.oil.avr.core,com.eu.evidence.rtdruid.oil.x86.core,com.eu.evidence.rtdruid.oil.core,com.eu.evidence.rtdruid.oil.cortex.core,com.eu.evidence.rtdruid.oil.cortex_rx.core,com.eu.evidence.rtdruid.oil.dspic.core,com.eu.evidence.rtdruid.oil.ee.core,com.eu.evidence.rtdruid.oil.esirisc.core,com.eu.evidence.rtdruid.oil.fp_edf.core,com.eu.evidence.rtdruid.oil.frsh.core,com.eu.evidence.rtdruid.oil.hr.core,com.eu.evidence.rtdruid.oil.mico32.core,com.eu.evidence.rtdruid.oil.msp430.core,com.eu.evidence.rtdruid.oil.nios2.core,com.eu.evidence.rtdruid.oil.osek.core,com.eu.evidence.rtdruid.oil.ppc.core,com.eu.evidence.rtdruid.oil.renesas.core,com.eu.evidence.rtdruid.oil.s12.core,com.eu.evidence.rtdruid.oil.tricore.core,com.eu.evidence.templates.core,com.eu.evidence.rtdruid.oil.contrib.st.core"/>
+
+	<property name="SITE_emft_2" value="emft-mwe-Update-2.3.0.zip"/>
+	<property name="SITE_xtext" value="tmf-xtext-Update-2.3.0.zip"/>
+	
+	
+	<target name="-init">
+		
+		<echo>
+			Getting RT-Druid from ${prebuild.rtdruid.site}
+		</echo>
+		
+		<property name="baseLocation" value="${eclipse.home}"/>
+		<!-- by default, check for deltapack co-located with eclipse -->
+		<property name="deltapack" value="${eclipse.home}/delta_pack/eclipse"/>
+	
+		<!-- Check that we have a deltapack -->
+		<available property="haveDeltaPack" file="${deltapack}"/>
+		<fail unless="haveDeltaPack" message="The deltapack is required to build this product.  Please edit buildProduct.xml or set the &quot;deltapack&quot; property." />
+	
+		<property name="output.dir">${basedir}/outputs</property>
+		
+		<property name="pluginPath" value="${prebuild.rtdruid.site}${path.separator}${deltapack}" />
+		
+		<property name="buildDirectory" value="${builder}/buildDirectory"/>
+		<property name="buildTempFolder" value="${builder}/buildTempDirectory" />
+
+
+	</target>
+	
+	<target name="saveSpace" if="save.space">
+		<delete dir="${builder}"/>
+		<delete dir="${buildDirectory}"/>
+		<delete dir="${buildTempFolder}"/>
+	</target>
+	
+	<target name="saveSpace_compl" if="save.space">
+		<delete dir="${input.file}"/>
+	</target>
+		
+	
+	<target name="set_script_set_wa" if="with_ant" >
+		
+		<fileset dir="rootfiles" id="win_scripts">
+			<include name="instantiate_template.sh"/>
+			<include name="instantiate_template.bat"/>
+			<include name="generate_code.sh"/>
+			<include name="generate_code.bat"/>
+			<include name="start_ant.sh"/>
+			<include name="start_ant.bat"/>
+			<include name="build.xml"/>
+		</fileset>
+
+		<fileset dir="rootfiles" id="linux_scripts">
+			<include name="instantiate_template.sh"/>
+			<include name="generate_code.sh"/>
+			<include name="start_ant.sh"/>
+			<include name="build.xml"/>
+		</fileset>
+
+	</target>
+
+	<target name="set_script_set_woa" unless="with_ant" >
+		<fileset dir="rootfiles" id="win_scripts">
+			<include name="instantiate_template.sh"/>
+			<include name="instantiate_template.bat"/>
+			<include name="generate_code.sh"/>
+			<include name="generate_code.bat"/>
+		</fileset>
+
+		<fileset dir="rootfiles" id="linux_scripts">
+			<include name="instantiate_template.sh"/>
+			<include name="generate_code.sh"/>
+		</fileset>
+	</target>
+
+	
+	<target name="-install.rtdruid.iu" if="rtdruid.iu">
+<!--		<p2.director 
+				roaming="true" 
+				metadataRepository="jar:file:${ECLIPSE_CACHE}/${SITE_emft_2}!/" 
+				artifactRepository="jar:file:${ECLIPSE_CACHE}/${SITE_emft_2}!/" 
+				destination="${TEMP_DIR}/zip/${archivePrefix}" 
+				>
+				<iu id="org.apache.commons.lang,org.eclipse.emf.mwe.core,org.eclipse.emf.mwe2.runtime"/>
+			</p2.director>-->
+		
+		<p2.director 
+				roaming="true" 
+				metadataRepository="jar:file:${ECLIPSE_CACHE}/${SITE_xtext}!/" 
+				artifactRepository="jar:file:${ECLIPSE_CACHE}/${SITE_xtext}!/" 
+				destination="${TEMP_DIR}/zip/${archivePrefix}" 
+				>
+				<iu id="org.eclipse.xtext,org.eclipse.xtext.util,org.eclipse.xtext.xbase.lib"/>
+			</p2.director>
+
+			<p2.director 
+				roaming="true" 
+				metadataRepository="file://${prebuild.rtdruid.site}" 
+				artifactRepository="file://${prebuild.rtdruid.site}" 
+				destination="${TEMP_DIR}/zip/${archivePrefix}" 
+				>
+				<iu id="${rtdruid.iu}"/>
+			</p2.director>
+		</target>
+	
+	<target name="-install.iu" if="required.iu">
+		<p2.director 
+			roaming="true" 
+			metadataRepository="file://${prebuild.rtdruid.site}" 
+			artifactRepository="file://${prebuild.rtdruid.site}" 
+			destination="${TEMP_DIR}/zip/${archivePrefix}" 
+			>
+			<iu id="${required.iu}"/>
+		</p2.director>
+	</target>
+	
+	<target name="-remove_launchers" if="required.remove_launchers">
+		<delete>
+<!--		<fileset dir="${TEMP_DIR}/zip/RT-Druid/p2"/>-->
+			<fileset dir="${TEMP_DIR}/zip/RT-Druid/plugins" includes="org.eclipse.equinox.launcher.*/**/*"/>
+<!--		<fileset dir="${TEMP_DIR}/zip/RT-Druid/" includes="artifacts.xml"/>-->
+			<fileset dir="${TEMP_DIR}/zip/RT-Druid/" includes=".eclipseproduct"/>
+			<fileset dir="${TEMP_DIR}/zip/RT-Druid/" includes="eclipse*"/>
+		</delete>
+	</target>
+	
+	<!-- Requires
+	TEMP_DIR 
+	input.file
+	required.iu
+	scripts (file set refId)
+	output.file
+	-->
+	<target name="complete" if="input.file.available">
+		<property name="TEMP_DIR" value="complete.build.temp.dir"/>
+		
+		<delete dir="${TEMP_DIR}"/>
+		<mkdir dir="${TEMP_DIR}/zip"/>
+		<unzip dest="${TEMP_DIR}/zip" src="${input.file}"/>
+		
+		<antcall target="saveSpace_compl"/>
+		<antcall target="-install.rtdruid.iu"/>
+		<antcall target="-install.iu"/>
+		<antcall target="-remove_launchers"/>
+		
+		<mkdir dir="${TEMP_DIR}/scripts"/>
+		<copy todir="${TEMP_DIR}/scripts">
+			<fileset refId="scripts"/>
+		</copy>
+		
+		<fixcrlf srcdir="${TEMP_DIR}/scripts"
+		         includes="**/*.bat" eol="crlf" eof="asis" />
+		<fixcrlf srcdir="${TEMP_DIR}/scripts"
+				         includes="**/*.sh" eol="lf" eof="remove" />
+		
+		<!-- note this command works only on unix systems ! 
+		<chmod dir="${TEMP_DIR}/scripts" perm="ugo+rx" 
+		       includes="**/*.sh"/> -->
+
+		<zip
+			destfile="${output.file}"
+			basedir="${TEMP_DIR}/zip"
+			filesonly="true"
+			whenempty="skip"
+			update="false"
+		>
+			<zipfileset dir="${TEMP_DIR}/scripts" includes="**/*" prefix="${archivePrefix}/evidence">
+				<exclude name="**/*.sh"/>
+				<exclude name="**/*.bat"/>
+			</zipfileset>
+			<zipfileset dir="${TEMP_DIR}/scripts" includes="**/*.sh" prefix="${archivePrefix}/evidence" filemode="755"/>
+			<zipfileset dir="${TEMP_DIR}/scripts" includes="**/*.bat" prefix="${archivePrefix}/evidence" filemode="755"/>
+		</zip>
+
+		<delete dir="${TEMP_DIR}"/>
+	</target>
+	
+	
+	<target name="complete_one">
+		
+		<available property="input.file.available" file="${input.file.dir}/${input.file.name}"/>
+		
+		<property name="TEMP_DIR" value="complete.build.temp.dir"/>
+		<mkdir dir="${output.dir}"/>
+		<antcall target="complete">
+<!--				<param name="TEMP_DIR" value="${TEMP_DIR}"/>--> 
+<!--				<param name="required.iu" value="com.eu.evidence.ee,com.eu.evidence.ee.templates.avr,com.eu.evidence.ee.templates.ppc,com.eu.evidence.ee.templates.dspic,com.eu.evidence.ee.templates.s12,com.eu.evidence.ee.templates.tricore"/>-->
+<!--				<reference refId="linux_scripts" torefId="scripts"/>-->
+			<param name="input.file" value="${input.file.dir}/${input.file.name}"/>
+<!--			<param name="output.file" value="${output.dir}/${input.file.name}"/>-->
+			<param name="output.file" value="${output.dir}/${buildId}.zip"/>
+			<reference refid="scripts"/>
+		</antcall>
+	</target>
+	
+	<target name="complete_all" depends="set_script_set_wa,set_script_set_woa">
+		<property name="input.file.dir" value="${basedir}"/>
+		
+		<antcall target="complete_one">
+			<param name="input.file.name" value="${buildId}-win32.win32.x86.zip"/>
+			<reference refid="win_scripts" torefid="scripts"/>
+		</antcall>
+		<antcall target="complete_one">
+			<param name="input.file.name" value="${buildId}-win32.win32.x86_64.zip"/>
+			<reference refid="win_scripts" torefid="scripts"/>
+		</antcall>
+		
+		<antcall target="complete_one">
+			<param name="input.file.name" value="${buildId}-linux.gtk.x86.zip"/>
+			<reference refid="linux_scripts" torefid="scripts"/>
+		</antcall>
+		<antcall target="complete_one">
+			<param name="input.file.name" value="${buildId}-linux.gtk.x86_64.zip"/>
+			<reference refid="linux_scripts" torefid="scripts"/>
+		</antcall>
+		
+		<antcall target="complete_one">
+			<param name="input.file.name" value="${buildId}-macosx.cocoa.x86.zip"/>
+			<reference refid="linux_scripts" torefid="scripts"/>
+		</antcall>
+		<antcall target="complete_one">
+			<param name="input.file.name" value="${buildId}-macosx.cocoa.x86_64.zip"/>
+			<reference refid="linux_scripts" torefid="scripts"/>
+		</antcall>
+	</target>
+	
+</project>
